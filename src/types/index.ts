@@ -3,6 +3,8 @@
  * Following strict TypeScript rules from technical specifications.
  */
 
+export * from './models';
+
 export type EntityId = string;
 
 export interface Vector2D {
