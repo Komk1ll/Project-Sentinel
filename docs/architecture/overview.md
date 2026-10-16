@@ -29,6 +29,7 @@ Project Sentinel utilizes a dual-engine architecture designed for high-performan
 
 ### 2. Three.js WebGL / OpenGL Engine
 - **Role**: 3D model inspection, volumetric lighting, particle effects, and OpenGL/WebGL shaders.
+- **GLB 3D Pipeline**: Complete support for `.glb` models, skeletal hierarchies (`SkinnedMesh`), bone attachments, and stepped pixel-art animations (see [pixelart_glb_pipeline.md](./pixelart_glb_pipeline.md) and [ADR 0002](../decisions/0002-glb-pixelart-animation-skeleton.md)).
 - **Camera Configuration**:
   - Isometric orthographic camera.
   - Azimuth: 45°
@@ -43,3 +44,4 @@ Project Sentinel utilizes a dual-engine architecture designed for high-performan
 - **Bundler**: Vite with relative paths (`base: './'`).
 - **Language**: TypeScript strict mode (no `any` allowed).
 - **Testing**: Vitest for game logic, math, and data contracts.
+
