@@ -48,6 +48,7 @@ export class GameEngine {
     this.threeRenderer = new ThreeRenderer({
       containerId: this.config.threeContainerId,
     });
+    this.phaserGame.registry.set('threeRenderer', this.threeRenderer);
 
     // 3. Start render loop for 3D overlay
     this.startLoop();

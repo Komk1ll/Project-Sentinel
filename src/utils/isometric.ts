@@ -37,3 +37,22 @@ export function isoToGrid(screenX: number, screenY: number): Vector2D {
 export function calculateIsometricDepth(gridX: number, gridY: number, elevation = 0): number {
   return (gridX + gridY) * 100 + elevation;
 }
+
+/**
+ * Determines the 8-way isometric direction from a motion delta vector (dx, dy).
+ */
+export function getIsometricDirectionFromDelta(
+  dx: number,
+  dy: number
+): 'N' | 'NE' | 'E' | 'SE' | 'S' | 'SW' | 'W' | 'NW' {
+  if (dx > 0 && dy > 0) return 'S';
+  if (dx < 0 && dy < 0) return 'N';
+  if (dx > 0 && dy < 0) return 'E';
+  if (dx < 0 && dy > 0) return 'W';
+  if (dx > 0) return 'SE';
+  if (dx < 0) return 'NW';
+  if (dy > 0) return 'SW';
+  if (dy < 0) return 'NE';
+  return 'S';
+}
+

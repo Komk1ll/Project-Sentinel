@@ -1,32 +1,56 @@
 import * as THREE from 'three';
+import { GLBModelLoader, LoadGLBOptions, InstantiateModelOptions } from './GLBModelLoader';
+import { PixelArtModelInstance, gridTo3DWorld } from './PixelArtModelInstance';
+import { PixelArtPostProcessor } from './PixelArtPostProcessor';
+import { IsometricDirection } from '../../types/models';
+import { Vector2D } from '../../types';
 
 export interface ThreeRendererOptions {
-  containerId: string;
+  containerId?: string;
+  containerElement?: HTMLElement;
   width?: number;
   height?: number;
+  pixelScale?: number;
+  customRenderer?: THREE.WebGLRenderer;
+}
+
+export interface SpawnModelOptions extends InstantiateModelOptions {
+  position?: Vector2D;
+  elevation?: number;
+  facing?: IsometricDirection | number;
 }
 
 /**
  * Three.js WebGL / OpenGL Renderer Integration
- * Configured for isometric orthographic camera (azimuth 45°, elevation 30°)
- * matching Project Sentinel Blender model render standards.
+ * Configured for isometric orthographic camera (azimuth 45°, elevation 30° / 35.264°)
+ * with full support for GLB pixel-art models, animations, skeleton attachments,
+ * and low-resolution retro pixel-art rendering.
  */
 export class ThreeRenderer {
   public scene: THREE.Scene;
   public camera: THREE.OrthographicCamera;
   public renderer: THREE.WebGLRenderer;
-  private container: HTMLElement;
+  public modelLoader: GLBModelLoader;
+  public pixelArtPostProcessor: PixelArtPostProcessor;
+
+  private activeModels: Set<PixelArtModelInstance> = new Set();
+  private container: HTMLElement | null = null;
+  private clock = new THREE.Clock();
   private isDestroyed = false;
 
-  constructor(options: ThreeRendererOptions) {
-    const container = document.getElementById(options.containerId);
-    if (!container) {
+  constructor(options: ThreeRendererOptions = {}) {
+    let container: HTMLElement | null = options.containerElement ?? null;
+    if (!container && options.containerId && typeof document !== 'undefined') {
+      container = document.getElementById(options.containerId);
+    }
+
+    if (!container && typeof document !== 'undefined' && options.containerId) {
       throw new Error(`[ThreeRenderer] Container #${options.containerId} not found in DOM`);
     }
     this.container = container;
 
-    const width = options.width ?? container.clientWidth ?? window.innerWidth;
-    const height = options.height ?? container.clientHeight ?? window.innerHeight;
+    const width = options.width ?? container?.clientWidth ?? (typeof window !== 'undefined' ? window.innerWidth : 800);
+    const height = options.height ?? container?.clientHeight ?? (typeof window !== 'undefined' ? window.innerHeight : 600);
 
     // 1. Scene
     this.scene = new THREE.Scene();
@@ -46,27 +70,43 @@ export class ThreeRenderer {
     );
     this.camera.lookAt(0, 0, 0);
 
-    // 3. WebGL Renderer (OpenGL via browser WebGL)
-    this.renderer = new THREE.WebGLRenderer({
-      alpha: true,
-      antialias: true,
-      powerPreference: 'high-performance',
+    // 3. WebGL Renderer
+    if (options.customRenderer) {
+      this.renderer = options.customRenderer;
+    } else {
+      this.renderer = new THREE.WebGLRenderer({
+        alpha: true,
+        antialias: false, // Turned off for crisp pixel art
+        powerPreference: 'high-performance',
+      });
+      this.renderer.setSize(width, height);
+      if (typeof window !== 'undefined') {
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      }
+      this.renderer.shadowMap.enabled = true;
+      this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+      if (this.container && this.renderer.domElement) {
+        this.container.appendChild(this.renderer.domElement);
+      }
+    }
+
+    // 4. Pixel-Art Post-Processor (low-res offscreen rendering buffer)
+    this.pixelArtPostProcessor = new PixelArtPostProcessor({
+      pixelScale: options.pixelScale ?? 2,
     });
-    this.renderer.setSize(width, height);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.pixelArtPostProcessor.setSize(width, height);
 
-    this.container.appendChild(this.renderer.domElement);
+    // 5. GLB Model Loader
+    this.modelLoader = new GLBModelLoader();
 
-    // 4. Default Lighting
+    // 6. Default Lighting
     this.setupLighting();
 
-    // 5. Add Sentinel Robot Demo Model Placeholder (clean 3D mesh)
-    this.setupDemoSentinelMesh();
-
-    // Window resize handler
-    window.addEventListener('resize', this.onResize);
+    // 7. Window resize handler
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', this.onResize);
+    }
   }
 
   private setupLighting(): void {
@@ -79,45 +119,73 @@ export class ThreeRenderer {
     this.scene.add(dirLight);
   }
 
-  private setupDemoSentinelMesh(): void {
-    // Demo mesh representing a municipal sentinel robot in 3D
-    const group = new THREE.Group();
-    group.name = 'SentinelRobotPlaceholder';
+  /**
+   * Loads a GLB binary model and stores it in the cache.
+   */
+  public async loadGLB(url: string, options?: LoadGLBOptions): Promise<THREE.Object3D> {
+    const gltf = await this.modelLoader.load(url, options);
+    return gltf.scene;
+  }
 
-    // Body
-    const bodyGeometry = new THREE.CylinderGeometry(0.5, 0.6, 0.8, 16);
-    const bodyMaterial = new THREE.MeshStandardMaterial({
-      color: 0x3b82f6,
-      metalness: 0.8,
-      roughness: 0.3,
+  /**
+   * Spawns an animated pixel-art model instance into the Three.js scene.
+   */
+  public async spawnModel(
+    url: string | ArrayBuffer,
+    options: SpawnModelOptions = {}
+  ): Promise<PixelArtModelInstance> {
+    const gltf = await this.modelLoader.load(url, {
+      materialOptions: options.materialOptions,
     });
-    const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-    body.position.y = 0.6;
-    body.castShadow = true;
-    group.add(body);
 
-    // Head / Sensor Dome
-    const headGeometry = new THREE.SphereGeometry(0.35, 16, 16);
-    const headMaterial = new THREE.MeshStandardMaterial({
-      color: 0x10b981,
-      emissive: 0x054f32,
-      roughness: 0.2,
-    });
-    const head = new THREE.Mesh(headGeometry, headMaterial);
-    head.position.y = 1.15;
-    group.add(head);
+    const instance = this.modelLoader.instantiate(gltf, options);
 
-    this.scene.add(group);
+    if (options.position) {
+      instance.setGridPosition(options.position.x, options.position.y, options.elevation ?? 0);
+    }
+    if (options.facing !== undefined) {
+      instance.setFacingDirection(options.facing);
+    }
+
+    this.scene.add(instance.root);
+    this.activeModels.add(instance);
+
+    return instance;
+  }
+
+  /**
+   * Removes and disposes an active model instance.
+   */
+  public removeModel(instance: PixelArtModelInstance): void {
+    this.activeModels.delete(instance);
+    this.scene.remove(instance.root);
+    instance.destroy();
+  }
+
+  public getActiveModels(): readonly PixelArtModelInstance[] {
+    return Array.from(this.activeModels);
+  }
+
+  public setPixelScale(scale: number): void {
+    this.pixelArtPostProcessor.setPixelScale(scale);
+  }
+
+  public gridToWorld(gridX: number, gridY: number, elevation = 0, cellScale = 2.0): THREE.Vector3 {
+    return gridTo3DWorld(gridX, gridY, elevation, cellScale);
   }
 
   public render(): void {
     if (this.isDestroyed) return;
-    // Slow idle rotation for demo mesh
-    const demoMesh = this.scene.getObjectByName('SentinelRobotPlaceholder');
-    if (demoMesh) {
-      demoMesh.rotation.y += 0.01;
+
+    const delta = this.clock.getDelta();
+
+    // Update all active pixel-art model animations
+    for (const model of this.activeModels) {
+      model.update(delta);
     }
-    this.renderer.render(this.scene, this.camera);
+
+    // Render using pixel art post processor
+    this.pixelArtPostProcessor.render(this.renderer, this.scene, this.camera);
   }
 
   public resize(width: number, height: number): void {
@@ -130,18 +198,32 @@ export class ThreeRenderer {
     this.camera.updateProjectionMatrix();
 
     this.renderer.setSize(width, height);
+    this.pixelArtPostProcessor.setSize(width, height);
   }
 
   private onResize = (): void => {
-    if (!this.container) return;
-    this.resize(this.container.clientWidth || window.innerWidth, this.container.clientHeight || window.innerHeight);
+    if (!this.container && typeof window === 'undefined') return;
+    const width = this.container?.clientWidth ?? (typeof window !== 'undefined' ? window.innerWidth : 800);
+    const height = this.container?.clientHeight ?? (typeof window !== 'undefined' ? window.innerHeight : 600);
+    this.resize(width, height);
   };
 
   public destroy(): void {
     this.isDestroyed = true;
-    window.removeEventListener('resize', this.onResize);
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('resize', this.onResize);
+    }
+
+    for (const model of this.activeModels) {
+      model.destroy();
+    }
+    this.activeModels.clear();
+
+    this.pixelArtPostProcessor.dispose();
+    this.modelLoader.clearCache();
     this.renderer.dispose();
-    if (this.renderer.domElement.parentElement) {
+
+    if (this.renderer.domElement && this.renderer.domElement.parentElement) {
       this.renderer.domElement.parentElement.removeChild(this.renderer.domElement);
     }
   }
