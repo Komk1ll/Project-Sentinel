@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { gridToIso, isoToGrid, calculateIsometricDepth } from '../../src/utils/isometric';
+import {
+  gridToIso,
+  isoToGrid,
+  calculateIsometricDepth,
+  getIsometricDirectionFromDelta,
+} from '../../src/utils/isometric';
 
 describe('Isometric Utility Math', () => {
   it('converts grid (0, 0) to screen origin (0, 0)', () => {
@@ -31,5 +36,16 @@ describe('Isometric Utility Math', () => {
 
     expect(depthB).toBeGreaterThan(depthA);
     expect(depthC).toBeGreaterThan(depthB);
+  });
+
+  it('determines 8-way isometric direction from delta vectors', () => {
+    expect(getIsometricDirectionFromDelta(1, 0)).toBe('SE');
+    expect(getIsometricDirectionFromDelta(-1, 0)).toBe('NW');
+    expect(getIsometricDirectionFromDelta(0, 1)).toBe('SW');
+    expect(getIsometricDirectionFromDelta(0, -1)).toBe('NE');
+    expect(getIsometricDirectionFromDelta(1, 1)).toBe('S');
+    expect(getIsometricDirectionFromDelta(-1, -1)).toBe('N');
+    expect(getIsometricDirectionFromDelta(1, -1)).toBe('E');
+    expect(getIsometricDirectionFromDelta(-1, 1)).toBe('W');
   });
 });
