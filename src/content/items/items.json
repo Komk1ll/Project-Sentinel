@@ -1,0 +1,29 @@
+[
+  {
+    "id": "repair_tool_v1",
+    "name": "Diagnostic Multitool",
+    "description": "Handheld maintenance device used to reboot and calibrate municipal sentinel robotics.",
+    "stackMax": 1,
+    "icon": "icon_tool_diagnostic",
+    "questReserved": true,
+    "usable": true
+  },
+  {
+    "id": "power_cell_unit",
+    "name": "Sentinel Energy Cell",
+    "description": "High-density sodium-ion power module recovered from the municipal depot.",
+    "stackMax": 5,
+    "icon": "icon_cell_power",
+    "questReserved": true,
+    "usable": true
+  },
+  {
+    "id": "scrap_copper_wire",
+    "name": "Copper Wiring Coil",
+    "description": "Salvaged insulated wire necessary for circuit bypasses.",
+    "stackMax": 20,
+    "icon": "icon_wire_copper",
+    "questReserved": false,
+    "usable": false
+  }
+]

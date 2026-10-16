@@ -1,0 +1,31 @@
+[
+  {
+    "id": "quest_p0_restore_sentinel",
+    "title": "Restoration of the Municipal Sentinel",
+    "prerequisites": [],
+    "objectives": [
+      {
+        "id": "obj_locate_sentinel",
+        "description": "Locate the disabled Sentinel Bot in Central Plaza",
+        "completed": false
+      },
+      {
+        "id": "obj_acquire_power_cell",
+        "description": "Retrieve charged energy cell from the municipal warehouse",
+        "completed": false
+      },
+      {
+        "id": "obj_reboot_system",
+        "description": "Install power cell and execute diagnostic reboot sequence",
+        "completed": false
+      }
+    ],
+    "rewards": [
+      {
+        "itemId": "repair_tool_v1",
+        "count": 1
+      }
+    ],
+    "completionFlag": "FLAG_SENTINEL_RESTORED"
+  }
+]
