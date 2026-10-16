@@ -1,5 +1,9 @@
 import Phaser from 'phaser';
-import { gridToIso, getIsometricDirectionFromDelta } from '../../utils/isometric';
+import {
+  gridToIso,
+  screenToGridDelta,
+  getIsometricDirectionFromScreen,
+} from '../../utils/isometric';
 import { ThreeRenderer } from '../render/ThreeRenderer';
 import { PixelArtModelInstance } from '../render/PixelArtModelInstance';
 
@@ -105,34 +109,32 @@ export class DistrictScene extends Phaser.Scene {
   }
 
   public override update(): void {
-    let dx = 0;
-    let dy = 0;
+    let screenX = 0;
+    let screenY = 0;
 
-    if (this.cursors?.left?.isDown || this.wasdKeys?.A.isDown) {
-      dx -= 1;
+    if (this.cursors?.left?.isDown || this.wasdKeys?.A?.isDown) {
+      screenX -= 1;
     }
-    if (this.cursors?.right?.isDown || this.wasdKeys?.D.isDown) {
-      dx += 1;
+    if (this.cursors?.right?.isDown || this.wasdKeys?.D?.isDown) {
+      screenX += 1;
     }
-    if (this.cursors?.up?.isDown || this.wasdKeys?.W.isDown) {
-      dy -= 1;
+    if (this.cursors?.up?.isDown || this.wasdKeys?.W?.isDown) {
+      screenY -= 1;
     }
-    if (this.cursors?.down?.isDown || this.wasdKeys?.S.isDown) {
-      dy += 1;
+    if (this.cursors?.down?.isDown || this.wasdKeys?.S?.isDown) {
+      screenY += 1;
     }
 
-    const movingNow = dx !== 0 || dy !== 0;
+    const movingNow = screenX !== 0 || screenY !== 0;
 
     if (movingNow) {
-      // Normalize diagonal speed
-      const length = Math.hypot(dx, dy);
-      const moveX = (dx / length) * this.playerSpeed;
-      const moveY = (dy / length) * this.playerSpeed;
+      // Convert screen-relative input into normalized isometric grid delta
+      const gridDelta = screenToGridDelta(screenX, screenY, this.playerSpeed);
 
-      this.playerGridPos.x = Phaser.Math.Clamp(this.playerGridPos.x + moveX, 0, 11);
-      this.playerGridPos.y = Phaser.Math.Clamp(this.playerGridPos.y + moveY, 0, 11);
+      this.playerGridPos.x = Phaser.Math.Clamp(this.playerGridPos.x + gridDelta.x, 0, 11);
+      this.playerGridPos.y = Phaser.Math.Clamp(this.playerGridPos.y + gridDelta.y, 0, 11);
 
-      const originX = 640;
+      const originX = this.cameras.main.width / 2;
       const originY = 160;
       const iso = gridToIso(this.playerGridPos.x, this.playerGridPos.y);
 
@@ -141,7 +143,7 @@ export class DistrictScene extends Phaser.Scene {
 
       if (this.heroModel) {
         this.heroModel.setGridPosition(this.playerGridPos.x, this.playerGridPos.y);
-        const direction = getIsometricDirectionFromDelta(dx, dy);
+        const direction = getIsometricDirectionFromScreen(screenX, screenY);
         this.heroModel.setFacingDirection(direction);
 
         if (!this.isMoving) {

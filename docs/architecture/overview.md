@@ -26,6 +26,7 @@ Project Sentinel utilizes a dual-engine architecture designed for high-performan
 - **Coordinate Systems**:
   - Logical metric grid ($x, y$ in meters, cell size 2m, pathfinding grid 0.5m).
   - Isometric screen coordinates calculated via `gridToIso(x, y)`.
+  - Screen-relative controls via `screenToGridDelta` with diagonal speed normalization and 8-directional orientation (see [ADR 0003](../decisions/0003-screen-relative-isometric-wasd-controls.md)).
 
 ### 2. Three.js WebGL / OpenGL Engine
 - **Role**: 3D model inspection, volumetric lighting, particle effects, and OpenGL/WebGL shaders.
