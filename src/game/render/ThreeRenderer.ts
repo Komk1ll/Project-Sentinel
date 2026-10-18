@@ -4,8 +4,9 @@ import { PixelArtModelInstance, gridTo3DWorld } from './PixelArtModelInstance';
 import { PixelArtPostProcessor } from './PixelArtPostProcessor';
 import { IsometricDirection } from '../../types/models';
 import { Vector2D } from '../../types';
-
 import { DynamicLightingController } from './DynamicLightingController';
+import { DioramaEnvironmentBuilder, BuiltEnvironment } from './DioramaEnvironmentBuilder';
+import type { ZoneDescriptor } from '../../types/campaign';
 
 export interface ThreeRendererOptions {
   containerId?: string;
@@ -38,6 +39,11 @@ export class ThreeRenderer {
   public directionalLight!: THREE.DirectionalLight;
   public lightingController?: DynamicLightingController;
 
+  public cameraTarget = new THREE.Vector3(0, 0, 0);
+  public currentCameraTarget = new THREE.Vector3(0, 0, 0);
+  public cameraOrthographicSize = 7.5;
+  public currentEnvironment?: BuiltEnvironment;
+
   private activeModels: Set<PixelArtModelInstance> = new Set();
   private container: HTMLElement | null = null;
   private clock = new THREE.Clock();
@@ -59,21 +65,13 @@ export class ThreeRenderer {
 
     // 1. Scene
     this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color(0x0c1020);
 
     // 2. Isometric Orthographic Camera
     const aspect = width / height;
-    const d = 10;
+    const d = this.cameraOrthographicSize;
     this.camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 0.1, 1000);
-
-    // Setup 45° azimuth, ~35.264° / 30° elevation isometric view
-    const isoAngle = Math.atan(1 / Math.SQRT2); // true isometric elevation (~35.264°)
-    const distance = 50;
-    this.camera.position.set(
-      distance * Math.cos(Math.PI / 4) * Math.cos(isoAngle),
-      distance * Math.sin(isoAngle),
-      distance * Math.sin(Math.PI / 4) * Math.cos(isoAngle)
-    );
-    this.camera.lookAt(0, 0, 0);
+    this.updateCameraTransform();
 
     // 3. WebGL Renderer
     if (options.customRenderer) {
@@ -214,10 +212,56 @@ export class ThreeRenderer {
     return gridTo3DWorld(gridX, gridY, elevation, cellScale);
   }
 
+  public setCameraTarget(target: THREE.Vector3 | { x: number; y: number; z: number }, immediate = false): void {
+    this.cameraTarget.set(target.x, target.y, target.z);
+    if (immediate) {
+      this.currentCameraTarget.copy(this.cameraTarget);
+      this.updateCameraTransform();
+    }
+  }
+
+  public updateCameraTransform(): void {
+    const isoAngle = Math.atan(1 / Math.SQRT2); // true isometric elevation (~35.264°)
+    const distance = 50;
+    const offsetX = distance * Math.cos(Math.PI / 4) * Math.cos(isoAngle);
+    const offsetY = distance * Math.sin(isoAngle);
+    const offsetZ = distance * Math.sin(Math.PI / 4) * Math.cos(isoAngle);
+
+    this.camera.position.set(
+      this.currentCameraTarget.x + offsetX,
+      this.currentCameraTarget.y + offsetY,
+      this.currentCameraTarget.z + offsetZ
+    );
+    this.camera.lookAt(this.currentCameraTarget);
+  }
+
+  public setEnvironment(descriptor: ZoneDescriptor): void {
+    if (this.currentEnvironment) {
+      this.scene.remove(this.currentEnvironment.root);
+      for (const l of this.currentEnvironment.lights) {
+        this.scene.remove(l);
+      }
+      this.currentEnvironment.dispose();
+      this.currentEnvironment = undefined;
+    }
+
+    if (descriptor) {
+      this.currentEnvironment = DioramaEnvironmentBuilder.buildEnvironment(descriptor);
+      this.scene.add(this.currentEnvironment.root);
+      for (const l of this.currentEnvironment.lights) {
+        this.scene.add(l);
+      }
+    }
+  }
+
   public render(): void {
     if (this.isDestroyed) return;
 
     const delta = this.clock.getDelta();
+
+    // Smoothly track camera target
+    this.currentCameraTarget.lerp(this.cameraTarget, 0.1);
+    this.updateCameraTransform();
 
     // Update lighting transition if active
     this.lightingController?.update(delta);
@@ -227,13 +271,21 @@ export class ThreeRenderer {
       model.update(delta);
     }
 
+    // Update procedural animated environment elements
+    if (this.currentEnvironment) {
+      const elapsed = this.clock.getElapsedTime();
+      for (const anim of this.currentEnvironment.animatedElements) {
+        anim.update(delta, elapsed);
+      }
+    }
+
     // Render using pixel art post processor
     this.pixelArtPostProcessor.render(this.renderer, this.scene, this.camera);
   }
 
   public resize(width: number, height: number): void {
     const aspect = width / height;
-    const d = 10;
+    const d = this.cameraOrthographicSize;
     this.camera.left = -d * aspect;
     this.camera.right = d * aspect;
     this.camera.top = d;
@@ -255,6 +307,15 @@ export class ThreeRenderer {
     this.isDestroyed = true;
     if (typeof window !== 'undefined') {
       window.removeEventListener('resize', this.onResize);
+    }
+
+    if (this.currentEnvironment) {
+      this.scene.remove(this.currentEnvironment.root);
+      for (const l of this.currentEnvironment.lights) {
+        this.scene.remove(l);
+      }
+      this.currentEnvironment.dispose();
+      this.currentEnvironment = undefined;
     }
 
     for (const model of this.activeModels) {

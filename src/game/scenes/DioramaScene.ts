@@ -14,7 +14,7 @@ import type { Vector2D } from '../../types';
 import type { IsometricDirection } from '../../types/models';
 import type { DioramaZoneId, ZoneDescriptor, ZoneEntityDescriptor } from '../../types/campaign';
 import { ThreeRenderer } from '../render/ThreeRenderer';
-import { PixelArtModelInstance } from '../render/PixelArtModelInstance';
+import { PixelArtModelInstance, gridTo3DWorld } from '../render/PixelArtModelInstance';
 import { DioramaManager } from '../systems/DioramaManager';
 
 export interface ProximityPromptEvent {
@@ -166,9 +166,16 @@ export class DioramaScene extends Phaser.Scene {
     };
     this.updatePlayerVisualPosition();
 
-    // 5. Spawn 3D Models in ThreeRenderer
+    // 5. Build Environment & Spawn 3D Models in ThreeRenderer
     if (this.threeRenderer) {
       try {
+        // Build rich 3D diorama environment
+        this.threeRenderer.setEnvironment(descriptor);
+
+        // Frame camera on spawn position immediately
+        const spawnWorld = gridTo3DWorld(this.playerGridPos.x, this.playerGridPos.y);
+        this.threeRenderer.setCameraTarget(spawnWorld, true);
+
         // Spawn Hero
         const hero = await this.threeRenderer.spawnModel('./assets/models/character_hero.glb', {
           position: this.playerGridPos,
@@ -273,6 +280,11 @@ export class DioramaScene extends Phaser.Scene {
         }
       }
 
+      if (this.threeRenderer) {
+        const playerWorld = gridTo3DWorld(this.playerGridPos.x, this.playerGridPos.y);
+        this.threeRenderer.setCameraTarget(playerWorld);
+      }
+
       this.isMoving = true;
     } else {
       if (this.isMoving && this.heroModel) {
@@ -283,6 +295,25 @@ export class DioramaScene extends Phaser.Scene {
 
     // 4. Proximity Trigger Checks
     this.checkProximityTriggers();
+
+    // 5. Portal Trigger Checks
+    this.checkPortalTriggers();
+  }
+
+  private checkPortalTriggers(): void {
+    if (!this.activeZoneDescriptor?.portals) return;
+    for (const portal of this.activeZoneDescriptor.portals) {
+      const bounds = portal.triggerBounds;
+      if (
+        this.playerGridPos.x >= bounds.minX &&
+        this.playerGridPos.x <= bounds.maxX &&
+        this.playerGridPos.y >= bounds.minY &&
+        this.playerGridPos.y <= bounds.maxY
+      ) {
+        void this.dioramaManager.loadZone(portal.targetZoneId);
+        break;
+      }
+    }
   }
 
   private updatePlayerVisualPosition(): void {

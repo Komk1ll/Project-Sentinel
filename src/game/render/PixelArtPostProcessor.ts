@@ -33,6 +33,7 @@ export class PixelArtPostProcessor {
     const quadMaterial = new THREE.MeshBasicMaterial({
       depthTest: false,
       depthWrite: false,
+      transparent: true,
     });
 
     this.quadMesh = new THREE.Mesh(quadGeometry, quadMaterial);
