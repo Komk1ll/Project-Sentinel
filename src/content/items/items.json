@@ -1,5 +1,104 @@
 [
   {
+    "id": "item_impulse_debugger",
+    "name": "Impulse Debugger",
+    "description": "Handheld electronic emitter that deactivates magnetic couplings of infected robots non-violently.",
+    "stackMax": 1,
+    "icon": "icon_debugger",
+    "questReserved": true,
+    "usable": true
+  },
+  {
+    "id": "item_module_wheels",
+    "name": "Robot Wheel Assembly",
+    "description": "Rugged rubberized wheel assembly detached cleanly from an automated robot.",
+    "stackMax": 16,
+    "icon": "icon_module_wheels",
+    "questReserved": false,
+    "usable": false
+  },
+  {
+    "id": "item_module_casing",
+    "name": "Polymer Chassis Casing",
+    "description": "Lightweight protective outer hull of a robot cleanly uncoupled via debugger.",
+    "stackMax": 4,
+    "icon": "icon_module_casing",
+    "questReserved": false,
+    "usable": false
+  },
+  {
+    "id": "item_module_camera",
+    "name": "Optical Camera Sensor",
+    "description": "Turret sensor dome featuring wide-angle optical lens and diagnostic LEDs.",
+    "stackMax": 4,
+    "icon": "icon_module_camera",
+    "questReserved": false,
+    "usable": false
+  },
+  {
+    "id": "item_module_battery",
+    "name": "Sodium-Ion Battery Pack",
+    "description": "High-density energy cell suitable for electrical repairs and fuse replacements.",
+    "stackMax": 8,
+    "icon": "icon_module_battery",
+    "questReserved": false,
+    "usable": true
+  },
+  {
+    "id": "item_server_keyring",
+    "name": "Server Vault Keyring",
+    "description": "Heavy ring of physical brass keys required to unlock the subterranean archival datacenter.",
+    "stackMax": 1,
+    "icon": "icon_server_keys",
+    "questReserved": true,
+    "usable": true
+  },
+  {
+    "id": "item_dog_modules",
+    "name": "Robo-Dog Component Kit",
+    "description": "Cleanly disassembled chassis plates, servo joints, and acoustic sensors from the Robo-Dog.",
+    "stackMax": 1,
+    "icon": "icon_dog_parts",
+    "questReserved": true,
+    "usable": false
+  },
+  {
+    "id": "item_insulating_tape",
+    "name": "Insulating Tape",
+    "description": "High-voltage insulating tape required for line isolation on the power switchboard.",
+    "stackMax": 5,
+    "icon": "icon_tape",
+    "questReserved": false,
+    "usable": true
+  },
+  {
+    "id": "item_clean_power_block",
+    "name": "Clean Power Unit",
+    "description": "Isolated power module used to stabilize archival server memory during protocol initialization.",
+    "stackMax": 1,
+    "icon": "icon_clean_power",
+    "questReserved": true,
+    "usable": true
+  },
+  {
+    "id": "item_trophy_ideal",
+    "name": "Legacy Guardian Commendation",
+    "description": "Faculty honor medal commemorating the flawless preservation of the cybernetics research archive.",
+    "stackMax": 1,
+    "icon": "icon_trophy_ideal",
+    "questReserved": true,
+    "usable": false
+  },
+  {
+    "id": "item_trophy_pragmatic",
+    "name": "Restoration Volunteer Badge",
+    "description": "Honorary emblem awarded for student volunteer teamwork and campus hardware reconstruction.",
+    "stackMax": 1,
+    "icon": "icon_trophy_pragmatic",
+    "questReserved": true,
+    "usable": false
+  },
+  {
     "id": "repair_tool_v1",
     "name": "Diagnostic Multitool",
     "description": "Handheld maintenance device used to reboot and calibrate municipal sentinel robotics.",

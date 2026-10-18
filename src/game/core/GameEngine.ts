@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { BootScene } from '../scenes/BootScene';
+import { DioramaScene } from '../scenes/DioramaScene';
 import { DistrictScene } from '../scenes/DistrictScene';
 import { ThreeRenderer } from '../render/ThreeRenderer';
 
@@ -27,7 +28,7 @@ export class GameEngine {
         mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH,
       },
-      scene: [BootScene, DistrictScene],
+      scene: [BootScene, DioramaScene, DistrictScene],
       physics: {
         default: 'arcade',
         arcade: {

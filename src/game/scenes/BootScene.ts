@@ -32,6 +32,6 @@ export class BootScene extends Phaser.Scene {
   }
 
   public create(): void {
-    this.scene.start('DistrictScene');
+    this.scene.start('DioramaScene');
   }
 }

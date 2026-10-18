@@ -4,22 +4,57 @@ const SAVE_KEY = 'project_sentinel_savedata';
 const BACKUP_KEY = 'project_sentinel_savedata_backup';
 export const CURRENT_SCHEMA_VERSION = 1;
 
+interface StorageLike {
+  getItem(key: string): string | null;
+  setItem(key: string, value: string): void;
+  removeItem(key: string): void;
+  clear(): void;
+}
+
+const memoryStore = new Map<string, string>();
+
+function getStorage(): StorageLike {
+  if (typeof localStorage !== 'undefined' && localStorage !== null) {
+    return localStorage;
+  }
+  return {
+    getItem: (key: string) => memoryStore.get(key) ?? null,
+    setItem: (key: string, value: string) => {
+      memoryStore.set(key, String(value));
+    },
+    removeItem: (key: string) => {
+      memoryStore.delete(key);
+    },
+    clear: () => {
+      memoryStore.clear();
+    },
+  };
+}
+
 export class StorageService {
+  /**
+   * Resets the in-memory fallback storage (useful for isolated headless tests).
+   */
+  public static clearMemoryFallback(): void {
+    memoryStore.clear();
+  }
+
   /**
    * Saves game data with an automatic backup of the previous valid state.
    */
   public static saveGame(data: SaveData): boolean {
     try {
+      const storage = getStorage();
       const serialized = JSON.stringify(data);
       // Keep previous valid data in backup
-      const existing = localStorage.getItem(SAVE_KEY);
+      const existing = storage.getItem(SAVE_KEY);
       if (existing) {
-        localStorage.setItem(BACKUP_KEY, existing);
+        storage.setItem(BACKUP_KEY, existing);
       }
-      localStorage.setItem(SAVE_KEY, serialized);
+      storage.setItem(SAVE_KEY, serialized);
       return true;
     } catch (error) {
-      console.error('[StorageService] Failed to save game state to localStorage:', error);
+      console.error('[StorageService] Failed to save game state to storage:', error);
       return false;
     }
   }
@@ -29,7 +64,8 @@ export class StorageService {
    */
   public static loadGame(): SaveData | null {
     try {
-      const raw = localStorage.getItem(SAVE_KEY);
+      const storage = getStorage();
+      const raw = storage.getItem(SAVE_KEY);
       if (!raw) return null;
 
       const parsed = JSON.parse(raw) as SaveData;
@@ -49,7 +85,8 @@ export class StorageService {
    */
   public static loadBackup(): SaveData | null {
     try {
-      const rawBackup = localStorage.getItem(BACKUP_KEY);
+      const storage = getStorage();
+      const rawBackup = storage.getItem(BACKUP_KEY);
       if (!rawBackup) return null;
       const parsedBackup = JSON.parse(rawBackup) as SaveData;
       return this.validateSaveData(parsedBackup) ? parsedBackup : null;

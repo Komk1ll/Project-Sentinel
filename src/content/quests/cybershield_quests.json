@@ -1,0 +1,564 @@
+[
+  {
+    "id": "quest_01_gate_barrier",
+    "act": 1,
+    "title": "Digital Barrier of the Main Gates",
+    "titleRu": "Цифровой барьер главных ворот",
+    "descriptionEn": "Evade perimeter sentry droids and find the basement bypass entrance to the Dean's building.",
+    "descriptionRu": "Обойти патрульных дроидов периметра и найти служебный вход через подвал Деканата.",
+    "locationZoneId": "zone_01_gate",
+    "prerequisites": [],
+    "autoActivate": true,
+    "objectives": [
+      {
+        "id": "obj_01_radio_curator",
+        "description": "Receive emergency radio transmission from the Curator",
+        "descriptionRu": "Принять экстренное сообщение Куратора по рации",
+        "completed": false
+      },
+      {
+        "id": "obj_01_evade_patrol",
+        "description": "Evade Patrol Droid scanning cone via perimeter flowerbeds",
+        "descriptionRu": "Обойти конус сканирования патрульного дроида по служебной тропе у клумб",
+        "completed": false
+      },
+      {
+        "id": "obj_01_reach_basement",
+        "description": "Reach the Dean's office basement service entrance",
+        "descriptionRu": "Добраться до входа в подвал Деканата",
+        "completed": false
+      }
+    ],
+    "rewards": [],
+    "completionFlag": "FLAG_GATE_BYPASSED"
+  },
+  {
+    "id": "quest_02_deans_password",
+    "act": 1,
+    "title": "Forgotten Password of the Dean's Office",
+    "titleRu": "Забытый пароль Деканата",
+    "descriptionEn": "Unlock the electronic door in the Dean's basement using the faculty founding year and recover the Impulse Debugger.",
+    "descriptionRu": "Открыть кодовый замок в подвале Деканата годом основания факультета и забрать Импульсный дебаггер.",
+    "locationZoneId": "zone_02_deans_basement",
+    "prerequisites": ["quest_01_gate_barrier"],
+    "autoActivate": true,
+    "objectives": [
+      {
+        "id": "obj_02_inspect_terminal",
+        "description": "Inspect the duty lab assistant's glowing terminal",
+        "descriptionRu": "Осмотреть терминал дежурного лаборанта",
+        "completed": false
+      },
+      {
+        "id": "obj_02_find_passcode",
+        "description": "Find founding year hint in terminal archives (1984)",
+        "descriptionRu": "Найти подсказку шифра года основания в архивах (1984)",
+        "completed": false
+      },
+      {
+        "id": "obj_02_unlock_keypad",
+        "description": "Enter passcode 1984 on the electronic door keypad",
+        "descriptionRu": "Ввести код 1984 на кодовом замке двери",
+        "completed": false
+      },
+      {
+        "id": "obj_02_take_debugger",
+        "description": "Pick up the Impulse Debugger gadget from the workbench",
+        "descriptionRu": "Забрать Импульсный дебаггер с верстака",
+        "completed": false
+      }
+    ],
+    "rewards": [
+      {
+        "itemId": "item_impulse_debugger",
+        "count": 1
+      }
+    ],
+    "completionFlag": "FLAG_DEANS_DOOR_UNLOCKED"
+  },
+  {
+    "id": "quest_03_blocker_disassembly",
+    "act": 1,
+    "title": "First Encounter: Blocker Disassembly",
+    "titleRu": "Первая стычка: Разлёт блокировщика",
+    "descriptionEn": "Neutralize the infected Courier Bot blocking the courtyard walkway using the Impulse Debugger.",
+    "descriptionRu": "Нейтрализовать заражённого курьерского робота в проходе дебаггером и собрать запчасти.",
+    "locationZoneId": "zone_03_courtyard_alley",
+    "prerequisites": ["quest_02_deans_password"],
+    "autoActivate": true,
+    "objectives": [
+      {
+        "id": "obj_03_locate_blocker",
+        "description": "Locate the Courier Blocker Bot obstructing passage",
+        "descriptionRu": "Обнаружить робота-блокировщика в проходе",
+        "completed": false
+      },
+      {
+        "id": "obj_03_aim_and_pulse",
+        "description": "Aim and fire non-lethal Impulse Debugger at the robot",
+        "descriptionRu": "Применить Импульсный дебаггер к блокировщику",
+        "completed": false
+      },
+      {
+        "id": "obj_03_collect_modules",
+        "description": "Collect all 4 disassembled modules: wheels, casing, camera, battery",
+        "descriptionRu": "Собрать 4 отделившихся модуля робота (колёса, корпус, камера, батарея)",
+        "completed": false
+      }
+    ],
+    "rewards": [
+      { "itemId": "item_module_wheels", "count": 4 },
+      { "itemId": "item_module_casing", "count": 1 },
+      { "itemId": "item_module_camera", "count": 1 },
+      { "itemId": "item_module_battery", "count": 1 }
+    ],
+    "completionFlag": "FLAG_FIRST_BLOCKER_DISASSEMBLED"
+  },
+  {
+    "id": "quest_04_lab_darkness",
+    "act": 1,
+    "title": "Darkness in the Laboratory Wing",
+    "titleRu": "Тьма в Лабораторном корпусе",
+    "descriptionEn": "Navigate the dark laboratory corridor, speak to the trapped Professor, and inspect the electrical switchboard.",
+    "descriptionRu": "Пройти по тёмному коридору лаборатории, связаться с запертым Профессором и осмотреть электрощиток.",
+    "locationZoneId": "zone_04_lab_corridor",
+    "prerequisites": ["quest_03_blocker_disassembly"],
+    "autoActivate": true,
+    "objectives": [
+      {
+        "id": "obj_04_enter_corridor",
+        "description": "Enter the dark laboratory corridor using flashlight",
+        "descriptionRu": "Войти в тёмный коридор лабораторного корпуса с фонариком",
+        "completed": false
+      },
+      {
+        "id": "obj_04_contact_professor",
+        "description": "Speak to trapped Professor through the locked classroom door",
+        "descriptionRu": "Поговорить с запертым Профессором через дверь аудитории",
+        "completed": false
+      },
+      {
+        "id": "obj_04_inspect_switchboard",
+        "description": "Inspect the damaged wall electrical switchboard",
+        "descriptionRu": "Осмотреть повреждённый распределительный электрощиток на стене",
+        "completed": false
+      }
+    ],
+    "rewards": [],
+    "completionFlag": "FLAG_PROFESSOR_CONTACTED"
+  },
+  {
+    "id": "quest_05_server_deadend",
+    "act": 2,
+    "title": "Dead End at the Server Room & Security Post",
+    "titleRu": "Тупик у серверной и пост охраны",
+    "descriptionEn": "Inspect the archival server door to discover the physical key requirement and enter the security post.",
+    "descriptionRu": "Осмотреть запертую дверь архивной серверной и зайти на пост охраны.",
+    "locationZoneId": "zone_05_security_room",
+    "prerequisites": ["quest_04_lab_darkness"],
+    "autoActivate": true,
+    "objectives": [
+      {
+        "id": "obj_05_inspect_vault_door",
+        "description": "Attempt to open server vault door and discover mechanical lock requirement",
+        "descriptionRu": "Осмотреть дверь архивной серверной и обнаружить требование механического ключа",
+        "completed": false
+      },
+      {
+        "id": "obj_05_enter_security_post",
+        "description": "Enter the adjacent security control post",
+        "descriptionRu": "Войти в соседнее помещение поста охраны",
+        "completed": false
+      },
+      {
+        "id": "obj_05_check_cctv_console",
+        "description": "Inspect the unpowered CCTV surveillance console",
+        "descriptionRu": "Осмотреть обесточенный пульт видеонаблюдения",
+        "completed": false
+      }
+    ],
+    "rewards": [],
+    "completionFlag": "FLAG_SERVER_DOOR_INSPECTED"
+  },
+  {
+    "id": "quest_06_cctv_clue",
+    "act": 2,
+    "title": "Evidence from the Cameras: Robo-Dog Chase",
+    "titleRu": "Улики с камер: Погоня за роботом-псом",
+    "descriptionEn": "Power up the CCTV terminal, scrub surveillance footage, and track the Robo-Dog to the Winter Garden.",
+    "descriptionRu": "Запитать терминал охраны, просмотреть архив камер и отследить путь робота-пса в Зимний сад.",
+    "locationZoneId": "zone_05_security_room",
+    "prerequisites": ["quest_05_server_deadend"],
+    "autoActivate": true,
+    "objectives": [
+      {
+        "id": "obj_06_power_terminal",
+        "description": "Connect backup power to the CCTV terminal",
+        "descriptionRu": "Подключить резервное питание к терминалу видеонаблюдения",
+        "completed": false
+      },
+      {
+        "id": "obj_06_scrub_footage",
+        "description": "Rewind surveillance footage on CAM 02 to witness key theft",
+        "descriptionRu": "Перемотать запись камеры 2 и увидеть кражу ключей",
+        "completed": false
+      },
+      {
+        "id": "obj_06_track_dog",
+        "description": "Record Robo-Dog escape trajectory toward the Winter Garden",
+        "descriptionRu": "Зафиксировать маршрут бегства робота-пса в сторону Зимнего сада",
+        "completed": false
+      }
+    ],
+    "rewards": [],
+    "completionFlag": "FLAG_CCTV_REVIEWED"
+  },
+  {
+    "id": "quest_07_winter_garden_dog",
+    "act": 2,
+    "title": "Winter Garden & Robo-Dog Interception",
+    "titleRu": "Зимний сад и перехват робота-пса",
+    "descriptionEn": "Locate the cornered Robo-Dog in the greenhouse, gently deactivate it with the debugger, and retrieve the server keys.",
+    "descriptionRu": "Отыскать робота-пса в оранжерее, безопасно деактивировать дебаггером и забрать ключи от серверной.",
+    "locationZoneId": "zone_06_winter_garden",
+    "prerequisites": ["quest_06_cctv_clue"],
+    "autoActivate": true,
+    "objectives": [
+      {
+        "id": "obj_07_enter_greenhouse",
+        "description": "Enter the glass winter garden greenhouse",
+        "descriptionRu": "Войти в стеклянную оранжерею Зимнего сада",
+        "completed": false
+      },
+      {
+        "id": "obj_07_find_dog",
+        "description": "Locate the frightened Robo-Dog hiding under palm fronds",
+        "descriptionRu": "Найти прячущегося робота-пса под пальмой",
+        "completed": false
+      },
+      {
+        "id": "obj_07_pacify_dog",
+        "description": "Discharge calibrated non-lethal debugger pulse at Robo-Dog",
+        "descriptionRu": "Деактивировать робота-пса точным нелетальным импульсом",
+        "completed": false
+      },
+      {
+        "id": "obj_07_retrieve_keys",
+        "description": "Pick up the dropped server vault key ring",
+        "descriptionRu": "Подобрать выпавшую связку ключей от серверной",
+        "completed": false
+      }
+    ],
+    "rewards": [
+      { "itemId": "item_server_keyring", "count": 1 },
+      { "itemId": "item_dog_modules", "count": 1 }
+    ],
+    "completionFlag": "FLAG_KEYS_RECOVERED"
+  },
+  {
+    "id": "quest_08_lab_power_restore",
+    "act": 2,
+    "title": "Restoring Power to the Laboratory",
+    "titleRu": "Восстановление питания Лаборатории",
+    "descriptionEn": "Repair the 3-step corridor switchboard to restore power, liberate the Professor, and activate the server gateway.",
+    "descriptionRu": "Выполнить трёхэтапный ремонт электрощитка, восстановить свет, освободить Профессора и открыть шлюз.",
+    "locationZoneId": "zone_04_lab_corridor",
+    "prerequisites": ["quest_07_winter_garden_dog"],
+    "autoActivate": true,
+    "objectives": [
+      {
+        "id": "obj_08_isolate_line",
+        "description": "Isolate damaged Phase B circuit on the switchboard",
+        "descriptionRu": "Изолировать повреждённую цепь Фазы Б на щитке",
+        "completed": false
+      },
+      {
+        "id": "obj_08_replace_fuse",
+        "description": "Insert replacement fuse cartridge from collected parts",
+        "descriptionRu": "Установить новый предохранитель в слот щитка",
+        "completed": false
+      },
+      {
+        "id": "obj_08_reboot_grid",
+        "description": "Throw master breaker handle to reboot the electrical grid",
+        "descriptionRu": "Включить главный рубильник для перезапуска энергосети",
+        "completed": false
+      },
+      {
+        "id": "obj_08_meet_professor",
+        "description": "Greet the freed Professor in the illuminated laboratory",
+        "descriptionRu": "Встретить освобождённого Профессора в освещённой лаборатории",
+        "completed": false
+      }
+    ],
+    "rewards": [],
+    "completionFlag": "FLAG_POWER_RESTORED"
+  },
+  {
+    "id": "quest_09_subway_tunnel",
+    "act": 3,
+    "title": "Service Tunnel Under the Courtyard",
+    "titleRu": "Сервисный тоннель под двором",
+    "descriptionEn": "Descend into the underground cable collector to bypass courtyard aerial patrol drones.",
+    "descriptionRu": "Спуститься в подземный кабельный коллектор, чтобы обойти летающих дронов во дворе.",
+    "locationZoneId": "zone_07_cable_tunnel",
+    "prerequisites": ["quest_08_lab_power_restore"],
+    "autoActivate": true,
+    "objectives": [
+      {
+        "id": "obj_09_find_manhole",
+        "description": "Locate technical maintenance manhole near building foundation",
+        "descriptionRu": "Найти технический люк кабельного коллектора у фундамента",
+        "completed": false
+      },
+      {
+        "id": "obj_09_descend_tunnel",
+        "description": "Climb down into the underground brick cable collector",
+        "descriptionRu": "Спуститься в подземный кирпичный тоннель",
+        "completed": false
+      },
+      {
+        "id": "obj_09_traverse_tunnel",
+        "description": "Navigate past conduit pipes and glowing cyan cables",
+        "descriptionRu": "Пройти по тоннелю вдоль светящихся голубых кабелей",
+        "completed": false
+      },
+      {
+        "id": "obj_09_reach_ladder",
+        "description": "Climb exit ladder ascending beneath the main building entrance",
+        "descriptionRu": "Подняться по служебной лестнице к выходу у главного входа",
+        "completed": false
+      }
+    ],
+    "rewards": [],
+    "completionFlag": "FLAG_TUNNEL_TRAVERSED"
+  },
+  {
+    "id": "quest_10_rogue_access_point",
+    "act": 3,
+    "title": "Rogue Access Point at the Main Entrance",
+    "titleRu": "Фальшивая точка доступа у главного входа",
+    "descriptionEn": "Approach the rogue transmitter mast at the grand steps and discharge an amplified EMP pulse to disable it.",
+    "descriptionRu": "Подойти к фальшивой мачте-ретранслятору на парадной лестнице и заглушить её импульсом дебаггера.",
+    "locationZoneId": "zone_08_grand_lobby",
+    "prerequisites": ["quest_09_subway_tunnel"],
+    "autoActivate": true,
+    "objectives": [
+      {
+        "id": "obj_10_spot_van_and_mast",
+        "description": "Spot cybersecurity van and rogue tripod transmitter mast",
+        "descriptionRu": "Обнаружить фургон и мачту фальшивой точки доступа",
+        "completed": false
+      },
+      {
+        "id": "obj_10_approach_mast",
+        "description": "Approach mast while resisting electromagnetic interference aura",
+        "descriptionRu": "Подойти к мачте сквозь электромагнитные помехи",
+        "completed": false
+      },
+      {
+        "id": "obj_10_disable_jammer",
+        "description": "Fire amplified debugger EMP blast to disable rogue antenna",
+        "descriptionRu": "Подавить сигнал ретранслятора мощным импульсом дебаггера",
+        "completed": false
+      }
+    ],
+    "rewards": [],
+    "completionFlag": "FLAG_JAMMER_DISABLED"
+  },
+  {
+    "id": "quest_11_grand_doors_open",
+    "act": 3,
+    "title": "Opening of the Grand Entrance Doors",
+    "titleRu": "Открытие парадных дверей",
+    "descriptionEn": "Witness the main building doors unlock, enter the grand marble lobby, and head toward the archive elevator.",
+    "descriptionRu": "Войти в открывшиеся парадные двери главного корпуса и пройти к лифту подземного архива.",
+    "locationZoneId": "zone_08_grand_lobby",
+    "prerequisites": ["quest_10_rogue_access_point"],
+    "autoActivate": true,
+    "objectives": [
+      {
+        "id": "obj_11_observe_doors",
+        "description": "Observe entrance barrier collapse and double glass doors unlock",
+        "descriptionRu": "Убедиться в падении барьера и разблокировке стеклянных дверей",
+        "completed": false
+      },
+      {
+        "id": "obj_11_enter_lobby",
+        "description": "Cross threshold into the grand marble atrium lobby",
+        "descriptionRu": "Войти в парадный мраморный вестибюль",
+        "completed": false
+      },
+      {
+        "id": "obj_11_reach_elevators",
+        "description": "Proceed to the elevator lobby leading to the underground datacenter",
+        "descriptionRu": "Пройти к служебным лифтам в подземный архив",
+        "completed": false
+      }
+    ],
+    "rewards": [],
+    "completionFlag": "FLAG_LOBBY_ENTERED"
+  },
+  {
+    "id": "quest_12_datacenter_heart",
+    "act": 3,
+    "title": "Heart of the 'Legacy Code' / Main Server Room",
+    "titleRu": "Сердце «Кода наследия» (Главная серверная)",
+    "descriptionEn": "Unlock the datacenter vault door using the physical keys and engage the central holographic console.",
+    "descriptionRu": "Открыть бронедверь серверной связкой ключей и запустить центральный голографический пульт.",
+    "locationZoneId": "zone_09_datacenter",
+    "prerequisites": ["quest_11_grand_doors_open"],
+    "autoActivate": true,
+    "objectives": [
+      {
+        "id": "obj_12_unlock_vault",
+        "description": "Insert brass physical keys into the server vault door",
+        "descriptionRu": "Открыть замок бронедвери связкой физических ключей",
+        "completed": false
+      },
+      {
+        "id": "obj_12_enter_datacenter",
+        "description": "Enter the datacenter bunker alongside the Professor",
+        "descriptionRu": "Войти в подземный дата-центр вместе с Профессором",
+        "completed": false
+      },
+      {
+        "id": "obj_12_boot_console",
+        "description": "Power up the central holographic command plinth",
+        "descriptionRu": "Запустить центральный голографический терминал управления",
+        "completed": false
+      }
+    ],
+    "rewards": [],
+    "completionFlag": "FLAG_DATACENTER_ACCESSED"
+  },
+  {
+    "id": "quest_13_protocol_init",
+    "act": 4,
+    "title": "Initialization of the Recovery Protocol",
+    "titleRu": "Инициализация протокола восстановления",
+    "descriptionEn": "Isolate viral fragments, connect clean power unit, and select the final network deployment protocol.",
+    "descriptionRu": "Изолировать вирусные цепочки, подключить чистое питание и выбрать вектор восстановления кампуса.",
+    "locationZoneId": "zone_09_datacenter",
+    "prerequisites": ["quest_12_datacenter_heart"],
+    "autoActivate": true,
+    "objectives": [
+      {
+        "id": "obj_13_isolate_virus",
+        "description": "Isolate remaining rogue viral segments on the network map",
+        "descriptionRu": "Изолировать остаточные фрагменты вируса на схеме сети",
+        "completed": false
+      },
+      {
+        "id": "obj_13_connect_power_block",
+        "description": "Connect clean power module to the core memory bank",
+        "descriptionRu": "Подключить блок чистого питания к ядру архива",
+        "completed": false
+      },
+      {
+        "id": "obj_13_choose_protocol",
+        "description": "Select recovery vector on terminal: Choice A (Reflash), B (Reset), or C (Quarantine)",
+        "descriptionRu": "Выбрать финальный вектор на терминале: А (перепрошивка), Б (сброс) или В (карантин)",
+        "completed": false
+      }
+    ],
+    "rewards": [],
+    "completionFlag": "FLAG_PROTOCOL_INITIALIZED"
+  },
+  {
+    "id": "quest_14_final_a_celebration",
+    "act": 4,
+    "title": "Celebration in the Courtyard (Final A — Ideal)",
+    "titleRu": "Праздник во дворе (Финал А — Идеальный)",
+    "descriptionEn": "Witness the campus celebration, friendly bots restored with cyan indicators, and shake hands with the Professor.",
+    "descriptionRu": "Увидеть празднование в кампусе, дружелюбных роботов с синими индикаторами и пожать руку Профессору.",
+    "locationZoneId": "zone_10_finale_celebration",
+    "prerequisites": ["quest_13_protocol_init"],
+    "branchCondition": {
+      "parentQuestId": "quest_13_protocol_init",
+      "allowedChoices": ["A"]
+    },
+    "autoActivate": false,
+    "objectives": [
+      {
+        "id": "obj_14_observe_fountain",
+        "description": "Walk to the sunlit central fountain beneath the celebratory banner",
+        "descriptionRu": "Пройти к фонтану под праздничным знаменем «КОД НАСЛЕДИЯ ЗАЩИЩЁН»",
+        "completed": false
+      },
+      {
+        "id": "obj_14_watch_friendly_bots",
+        "description": "Observe peaceful robots carrying book boxes with cyan LED status",
+        "descriptionRu": "Увидеть мирных роботов с синими индикаторами, везущих коробки с книгами",
+        "completed": false
+      },
+      {
+        "id": "obj_14_professor_handshake",
+        "description": "Perform congratulatory handshake with the Professor",
+        "descriptionRu": "Пожать руку Профессору в знак успешного сохранения архива",
+        "completed": false
+      },
+      {
+        "id": "obj_14_view_credits",
+        "description": "Roll final victory campaign credits",
+        "descriptionRu": "Посмотреть финальные титры победы",
+        "completed": false
+      }
+    ],
+    "rewards": [
+      {
+        "itemId": "item_trophy_ideal",
+        "count": 1
+      }
+    ],
+    "completionFlag": "FLAG_CAMPAIGN_COMPLETE_ENDING_A"
+  },
+  {
+    "id": "quest_15_final_b_cleanup",
+    "act": 4,
+    "title": "Cleanup and Restoration (Final B — Pragmatic)",
+    "titleRu": "Уборка и восстановление (Финал Б — Прагматичный)",
+    "descriptionEn": "Join student volunteers in the twilight courtyard to pack deactivated robot modules onto service carts.",
+    "descriptionRu": "Присоединиться к студентам-волонтёрам в сумерках и помочь сложить модули роботов на тележку.",
+    "locationZoneId": "zone_11_finale_cleanup",
+    "prerequisites": ["quest_13_protocol_init"],
+    "branchCondition": {
+      "parentQuestId": "quest_13_protocol_init",
+      "allowedChoices": ["B", "C"]
+    },
+    "autoActivate": false,
+    "objectives": [
+      {
+        "id": "obj_15_join_volunteers",
+        "description": "Meet student volunteer squad in the twilight courtyard",
+        "descriptionRu": "Встретить группу студентов-волонтёров в вечернем дворе",
+        "completed": false
+      },
+      {
+        "id": "obj_15_load_trolley",
+        "description": "Help load neatly disassembled robot modules into pushcart crates",
+        "descriptionRu": "Помочь сложить аккуратно разобранные модули роботов в контейнеры тележки",
+        "completed": false
+      },
+      {
+        "id": "obj_15_curator_radio",
+        "description": "Receive final radio commendation from the Curator",
+        "descriptionRu": "Выслушать финальную благодарность Куратора по рации",
+        "completed": false
+      },
+      {
+        "id": "obj_15_view_credits",
+        "description": "Roll final completion campaign credits",
+        "descriptionRu": "Посмотреть финальные титры завершения",
+        "completed": false
+      }
+    ],
+    "rewards": [
+      {
+        "itemId": "item_trophy_pragmatic",
+        "count": 1
+      }
+    ],
+    "completionFlag": "FLAG_CAMPAIGN_COMPLETE_ENDING_B"
+  }
+]

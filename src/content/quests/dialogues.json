@@ -1,0 +1,659 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Project Sentinel - Complete Verbatim CyberShield Campaign Dialogues (Acts I-IV, Quests 1-15)",
+  "speakers": {
+    "alexey": {
+      "id": "alexey",
+      "nameRu": "Алексей",
+      "nameEn": "Alexey",
+      "titleRu": "Студент-кибернетик",
+      "titleEn": "Cybernetics Student",
+      "avatar": "avatar_alexey",
+      "theme": "standard",
+      "soundCue": "sfx_dialogue_blip"
+    },
+    "curator": {
+      "id": "curator",
+      "nameRu": "Куратор (по рации)",
+      "nameEn": "Curator (Radio)",
+      "titleRu": "Координатор оперативного штаба",
+      "titleEn": "Operations Lead Dispatcher",
+      "avatar": "avatar_curator_radio",
+      "theme": "radio",
+      "soundCue": "sfx_radio_chime"
+    },
+    "professor": {
+      "id": "professor",
+      "nameRu": "Профессор",
+      "nameEn": "Professor",
+      "titleRu": "Зав. кафедрой кибернетики",
+      "titleEn": "Head of Cybernetics Faculty",
+      "avatar": "avatar_professor",
+      "theme": "standard",
+      "soundCue": "sfx_dialogue_professor"
+    },
+    "console": {
+      "id": "console",
+      "nameRu": "Терминал управления",
+      "nameEn": "Control Terminal",
+      "titleRu": "Архивная вычислительная система",
+      "titleEn": "Archival Computing System",
+      "avatar": "avatar_console",
+      "theme": "terminal",
+      "soundCue": "sfx_terminal_keystroke"
+    },
+    "system": {
+      "id": "system",
+      "nameRu": "Система",
+      "nameEn": "System",
+      "titleRu": "Автономный монитор кампуса",
+      "titleEn": "Campus Automated Monitor",
+      "avatar": "avatar_system",
+      "theme": "system",
+      "soundCue": "sfx_system_alert"
+    }
+  },
+  "trees": {
+    "tree_quest_01_radio": {
+      "id": "tree_quest_01_radio",
+      "questId": "quest_01_gate_barrier",
+      "act": 1,
+      "isRadio": true,
+      "priority": 10,
+      "initialNodeId": "q01_curator_01",
+      "onCompleteFlag": "FLAG_GATE_RADIO_HEARD",
+      "nodes": {
+        "q01_curator_01": {
+          "id": "q01_curator_01",
+          "speaker": "curator",
+          "textRu": "«Алексей, главный вход под жёсткой сетевой блокировкой. Системы охраны сошли с ума. Обойди центральный двор по служебной тропе у клумб и ищи вход через подвал Деканата».",
+          "textEn": "\"Alexey, the main entrance is under hard network lockdown. The security systems have gone mad. Bypass the central courtyard along the service path near the flowerbeds and look for entrance through the Dean's office basement.\"",
+          "mode": "auto_advance",
+          "autoAdvanceDelayMs": 5000,
+          "audioCue": "sfx_radio_chime",
+          "isRadio": true,
+          "next": "q01_alexey_02"
+        },
+        "q01_alexey_02": {
+          "id": "q01_alexey_02",
+          "speaker": "alexey",
+          "textRu": "«Понял, ухожу с линии обзора патрульных дронов, ищу обход».",
+          "textEn": "\"Understood, breaking line of sight with patrol drones, searching for a bypass.\"",
+          "mode": "interactive",
+          "audioCue": "sfx_dialogue_blip",
+          "next": null
+        }
+      }
+    },
+    "tree_quest_02_terminal": {
+      "id": "tree_quest_02_terminal",
+      "questId": "quest_02_deans_password",
+      "act": 1,
+      "isRadio": false,
+      "initialNodeId": "q02_alexey_01",
+      "onCompleteFlag": "FLAG_DEANS_DOOR_UNLOCKED",
+      "nodes": {
+        "q02_alexey_01": {
+          "id": "q02_alexey_01",
+          "speaker": "alexey",
+          "textRu": "«Замок требует код. В открытом файле на мониторе дежурного лаборанта сказано: \"Шифр совпадает с годом создания нашего факультета кибернетики\". Ввожу цифры... Замок щёлкнул! И здесь же лежит Импульсный дебаггер».",
+          "textEn": "\"The lock requires a code. An open file on the duty lab assistant's monitor states: 'The cipher matches the founding year of our Faculty of Cybernetics'. Entering the numbers... The lock clicked! And right here lies the Impulse Debugger.\"",
+          "mode": "interactive",
+          "audioCue": "sfx_keypad_unlock",
+          "events": [
+            { "event": "PLAY_SFX", "payload": "sfx_door_unlock" },
+            { "event": "ITEM_ACQUIRED", "payload": "item_impulse_debugger" }
+          ],
+          "next": null
+        }
+      }
+    },
+    "tree_quest_02_memo": {
+      "id": "tree_quest_02_memo",
+      "questId": "quest_02_deans_password",
+      "act": 1,
+      "isRadio": false,
+      "initialNodeId": "q02_memo_console",
+      "nodes": {
+        "q02_memo_console": {
+          "id": "q02_memo_console",
+          "speaker": "console",
+          "textRu": "«Заметка дежурного лаборанта: \"Шифр электронного замка совпадает с годом создания нашего факультета кибернетики (1984)\"».",
+          "textEn": "\"Duty lab assistant note: 'The electronic lock cipher matches the founding year of our Faculty of Cybernetics (1984)'!\"",
+          "mode": "interactive",
+          "audioCue": "sfx_terminal_keystroke",
+          "next": null
+        }
+      }
+    },
+    "tree_quest_03_blocker": {
+      "id": "tree_quest_03_blocker",
+      "questId": "quest_03_blocker_disassembly",
+      "act": 1,
+      "isRadio": false,
+      "initialNodeId": "q03_alexey_01",
+      "onCompleteFlag": "FLAG_FIRST_BLOCKER_DISASSEMBLED",
+      "nodes": {
+        "q03_alexey_01": {
+          "id": "q03_alexey_01",
+          "speaker": "alexey",
+          "textRu": "«Прямого прохода нет, этот бот заблокирован вирусом. Применяю дебаггер... Есть! Магнитные крепления отключились, робот рассыпался на аккуратные модули без повреждений. Собираю запчасти для дальнейшего пути».",
+          "textEn": "\"No direct passage, this bot is blocked by the virus. Applying debugger... Got it! Magnetic mounts disengaged, the robot broke apart into neat modules without damage. Gathering spare parts for the journey ahead.\"",
+          "mode": "interactive",
+          "audioCue": "sfx_pulse_burst",
+          "events": [
+            { "event": "SPAWN_DROPS", "payload": ["item_module_wheels", "item_module_casing", "item_module_camera", "item_module_battery"] }
+          ],
+          "next": null
+        }
+      }
+    },
+    "tree_quest_04_professor": {
+      "id": "tree_quest_04_professor",
+      "questId": "quest_04_lab_darkness",
+      "act": 1,
+      "isRadio": false,
+      "initialNodeId": "q04_prof_01",
+      "onCompleteFlag": "FLAG_PROFESSOR_CONTACTED",
+      "nodes": {
+        "q04_prof_01": {
+          "id": "q04_prof_01",
+          "speaker": "professor",
+          "textRu": "«Слава богу, кто-то живой! У меня заблокировались электронные замки аудитории. Почини главный щиток в коридоре, чтобы вернуть свет в корпус».",
+          "textEn": "\"Thank God, someone alive! My classroom's electronic locks got blocked. Repair the main switchboard in the corridor to restore light to the building.\"",
+          "mode": "interactive",
+          "audioCue": "sfx_dialogue_professor",
+          "next": "q04_alexey_02"
+        },
+        "q04_alexey_02": {
+          "id": "q04_alexey_02",
+          "speaker": "alexey",
+          "textRu": "«Держитесь, профессор, я как раз собрал нужные детали для починки цепи».",
+          "textEn": "\"Hold on, Professor, I just collected the necessary parts to fix the circuit.\"",
+          "mode": "interactive",
+          "audioCue": "sfx_dialogue_blip",
+          "next": null
+        }
+      }
+    },
+    "tree_quest_05_server_door": {
+      "id": "tree_quest_05_server_door",
+      "questId": "quest_05_server_deadend",
+      "act": 2,
+      "isRadio": false,
+      "initialNodeId": "q05_alexey_01",
+      "onCompleteFlag": "FLAG_SERVER_DOOR_INSPECTED",
+      "nodes": {
+        "q05_alexey_01": {
+          "id": "q05_alexey_01",
+          "speaker": "alexey",
+          "textRu": "«Цифровой взлом не помогает, дверь заперта на старый замок. Нужно искать физический ключ. Посмотрим, что зафиксировали камеры на посту охраны перед отключением сети».",
+          "textEn": "\"Digital hacking doesn't help, the door is locked with an old lock. Need to find the physical key. Let's see what the cameras at the security post captured before the network shutdown.\"",
+          "mode": "interactive",
+          "audioCue": "sfx_dialogue_blip",
+          "next": null
+        }
+      }
+    },
+    "tree_quest_05_door_console": {
+      "id": "tree_quest_05_door_console",
+      "questId": "quest_05_server_deadend",
+      "act": 2,
+      "isRadio": false,
+      "initialNodeId": "q05_console_denied",
+      "nodes": {
+        "q05_console_denied": {
+          "id": "q05_console_denied",
+          "speaker": "console",
+          "textRu": "«Отказ доступа: Электронная блокировка активна. Требуется физический мастер-ключ».",
+          "textEn": "\"Access Denied: Electronic override locked. Physical master key required.\"",
+          "mode": "interactive",
+          "audioCue": "sfx_access_denied",
+          "next": null
+        }
+      }
+    },
+    "tree_quest_06_cctv": {
+      "id": "tree_quest_06_cctv",
+      "questId": "quest_06_cctv_clue",
+      "act": 2,
+      "isRadio": false,
+      "initialNodeId": "q06_alexey_01",
+      "onCompleteFlag": "FLAG_CCTV_REVIEWED",
+      "nodes": {
+        "q06_alexey_01": {
+          "id": "q06_alexey_01",
+          "speaker": "alexey",
+          "textRu": "«Так вот кто утащил ключи! Служебный робот-пёс принял связку за мусор. Последний раз камеры зафиксировали его в зоне зимнего сада за Лабораторным корпусом. Выдвигаюсь в погоню».",
+          "textEn": "\"So that's who dragged away the keys! The service robo-dog took the keyring for trash. The cameras last captured it in the winter garden zone behind the Laboratory building. Moving out in pursuit.\"",
+          "mode": "interactive",
+          "audioCue": "sfx_dialogue_blip",
+          "next": null
+        }
+      }
+    },
+    "tree_quest_07_winter_garden": {
+      "id": "tree_quest_07_winter_garden",
+      "questId": "quest_07_winter_garden_dog",
+      "act": 2,
+      "isRadio": false,
+      "initialNodeId": "q07_alexey_01",
+      "onCompleteFlag": "FLAG_KEYS_RECOVERED",
+      "nodes": {
+        "q07_alexey_01": {
+          "id": "q07_alexey_01",
+          "speaker": "alexey",
+          "textRu": "«Вот ты где, железяка. Не бойся, вредить тебе не буду... Точный импульс дебаггера. Отлично! Бот деактивирован и мягко распался на модули, а связка ключей у меня в руках. Путь к серверной свободен».",
+          "textEn": "\"There you are, iron buddy. Don't worry, I won't hurt you... Precise debugger pulse. Excellent! The bot is deactivated and gently disassembled into modules, and the key ring is in my hands. The path to the server room is clear.\"",
+          "mode": "interactive",
+          "audioCue": "sfx_pulse_burst",
+          "events": [
+            { "event": "ITEM_ACQUIRED", "payload": "item_server_keyring" },
+            { "event": "SPAWN_DROPS", "payload": ["item_dog_modules"] }
+          ],
+          "next": null
+        }
+      }
+    },
+    "tree_quest_08_power_restore": {
+      "id": "tree_quest_08_power_restore",
+      "questId": "quest_08_lab_power_restore",
+      "act": 2,
+      "isRadio": false,
+      "initialNodeId": "q08_system_01",
+      "onCompleteFlag": "FLAG_POWER_RESTORED",
+      "nodes": {
+        "q08_system_01": {
+          "id": "q08_system_01",
+          "speaker": "system",
+          "textRu": "«Питание крыла восстановлено. Штатный режим активирован».",
+          "textEn": "\"Wing power restored. Normal mode activated.\"",
+          "mode": "auto_advance",
+          "autoAdvanceDelayMs": 3500,
+          "audioCue": "sfx_power_restore_chime",
+          "events": [
+            { "event": "SET_LIGHTING_STATE", "payload": "warm_restored" }
+          ],
+          "next": "q08_prof_02"
+        },
+        "q08_prof_02": {
+          "id": "q08_prof_02",
+          "speaker": "professor",
+          "textRu": "«Великолепно! Свет вернулся, мониторы ожили. Теперь шлюз серверной полностью под твоим контролем».",
+          "textEn": "\"Magnificent! Light has returned, monitors came alive. Now the server gateway is completely under your control.\"",
+          "mode": "interactive",
+          "audioCue": "sfx_dialogue_professor",
+          "next": null
+        }
+      }
+    },
+    "tree_quest_09_subway_tunnel": {
+      "id": "tree_quest_09_subway_tunnel",
+      "questId": "quest_09_subway_tunnel",
+      "act": 3,
+      "isRadio": false,
+      "initialNodeId": "q09_alexey_01",
+      "onCompleteFlag": "FLAG_TUNNEL_TRAVERSED",
+      "nodes": {
+        "q09_alexey_01": {
+          "id": "q09_alexey_01",
+          "speaker": "alexey",
+          "textRu": "«Наверху в воздухе патрулируют дроны, открытое пространство пересечь нереально. Воспользуюсь старым кабельным коллектором под землей».",
+          "textEn": "\"Above in the air, drones are patrolling, crossing open space is impossible. I'll use the old cable collector underground.\"",
+          "mode": "interactive",
+          "audioCue": "sfx_dialogue_blip",
+          "next": null
+        }
+      }
+    },
+    "tree_quest_10_jammer": {
+      "id": "tree_quest_10_jammer",
+      "questId": "quest_10_rogue_access_point",
+      "act": 3,
+      "isRadio": false,
+      "initialNodeId": "q10_alexey_01",
+      "onCompleteFlag": "FLAG_JAMMER_DISABLED",
+      "nodes": {
+        "q10_alexey_01": {
+          "id": "q10_alexey_01",
+          "speaker": "alexey",
+          "textRu": "«Вот источник сетевого заражения — уличная фальшивая точка доступа. Если отключить её питание, защита внутренних дверей рухнет. Подавляю сигнал... Ретранслятор отключен!»",
+          "textEn": "\"Here is the source of network infection — an outdoor rogue access point. If we shut down its power, the internal doors' defense will collapse. Suppressing signal... Repeater disabled!\"",
+          "mode": "interactive",
+          "audioCue": "sfx_emp_burst",
+          "events": [
+            { "event": "PLAY_SFX", "payload": "sfx_jammer_shutdown" },
+            { "event": "WORLD_STATE_SET", "payload": { "jammerActive": false } }
+          ],
+          "next": null
+        }
+      }
+    },
+    "tree_quest_11_grand_doors": {
+      "id": "tree_quest_11_grand_doors",
+      "questId": "quest_11_grand_doors_open",
+      "act": 3,
+      "isRadio": false,
+      "initialNodeId": "q11_alexey_01",
+      "onCompleteFlag": "FLAG_LOBBY_ENTERED",
+      "nodes": {
+        "q11_alexey_01": {
+          "id": "q11_alexey_01",
+          "speaker": "alexey",
+          "textRu": "«Защитный барьер пал, парадные двери главного корпуса разблокированы. Входим внутрь. Двигаемся к лифтам в подземный архив».",
+          "textEn": "\"The protective barrier has fallen, the front doors of the main building are unlocked. Entering inside. Moving towards the elevators to the underground archive.\"",
+          "mode": "interactive",
+          "audioCue": "sfx_dialogue_blip",
+          "next": null
+        }
+      }
+    },
+    "tree_quest_12_server_heart": {
+      "id": "tree_quest_12_server_heart",
+      "questId": "quest_12_datacenter_heart",
+      "act": 3,
+      "isRadio": false,
+      "initialNodeId": "q12_prof_01",
+      "onCompleteFlag": "FLAG_DATACENTER_ACCESSED",
+      "nodes": {
+        "q12_prof_01": {
+          "id": "q12_prof_01",
+          "speaker": "professor",
+          "textRu": "«Мы у цели, Алексей! Вот он, наш главный исторический архив и цифровая память поколений. Запускай терминал ключом и выбирай протокол восстановления данных».",
+          "textEn": "\"We are at our goal, Alexey! Here it is, our main historical archive and the digital memory of generations. Boot the terminal with the key and choose the data recovery protocol.\"",
+          "mode": "interactive",
+          "audioCue": "sfx_dialogue_professor",
+          "next": null
+        }
+      }
+    },
+    "tree_quest_13_protocol": {
+      "id": "tree_quest_13_protocol",
+      "questId": "quest_13_protocol_init",
+      "act": 4,
+      "isRadio": false,
+      "initialNodeId": "q13_console_01",
+      "onCompleteFlag": "FLAG_PROTOCOL_INITIALIZED",
+      "nodes": {
+        "q13_console_01": {
+          "id": "q13_console_01",
+          "speaker": "console",
+          "textRu": "«Инициализация завершена. Выберите финальный вектор развёртывания сети кампуса: Полная перепрошивка (А), Аварийный сброс (Б) или Автономный карантин (В)».",
+          "textEn": "\"Initialization complete. Select the final deployment vector for the campus network: Full Reflash (A), Emergency Reset (B), or Autonomous Quarantine (C).\"",
+          "mode": "interactive",
+          "audioCue": "sfx_terminal_keystroke",
+          "options": [
+            {
+              "id": "opt_protocol_a",
+              "labelRu": "Полная перепрошивка (А) — Восстановление сети и сохранение всех архивов",
+              "labelEn": "Full Reflash (A) — Restore network and preserve all archives",
+              "nextNodeId": "q13_choice_a_confirm",
+              "actionFlag": "FLAG_ENDING_CHOICE_A",
+              "endingChoice": "FINAL_A",
+              "onSelectEvent": "PROTOCOL_A_SELECTED"
+            },
+            {
+              "id": "opt_protocol_b",
+              "labelRu": "Аварийный сброс (Б) — Полное отключение и безопасная консервация роботов",
+              "labelEn": "Emergency Reset (B) — Full shutdown and safe preservation of robot hardware",
+              "nextNodeId": "q13_choice_b_confirm",
+              "actionFlag": "FLAG_ENDING_CHOICE_B",
+              "endingChoice": "FINAL_B",
+              "onSelectEvent": "PROTOCOL_B_SELECTED"
+            },
+            {
+              "id": "opt_protocol_c",
+              "labelRu": "Автономный карантин (В) — Изоляция повреждённых модулей с аппаратной разборкой",
+              "labelEn": "Autonomous Quarantine (C) — Isolation of damaged modules with hardware disassembly",
+              "nextNodeId": "q13_choice_c_confirm",
+              "actionFlag": "FLAG_ENDING_CHOICE_B",
+              "endingChoice": "FINAL_B",
+              "onSelectEvent": "PROTOCOL_C_SELECTED"
+            }
+          ]
+        },
+        "q13_choice_a_confirm": {
+          "id": "q13_choice_a_confirm",
+          "speaker": "alexey",
+          "textRu": "«Выбираю полную перепрошивку. Мы восстановим сетевой код и сохраним все архивы невредимыми».",
+          "textEn": "\"Selecting full reflash. We will restore the network code and keep all archives intact.\"",
+          "mode": "interactive",
+          "audioCue": "sfx_dialogue_blip",
+          "next": "q13_choice_a_system"
+        },
+        "q13_choice_a_system": {
+          "id": "q13_choice_a_system",
+          "speaker": "console",
+          "textRu": "«Протокол А принят: Запуск глобальной перепрошивки кампуса. Сеть очищена, роботы переведены в штатный академический режим».",
+          "textEn": "\"Protocol A accepted: Initiating global campus firmware overwrite. Network cleansed, robots switched to standard academic mode.\"",
+          "mode": "auto_advance",
+          "autoAdvanceDelayMs": 4000,
+          "audioCue": "sfx_success_chime",
+          "events": [
+            { "event": "ROUTE_CAMPAIGN_ENDING", "payload": "FINAL_A" }
+          ],
+          "next": null
+        },
+        "q13_choice_b_confirm": {
+          "id": "q13_choice_b_confirm",
+          "speaker": "alexey",
+          "textRu": "«Выбираю аварийный сброс. Безопасность превыше всего — обесточиваем и консервируем все модули».",
+          "textEn": "\"Selecting emergency reset. Safety comes first — depowering and preserving all modules.\"",
+          "mode": "interactive",
+          "audioCue": "sfx_dialogue_blip",
+          "next": "q13_choice_b_system"
+        },
+        "q13_choice_b_system": {
+          "id": "q13_choice_b_system",
+          "speaker": "console",
+          "textRu": "«Протокол Б принят: Экстренное обесточивание исполнительных систем роботов завершено. Аппаратная консервация активна».",
+          "textEn": "\"Protocol B accepted: Emergency depowering of robotic actuator systems complete. Hardware preservation active.\"",
+          "mode": "auto_advance",
+          "autoAdvanceDelayMs": 4000,
+          "audioCue": "sfx_success_chime",
+          "events": [
+            { "event": "ROUTE_CAMPAIGN_ENDING", "payload": "FINAL_B" }
+          ],
+          "next": null
+        },
+        "q13_choice_c_confirm": {
+          "id": "q13_choice_c_confirm",
+          "speaker": "alexey",
+          "textRu": "«Выбираю автономный карантин. Изолируем сбойные узлы и переводим роботов в режим физической разборки».",
+          "textEn": "\"Selecting autonomous quarantine. Isolating compromised nodes and switching robots to hardware disassembly mode.\"",
+          "mode": "interactive",
+          "audioCue": "sfx_dialogue_blip",
+          "next": "q13_choice_c_system"
+        },
+        "q13_choice_c_system": {
+          "id": "q13_choice_c_system",
+          "speaker": "console",
+          "textRu": "«Протокол В принят: Модульная изоляция активирована. Робототехника кампуса переведена в безопасный режим волонтёрской утилизации».",
+          "textEn": "\"Protocol C accepted: Modular isolation activated. Campus robotics switched to safe volunteer salvage mode.\"",
+          "mode": "auto_advance",
+          "autoAdvanceDelayMs": 4000,
+          "audioCue": "sfx_success_chime",
+          "events": [
+            { "event": "ROUTE_CAMPAIGN_ENDING", "payload": "FINAL_B" }
+          ],
+          "next": null
+        }
+      }
+    },
+    "console_protocol_q13": {
+      "id": "console_protocol_q13",
+      "questId": "quest_13_protocol_init",
+      "act": 4,
+      "isRadio": false,
+      "initialNodeId": "q13_console_01",
+      "onCompleteFlag": "FLAG_PROTOCOL_INITIALIZED",
+      "nodes": {
+        "q13_console_01": {
+          "id": "q13_console_01",
+          "speaker": "console",
+          "textRu": "«Инициализация завершена. Выберите финальный вектор развёртывания сети кампуса: Полная перепрошивка (А), Аварийный сброс (Б) или Автономный карантин (В)».",
+          "textEn": "\"Initialization complete. Select the final deployment vector for the campus network: Full Reflash (A), Emergency Reset (B), or Autonomous Quarantine (C).\"",
+          "mode": "interactive",
+          "audioCue": "sfx_terminal_keystroke",
+          "options": [
+            {
+              "id": "opt_protocol_a",
+              "labelRu": "Полная перепрошивка (А) — Восстановление сети и сохранение всех архивов",
+              "labelEn": "Full Reflash (A) — Restore network and preserve all archives",
+              "nextNodeId": "q13_choice_a_confirm",
+              "actionFlag": "FLAG_ENDING_CHOICE_A",
+              "endingChoice": "FINAL_A",
+              "onSelectEvent": "PROTOCOL_A_SELECTED"
+            },
+            {
+              "id": "opt_protocol_b",
+              "labelRu": "Аварийный сброс (Б) — Полное отключение и безопасная консервация роботов",
+              "labelEn": "Emergency Reset (B) — Full shutdown and safe preservation of robot hardware",
+              "nextNodeId": "q13_choice_b_confirm",
+              "actionFlag": "FLAG_ENDING_CHOICE_B",
+              "endingChoice": "FINAL_B",
+              "onSelectEvent": "PROTOCOL_B_SELECTED"
+            },
+            {
+              "id": "opt_protocol_c",
+              "labelRu": "Автономный карантин (В) — Изоляция повреждённых модулей с аппаратной разборкой",
+              "labelEn": "Autonomous Quarantine (C) — Isolation of damaged modules with hardware disassembly",
+              "nextNodeId": "q13_choice_c_confirm",
+              "actionFlag": "FLAG_ENDING_CHOICE_B",
+              "endingChoice": "FINAL_B",
+              "onSelectEvent": "PROTOCOL_C_SELECTED"
+            }
+          ]
+        },
+        "q13_choice_a_confirm": {
+          "id": "q13_choice_a_confirm",
+          "speaker": "alexey",
+          "textRu": "«Выбираю полную перепрошивку. Мы восстановим сетевой код и сохраним все архивы невредимыми».",
+          "textEn": "\"Selecting full reflash. We will restore the network code and keep all archives intact.\"",
+          "mode": "interactive",
+          "audioCue": "sfx_dialogue_blip",
+          "next": "q13_choice_a_system"
+        },
+        "q13_choice_a_system": {
+          "id": "q13_choice_a_system",
+          "speaker": "console",
+          "textRu": "«Протокол А принят: Запуск глобальной перепрошивки кампуса. Сеть очищена, роботы переведены в штатный академический режим».",
+          "textEn": "\"Protocol A accepted: Initiating global campus firmware overwrite. Network cleansed, robots switched to standard academic mode.\"",
+          "mode": "auto_advance",
+          "autoAdvanceDelayMs": 4000,
+          "audioCue": "sfx_success_chime",
+          "events": [
+            { "event": "ROUTE_CAMPAIGN_ENDING", "payload": "FINAL_A" }
+          ],
+          "next": null
+        },
+        "q13_choice_b_confirm": {
+          "id": "q13_choice_b_confirm",
+          "speaker": "alexey",
+          "textRu": "«Выбираю аварийный сброс. Безопасность превыше всего — обесточиваем и консервируем все модули».",
+          "textEn": "\"Selecting emergency reset. Safety comes first — depowering and preserving all modules.\"",
+          "mode": "interactive",
+          "audioCue": "sfx_dialogue_blip",
+          "next": "q13_choice_b_system"
+        },
+        "q13_choice_b_system": {
+          "id": "q13_choice_b_system",
+          "speaker": "console",
+          "textRu": "«Протокол Б принят: Экстренное обесточивание исполнительных систем роботов завершено. Аппаратная консервация активна».",
+          "textEn": "\"Protocol B accepted: Emergency depowering of robotic actuator systems complete. Hardware preservation active.\"",
+          "mode": "auto_advance",
+          "autoAdvanceDelayMs": 4000,
+          "audioCue": "sfx_success_chime",
+          "events": [
+            { "event": "ROUTE_CAMPAIGN_ENDING", "payload": "FINAL_B" }
+          ],
+          "next": null
+        },
+        "q13_choice_c_confirm": {
+          "id": "q13_choice_c_confirm",
+          "speaker": "alexey",
+          "textRu": "«Выбираю автономный карантин. Изолируем сбойные узлы и переводим роботов в режим физической разборки».",
+          "textEn": "\"Selecting autonomous quarantine. Isolating compromised nodes and switching robots to hardware disassembly mode.\"",
+          "mode": "interactive",
+          "audioCue": "sfx_dialogue_blip",
+          "next": "q13_choice_c_system"
+        },
+        "q13_choice_c_system": {
+          "id": "q13_choice_c_system",
+          "speaker": "console",
+          "textRu": "«Протокол В принят: Модульная изоляция активирована. Робототехника кампуса переведена в безопасный режим волонтёрской утилизации».",
+          "textEn": "\"Protocol C accepted: Modular isolation activated. Campus robotics switched to safe volunteer salvage mode.\"",
+          "mode": "auto_advance",
+          "autoAdvanceDelayMs": 4000,
+          "audioCue": "sfx_success_chime",
+          "events": [
+            { "event": "ROUTE_CAMPAIGN_ENDING", "payload": "FINAL_B" }
+          ],
+          "next": null
+        }
+      }
+    },
+    "tree_quest_14_finale": {
+      "id": "tree_quest_14_finale",
+      "questId": "quest_14_final_a_celebration",
+      "act": 4,
+      "isRadio": false,
+      "initialNodeId": "q14_prof_01",
+      "onCompleteFlag": "FLAG_CAMPAIGN_COMPLETE_ENDING_A",
+      "nodes": {
+        "q14_prof_01": {
+          "id": "q14_prof_01",
+          "speaker": "professor",
+          "textRu": "«Невероятно! Сеть чиста, архив спасён, а роботы снова служат на благо науки. Преемственность поколений сохранена!»",
+          "textEn": "\"Incredible! The network is clean, the archive is saved, and the robots serve the cause of science once again. The continuity of generations is preserved!\"",
+          "mode": "interactive",
+          "audioCue": "sfx_dialogue_professor",
+          "next": "q14_alexey_02"
+        },
+        "q14_alexey_02": {
+          "id": "q14_alexey_02",
+          "speaker": "alexey",
+          "textRu": "«Мы сделали это вместе. Кампус снова безопасен для всех».",
+          "textEn": "\"We did it together. The campus is safe for everyone again.\"",
+          "mode": "interactive",
+          "audioCue": "sfx_dialogue_blip",
+          "events": [
+            { "event": "VICTORY_CREDITS_START", "payload": { "ending": "FINAL_A" } }
+          ],
+          "next": null
+        }
+      }
+    },
+    "tree_quest_15_finale": {
+      "id": "tree_quest_15_finale",
+      "questId": "quest_15_final_b_cleanup",
+      "act": 4,
+      "isRadio": false,
+      "initialNodeId": "q15_alexey_01",
+      "onCompleteFlag": "FLAG_CAMPAIGN_COMPLETE_ENDING_B",
+      "nodes": {
+        "q15_alexey_01": {
+          "id": "q15_alexey_01",
+          "speaker": "alexey",
+          "textRu": "«Пусть роботов пришлось полностью деактивировать, зато данные архива в безопасности, а детали пригодятся для создания новых моделей».",
+          "textEn": "\"Even if the robots had to be completely deactivated, at least the archive data is safe, and the parts will come in handy for creating new models.\"",
+          "mode": "interactive",
+          "audioCue": "sfx_dialogue_blip",
+          "next": "q15_curator_02"
+        },
+        "q15_curator_02": {
+          "id": "q15_curator_02",
+          "speaker": "curator",
+          "textRu": "«Отличная работа, волонтер. Завтра начнем сборку новой безопасной системы».",
+          "textEn": "\"Great work, volunteer. Tomorrow we'll start assembling a new, secure system.\"",
+          "mode": "interactive",
+          "audioCue": "sfx_radio_chime",
+          "events": [
+            { "event": "VICTORY_CREDITS_START", "payload": { "ending": "FINAL_B" } }
+          ],
+          "next": null
+        }
+      }
+    }
+  }
+}

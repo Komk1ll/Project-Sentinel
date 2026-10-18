@@ -34,3 +34,6 @@ coverage/
 # Temporary / Lock files
 *.tmp
 ~$*.docx
+
+# Agent teamwork messages
+.agents/teamwork

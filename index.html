@@ -142,6 +142,142 @@
         color: #3fb950;
         border: 1px solid rgba(63, 185, 80, 0.4);
       }
+
+      /* Quest HUD */
+      #quest-tracker {
+        top: 16px;
+        right: 16px;
+        max-width: 360px;
+        z-index: 10;
+      }
+
+      .quest-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+      }
+
+      .act-badge {
+        background: rgba(88, 166, 255, 0.2);
+        color: #58a6ff;
+        border: 1px solid rgba(88, 166, 255, 0.4);
+      }
+
+      .quest-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #58a6ff;
+      }
+
+      .quest-desc {
+        font-size: 12px;
+        color: #8b949e;
+        margin-bottom: 8px;
+        line-height: 1.4;
+      }
+
+      .quest-objectives-list {
+        list-style: none;
+      }
+
+      .quest-objective-item {
+        font-size: 12px;
+        color: #c9d1d9;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+      }
+
+      .quest-objective-item.objective-done {
+        color: #3fb950;
+        text-decoration: line-through;
+        opacity: 0.8;
+      }
+
+      /* Dialogue Overlay */
+      #dialogue-box {
+        position: absolute;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100% - 48px);
+        max-width: 760px;
+        min-height: 130px;
+        z-index: 50;
+      }
+
+      .dialogue-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 8px;
+      }
+
+      .speaker-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 6px;
+        background: #21262d;
+        border: 1px solid #58a6ff;
+      }
+
+      .speaker-name {
+        font-size: 14px;
+        font-weight: bold;
+        color: #58a6ff;
+      }
+
+      .speaker-title {
+        font-size: 11px;
+        color: #8b949e;
+      }
+
+      .dialogue-text {
+        font-size: 14px;
+        line-height: 1.5;
+        color: #e6edf3;
+      }
+
+      .dialogue-options {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-top: 10px;
+      }
+
+      .dialogue-option-btn,
+      .dialogue-advance-btn {
+        background: #21262d;
+        color: #58a6ff;
+        border: 1px solid #30363d;
+        border-radius: 6px;
+        padding: 6px 12px;
+        cursor: pointer;
+        font-size: 13px;
+        text-align: left;
+      }
+
+      .dialogue-option-btn:hover,
+      .dialogue-advance-btn:hover {
+        background: #30363d;
+        border-color: #58a6ff;
+      }
+
+      /* Modal Overlay */
+      .modal-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+      }
     </style>
   </head>
   <body>
@@ -160,6 +296,9 @@
             <li><span class="badge badge-ok">SYS</span> Navigation &amp; Engine Online</li>
           </ul>
         </section>
+        <div id="quest-tracker"></div>
+        <div id="dialogue-box" style="display: none;"></div>
+        <div id="holo-console" style="display: none;"></div>
       </div>
     </div>
     <script type="module" src="/src/main.ts"></script>

@@ -4,6 +4,12 @@
  */
 
 export * from './models';
+export * from './campaign';
+import type {
+  CampaignEndingChoice,
+  QuestState,
+  DioramaSaveState,
+} from './campaign';
 
 export type EntityId = string;
 
@@ -86,13 +92,21 @@ export interface SaveData {
   readonly containerStates: Record<string, boolean>;
   readonly doorStates: Record<string, boolean>;
   readonly questStates: Record<string, 'inactive' | 'active' | 'completed'>;
-  readonly worldFlags: Record<string, boolean>;
+  readonly worldFlags: Record<string, boolean | string | undefined>;
   readonly robotStates: readonly RobotState[];
   readonly settings: {
     readonly soundVolume: number;
     readonly musicVolume: number;
     readonly language: string;
   };
+  // Optional additive extensions for CyberShield Campaign (v1 schema compatible)
+  readonly activeQuestId?: string | null;
+  readonly completedQuestIds?: readonly string[];
+  readonly currentAct?: 1 | 2 | 3 | 4;
+  readonly campaignEnding?: CampaignEndingChoice | null;
+  readonly detailedQuestStates?: Record<string, QuestState>;
+  readonly dioramaState?: DioramaSaveState;
+  readonly groundDrops?: readonly unknown[];
 }
 
 export interface GameState {
@@ -104,6 +118,6 @@ export interface GameState {
   };
   activeScene: string;
   quests: Record<string, 'inactive' | 'active' | 'completed'>;
-  worldFlags: Record<string, boolean>;
+  worldFlags: Record<string, boolean | string | undefined>;
   robots: RobotState[];
 }

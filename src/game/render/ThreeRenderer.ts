@@ -5,6 +5,8 @@ import { PixelArtPostProcessor } from './PixelArtPostProcessor';
 import { IsometricDirection } from '../../types/models';
 import { Vector2D } from '../../types';
 
+import { DynamicLightingController } from './DynamicLightingController';
+
 export interface ThreeRendererOptions {
   containerId?: string;
   containerElement?: HTMLElement;
@@ -32,6 +34,9 @@ export class ThreeRenderer {
   public renderer: THREE.WebGLRenderer;
   public modelLoader: GLBModelLoader;
   public pixelArtPostProcessor: PixelArtPostProcessor;
+  public ambientLight!: THREE.AmbientLight;
+  public directionalLight!: THREE.DirectionalLight;
+  public lightingController?: DynamicLightingController;
 
   private activeModels: Set<PixelArtModelInstance> = new Set();
   private container: HTMLElement | null = null;
@@ -110,13 +115,48 @@ export class ThreeRenderer {
   }
 
   private setupLighting(): void {
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-    this.scene.add(ambientLight);
+    this.ambientLight = new THREE.AmbientLight(0x1e293b, 0.5);
+    this.scene.add(this.ambientLight);
 
-    const dirLight = new THREE.DirectionalLight(0xfff0dd, 1.2);
-    dirLight.position.set(20, 40, 20);
-    dirLight.castShadow = true;
-    this.scene.add(dirLight);
+    this.directionalLight = new THREE.DirectionalLight(0x60a5fa, 0.8);
+    this.directionalLight.position.set(20, 40, 20);
+    this.directionalLight.castShadow = true;
+    this.scene.add(this.directionalLight);
+
+    this.lightingController = new DynamicLightingController({
+      ambientLight: this.ambientLight,
+      directionalLight: this.directionalLight,
+      initialState: 'twilight',
+    });
+  }
+
+  public getAmbientLight(): THREE.AmbientLight {
+    return this.ambientLight;
+  }
+
+  public getDirectionalLight(): THREE.DirectionalLight {
+    return this.directionalLight;
+  }
+
+  public setLighting(
+    ambientColor: number | string,
+    ambientIntensity: number,
+    dirColor: number | string,
+    dirIntensity: number
+  ): void {
+    if (typeof ambientColor === 'number') {
+      this.ambientLight.color.setHex(ambientColor);
+    } else {
+      this.ambientLight.color.set(ambientColor as THREE.ColorRepresentation);
+    }
+    this.ambientLight.intensity = ambientIntensity;
+
+    if (typeof dirColor === 'number') {
+      this.directionalLight.color.setHex(dirColor);
+    } else {
+      this.directionalLight.color.set(dirColor as THREE.ColorRepresentation);
+    }
+    this.directionalLight.intensity = dirIntensity;
   }
 
   /**
@@ -178,6 +218,9 @@ export class ThreeRenderer {
     if (this.isDestroyed) return;
 
     const delta = this.clock.getDelta();
+
+    // Update lighting transition if active
+    this.lightingController?.update(delta);
 
     // Update all active pixel-art model animations
     for (const model of this.activeModels) {
