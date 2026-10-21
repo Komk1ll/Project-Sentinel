@@ -10,6 +10,14 @@
 
 ---
 
+## Playable Town Prototype
+
+Explore Zarechensk, a procedural autumn district with 19 enterable buildings, a central garden, connected furnished interiors and a live minimap. Weathered masonry, cracked roads, varied roofing and muted autumn foliage add detail to the district. Use **WASD / arrow keys** to walk, **E** or the contextual on-screen button near a front door to enter or exit, and the **mouse wheel**, **+ / −** keys or minimap buttons to zoom outdoors and indoors. **Home** or the percentage button resets the current view. Walk toward the open front of an interior to reach its exit.
+
+The compact character HUD starts health, stamina, satiety, mood, level and experience at zero. These values are ready for future game rewards and consumables. Quests are not implemented in this prototype.
+
+The active town renders through Three.js; Phaser is retained for the earlier 2D scenes. Read [Town architecture](docs/architecture/town-world.md) for the layout, simulation and integration contracts.
+
 ## Technology Stack
 
 - **Rendering & Engine**:
