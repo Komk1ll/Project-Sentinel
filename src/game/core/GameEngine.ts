@@ -18,6 +18,7 @@ export class GameEngine {
   public readonly session = new TownSession(this.world, this.firstAid);
   public readonly cameraZoom = new CameraZoom();
   public threeRenderer!: ThreeRenderer;
+  public visualsReady: Promise<void> = Promise.resolve();
   private animationFrameId: number | null = null;
   private readonly keys = new Set<string>();
   private lastFrame = 0;
@@ -27,6 +28,7 @@ export class GameEngine {
 
   public init(): void {
     this.threeRenderer = new ThreeRenderer({ containerId: this.config.threeContainerId, world: this.world, zoom: this.cameraZoom, firstAid: this.firstAid });
+    this.visualsReady = this.threeRenderer.loadVisuals();
     this.registerCleanup(this.world.subscribe(world => this.cameraZoom.setInterior(world.interior !== null)));
     window.addEventListener('keydown', this.onKeyDown);
     window.addEventListener('keyup', this.onKeyUp);

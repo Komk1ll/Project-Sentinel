@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { MASTER, MEDIC } from '@content/first-aid';
 
 /** A modest procedural workshop character, using the existing town's scale. */
-export function createMasterMesh(actor: { readonly id: string; readonly x: number; readonly z: number } = MASTER): { group: THREE.Group; kit: THREE.Group } {
+export function createMasterMesh(actor: { readonly id: string; readonly x: number; readonly z: number } = MASTER): { group: THREE.Group; kit: THREE.Object3D } {
   const group = new THREE.Group();
   group.name = actor.id;
   group.position.set(actor.x, .02, actor.z);

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { disposeObject, loadCozyAssets } from '@game/render/cozy-assets';
 import { createMasterMesh } from '@game/render/master-mesh';
 import { MASTER, MEDIC } from '@content/first-aid';
 import type { FirstAidMission } from '@game/systems/first-aid-mission';
@@ -21,16 +22,19 @@ export class ThreeRenderer {
   public readonly camera: THREE.OrthographicCamera;
   public readonly renderer: THREE.WebGLRenderer;
   private readonly container: HTMLElement;
-  private readonly outdoors: THREE.Group;
+  private outdoors: THREE.Group;
+  private readonly interiorAssets = new Map<string, THREE.Group>();
+  private readonly resident = new THREE.Group();
+  private readonly limbRest = [0, 0, 0, 0];
   private readonly master = createMasterMesh();
   private readonly medic = createMasterMesh(MEDIC);
   private readonly character = new THREE.Group();
-  private readonly leftLeg = new THREE.Group();
-  private readonly rightLeg = new THREE.Group();
-  private readonly leftArm = new THREE.Group();
-  private readonly rightArm = new THREE.Group();
+  private leftLeg: THREE.Object3D = new THREE.Group();
+  private rightLeg: THREE.Object3D = new THREE.Group();
+  private leftArm: THREE.Object3D = new THREE.Group();
+  private rightArm: THREE.Object3D = new THREE.Group();
   private readonly target = new THREE.Vector3();
-  private readonly cameraOffset = new THREE.Vector3(28, 24, 28);
+  private readonly cameraOffset = new THREE.Vector3(28, 30, 28);
   private readonly doorMarker: THREE.Mesh;
   private room: THREE.Group | null = null;
   private roomId: string | null = null;
@@ -48,23 +52,24 @@ export class ThreeRenderer {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.08;
+    this.renderer.toneMappingExposure = 1.22;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
-    this.renderer.setClearColor(0x18252a);
+    this.renderer.setClearColor(0xdce5d5);
     this.container.appendChild(this.renderer.domElement);
     this.camera = new THREE.OrthographicCamera(-20, 20, 14, -14, .1, 250);
-    this.scene.fog = new THREE.Fog(0x293639, 75, 160);
-    this.scene.add(new THREE.HemisphereLight(0xacbcc5, 0x514c40, 1.15));
-    const sun = new THREE.DirectionalLight(0xffdfb0, 1.9);
+    this.scene.fog = new THREE.Fog(0xdce5d5, 95, 180);
+    this.scene.add(new THREE.HemisphereLight(0xe8f3ef, 0x8b9b76, 1.9));
+    const sun = new THREE.DirectionalLight(0xffe2b3, 2.3);
     sun.position.set(-25, 45, -5);
     sun.target.position.set(32, 0, 32);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
     Object.assign(sun.shadow.camera, { left: -55, right: 55, top: 55, bottom: -55, near: 1, far: 150 });
     sun.shadow.bias = -.0005;
-    sun.shadow.normalBias = .04;
+    sun.shadow.normalBias = .025;
+    sun.shadow.radius = 4;
     this.scene.add(sun, sun.target);
-    const fill = new THREE.DirectionalLight(0x9bb9cf, .5);
+    const fill = new THREE.DirectionalLight(0xd0e7e2, .65);
     fill.position.set(40, 25, 60); this.scene.add(fill);
     this.outdoors = createTownMeshes();
     this.setupCharacterCutaway(this.outdoors);
@@ -75,6 +80,11 @@ export class ThreeRenderer {
     this.scene.add(this.master.group);
     this.medic.group.visible = false;
     this.scene.add(this.medic.group);
+    this.resident.name = 'clinic-resident';
+    this.resident.position.set(3.8, .02, 1.8);
+    this.resident.rotation.y = -Math.PI / 2;
+    this.resident.visible = false;
+    this.scene.add(this.resident);
     this.doorMarker = new THREE.Mesh(
       new THREE.RingGeometry(.34, .48, 40),
       new THREE.MeshBasicMaterial({ color: 0xffd08a, transparent: true, opacity: .8, depthWrite: false })
@@ -87,6 +97,46 @@ export class ThreeRenderer {
     this.resize();
     window.addEventListener('resize', this.resize);
     this.container.addEventListener('wheel', this.onWheel, { passive: false });
+  }
+
+  public async loadVisuals(): Promise<void> {
+    const assets = await loadCozyAssets();
+    if (this.isDestroyed) { assets.forEach(disposeObject); return; }
+    const take = (name: string): THREE.Group => {
+      const asset = assets.get(name);
+      if (!asset) throw new Error(`Missing bundled visual asset: ${name}`);
+      return asset;
+    };
+    this.scene.remove(this.outdoors);
+    this.disposeGroup(this.outdoors);
+    this.outdoors = take('town');
+    this.setupCharacterCutaway(this.outdoors);
+    this.outdoors.visible = this.options.world.interior === null;
+    this.scene.add(this.outdoors);
+    this.disposeGroup(this.character);
+    this.character.clear();
+    const hero = take('hero');
+    this.character.add(hero);
+    this.leftLeg = hero.getObjectByName('left-leg') ?? new THREE.Object3D();
+    this.rightLeg = hero.getObjectByName('right-leg') ?? new THREE.Object3D();
+    this.leftArm = hero.getObjectByName('left-arm') ?? new THREE.Object3D();
+    this.rightArm = hero.getObjectByName('right-arm') ?? new THREE.Object3D();
+    [this.leftLeg, this.rightLeg, this.leftArm, this.rightArm].forEach((limb, index) => { this.limbRest[index] = limb.rotation.x; });
+    const marker = new THREE.Mesh(new THREE.RingGeometry(.33, .4, 32), new THREE.MeshBasicMaterial({ color: 0x2b9493, side: THREE.DoubleSide }));
+    marker.rotation.x = -Math.PI / 2; marker.position.y = .03; this.character.add(marker);
+    for (const [name, actor] of [['master', this.master], ['medic', this.medic]] as const) {
+      this.disposeGroup(actor.group); actor.group.clear();
+      const model = take(name); actor.group.add(model);
+      actor.group.position.y = .08;
+      actor.kit = model.getObjectByName('aid-kit-parcel') ?? new THREE.Object3D();
+    }
+    this.resident.add(take('resident'));
+    for (const [name, model] of assets) if (name.startsWith('interior-')) {
+      this.setupCharacterCutaway(model);
+      this.interiorAssets.set(name.slice('interior-'.length), model);
+    }
+    if (this.room) { this.scene.remove(this.room); this.disposeGroup(this.room); }
+    this.room = null; this.roomId = null;
   }
 
   /** Dither a narrow sight line through foreground facades so the player stays visible. */
@@ -114,7 +164,7 @@ export class ThreeRenderer {
         shader.fragmentShader = shader.fragmentShader.replace('#include <clipping_planes_fragment>', `
           #include <clipping_planes_fragment>
           vec3 sentinelDelta = sentinelWorldPosition - sentinelPlayer;
-          vec3 sentinelDirection = normalize(vec3(28.0, 24.0, 28.0));
+          vec3 sentinelDirection = normalize(vec3(28.0, 30.0, 28.0));
           float sentinelDepth = dot(sentinelDelta, sentinelDirection);
           float sentinelDistance = length(sentinelDelta - sentinelDirection * sentinelDepth);
           if (sentinelDepth > 1.1 && sentinelDelta.y > 0.2 && sentinelDistance < 1.15) {
@@ -122,7 +172,7 @@ export class ThreeRenderer {
           }
         `);
       };
-      material.customProgramCacheKey = () => 'sentinel-character-cutaway-v1';
+      material.customProgramCacheKey = () => 'sentinel-character-cutaway-v2';
     });
   }
 
@@ -132,7 +182,7 @@ export class ThreeRenderer {
     const skin = new THREE.MeshStandardMaterial({ color: 0xc19a79, roughness: 1 });
     const hair = new THREE.MeshStandardMaterial({ color: 0x302e2a, roughness: 1 });
     const boots = new THREE.MeshStandardMaterial({ color: 0x282722, roughness: 1 });
-    function mesh(geometry: THREE.BufferGeometry, material: THREE.Material, parent: THREE.Group, x: number, y: number, z: number): THREE.Mesh {
+    function mesh(geometry: THREE.BufferGeometry, material: THREE.Material, parent: THREE.Object3D, x: number, y: number, z: number): THREE.Mesh {
       const item = new THREE.Mesh(geometry, material);
       item.position.set(x, y, z); item.castShadow = true; parent.add(item); return item;
     }
@@ -167,9 +217,13 @@ export class ThreeRenderer {
     this.master.kit.visible = this.options.firstAid.snapshot.stage === 'meet-master';
     this.medic.group.visible = nextRoomId === MEDIC.buildingId;
     this.medic.kit.visible = this.options.firstAid.snapshot.clinicSupplied;
+    this.resident.visible = nextRoomId === MEDIC.buildingId && this.options.firstAid.snapshot.clinicSupplied;
     if (nextRoomId !== this.roomId) {
-      if (this.room) { this.scene.remove(this.room); this.disposeGroup(this.room); }
-      this.room = world.interior ? createInteriorMeshes(world.interior) : null;
+      if (this.room) {
+        this.scene.remove(this.room);
+        if (!this.interiorAssets.has(this.roomId ?? '')) this.disposeGroup(this.room);
+      }
+      this.room = world.interior ? this.interiorAssets.get(world.interior.id) ?? createInteriorMeshes(world.interior) : null;
       if (this.room) {
         this.setupCharacterCutaway(this.room);
         this.scene.add(this.room);
@@ -184,12 +238,12 @@ export class ThreeRenderer {
     const dx = x - this.lastPosition.x;
     const dz = z - this.lastPosition.y;
     const moving = Math.hypot(dx, dz) > .0001;
-    this.character.position.set(x, world.interior ? .02 : .16, z);
-    if (moving) this.character.rotation.y = Math.atan2(-dx, -dz);
+    this.character.position.set(x, world.interior ? .08 : .24, z);
+    if (moving) this.character.rotation.y = Math.atan2(dx, dz);
     this.walkTime += moving ? deltaSeconds * 10 : 0;
     const stride = moving ? Math.sin(this.walkTime) * .55 : 0;
-    this.leftLeg.rotation.x = stride; this.rightLeg.rotation.x = -stride;
-    this.leftArm.rotation.x = -stride * .7; this.rightArm.rotation.x = stride * .7;
+    this.leftLeg.rotation.x = (this.limbRest[0] ?? 0) + stride; this.rightLeg.rotation.x = (this.limbRest[1] ?? 0) - stride;
+    this.leftArm.rotation.x = (this.limbRest[2] ?? 0) - stride * .7; this.rightArm.rotation.x = (this.limbRest[3] ?? 0) + stride * .7;
     this.lastPosition.set(x, z);
     const center = new THREE.Vector3(x, 0, z).multiplyScalar(this.options.zoom.followWeight);
     this.target.lerp(center, 1 - Math.exp(-deltaSeconds * 7));
@@ -204,7 +258,7 @@ export class ThreeRenderer {
     this.doorMarker.visible = Boolean(nearby) && !world.interior;
     if (nearby) {
       const entry = buildingEntrance(nearby);
-      this.doorMarker.position.set(entry.x, .11, entry.z);
+      this.doorMarker.position.set(entry.x, .3, entry.z);
     }
     this.renderer.render(this.scene, this.camera);
   }
@@ -221,27 +275,17 @@ export class ThreeRenderer {
   };
 
   private disposeGroup(group: THREE.Object3D): void {
-    const geometries = new Set<THREE.BufferGeometry>();
-    const materials = new Set<THREE.Material>();
-    const textures = new Set<THREE.Texture>();
-    group.traverse(object => {
-      if (!(object instanceof THREE.Mesh)) return;
-      geometries.add(object.geometry);
-      for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
-        materials.add(material);
-        if (material instanceof THREE.MeshStandardMaterial && material.map) textures.add(material.map);
-      }
-    });
-    geometries.forEach(geometry => geometry.dispose());
-    textures.forEach(texture => texture.dispose());
-    materials.forEach(material => material.dispose());
+    disposeObject(group);
   }
 
   public destroy(): void {
+    if (this.isDestroyed) return;
     this.isDestroyed = true;
     window.removeEventListener('resize', this.resize);
     this.container.removeEventListener('wheel', this.onWheel);
     this.disposeGroup(this.scene);
+    for (const room of this.interiorAssets.values()) if (room !== this.room) this.disposeGroup(room);
+    this.interiorAssets.clear();
     this.renderer.dispose();
     this.renderer.domElement.remove();
   }

@@ -21,6 +21,12 @@ docs/
     └── Каталог_моделей_Project_Sentinel_v1.docx
 ```
 
+## Active prototype
+
+- [Town architecture](architecture/town-world.md)
+- [First aid episode and persistence](architecture/first-aid-mission.md)
+- [Cozy visuals and Blender workflow](architecture/cozy-visuals.md)
+
 ## Language Standard
 
 All technical documentation, code comments, and ADRs must be written **strictly in English** to maintain consistency across the team and automated agent workflows.

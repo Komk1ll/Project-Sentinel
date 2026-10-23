@@ -13,6 +13,13 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   engine.init();
+  const loading = document.getElementById('asset-status');
+  void engine.visualsReady.then(() => loading?.remove()).catch(() => {
+    if (loading) {
+      loading.textContent = 'Не удалось загрузить оформление города. Обновите страницу, чтобы попробовать снова.';
+      loading.classList.add('asset-error');
+    }
+  });
 
   // Expose to window for debugging if in development
   if (import.meta.env.DEV) {

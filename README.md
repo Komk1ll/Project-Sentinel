@@ -12,11 +12,13 @@
 
 ## Playable Town Prototype
 
-Explore Zarechensk, a procedural autumn district with 19 enterable buildings, a central garden, connected furnished interiors and a live minimap. Weathered masonry, cracked roads, varied roofing and muted autumn foliage add detail to the district. Use **WASD / arrow keys** to walk, **E** or the contextual on-screen button near a front door to enter or exit, and the **mouse wheel**, **+ / −** keys or minimap buttons to zoom outdoors and indoors. **Home** or the percentage button resets the current view. Walk toward the open front of an interior to reach its exit.
+Explore Zarechensk, a cozy stylized district with 19 enterable buildings, a central garden, connected furnished interiors and a live minimap. Original Blender models add pitched roofs, framed windows, shop signs, planted streets, furnished rooms and expressive characters. Soft daylight and a cream-and-teal interface unify the presentation. Use **WASD / arrow keys** to walk, **E** or the contextual on-screen button near a front door to enter or exit, and the **mouse wheel**, **+ / −** keys or minimap buttons to zoom outdoors and indoors. **Home** or the percentage button resets the current view. Walk toward the open front of an interior to reach its exit.
 
-The first aid pickup is playable: follow the golden minimap target to the Mayak workshop, enter and approach the master. Press **E** or click the contextual action to receive one aid kit. The mission panel shows the item and changes the objective to deliver it to the clinic, which becomes the map target. Repeated interaction gives a reminder without duplicating the kit. Approach the medic in the clinic and interact to hand over the kit and complete the first mission. Progress, inventory, room and position are saved automatically and restored after reload. The completed clinic state persists; repeated conversations do not issue or consume another item. The mission panel replaces the inactive zero-stat HUD.
+The complete first aid episode is playable: follow the golden minimap target to the Mayak workshop, enter and approach the master. Press **E** or click the contextual action to receive one aid kit. The mission panel shows the item and changes the objective to deliver it to the clinic, which becomes the map target. Repeated interaction gives a reminder without duplicating the kit. Approach the medic in the clinic and interact to hand over the kit and complete the first mission. Progress, inventory, room and position are saved automatically and restored after reload. The completed clinic state persists; repeated conversations do not issue or consume another item. The mission panel replaces the inactive zero-stat HUD.
 
-See [First aid pickup](docs/architecture/first-aid-mission.md) for state contracts, verification and the manual acceptance route.
+See [First aid episode](docs/architecture/first-aid-mission.md) for state contracts, verification and the manual acceptance route.
+
+See [Cozy visuals](docs/architecture/cozy-visuals.md) for editable Blender sources, reproducible exports and validation.
 
 The active town renders through Three.js; Phaser is retained for the earlier 2D scenes. Read [Town architecture](docs/architecture/town-world.md) for the layout, simulation and integration contracts.
 
@@ -24,8 +26,8 @@ The active town renders through Three.js; Phaser is retained for the earlier 2D 
 
 - **Rendering & Engine**:
   - **Phaser 3**: 2:1 Isometric grid (128×64 px per 2×2 m world tile), scene orchestration, sprite animations, input handling, and audio.
-  - **Three.js (3JS / WebGL / OpenGL)**: 3D model inspection, volumetric lighting, shaders, and visual overlays rendered with isometric orthographic projection (Azimuth 45°, Elevation 30° matching Blender asset specifications).
-  - **HTML5 & Modern CSS**: Decoupled, accessible DOM-based HUD and modal UI layer with glassmorphism styling.
+  - **Three.js (3JS / WebGL / OpenGL)**: 3D model inspection, volumetric lighting, shaders, and visual overlays rendered with isometric orthographic projection (45° azimuth with a raised camera for readable town and room views).
+  - **HTML5 & Modern CSS**: Decoupled, accessible DOM-based HUD and modal UI layer with warm paper surfaces and teal accents.
 - **Language & Runtime**:
   - **TypeScript (Strict Mode)**: Zero `any`, strongly-typed `GameState`, `SaveData`, content schemas, and systems.
 - **Tooling & Build**:
@@ -98,7 +100,7 @@ npm run preview
 
 ## Agent & Contribution Guidelines
 
-For full rules, see [AGENTS.md](file:///Users/kirill/Documents/Projects/Project-Sentinel/AGENTS.md).
+For full rules, see [AGENTS.md](AGENTS.md).
 
 - **Branch Policy**: Never commit or push directly to `main`. Create feature branches (`feature/<name>`, `fix/<name>`).
 - **Human Merge Only**: Merging into `main` requires manual human review and approval.

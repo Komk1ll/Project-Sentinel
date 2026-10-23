@@ -8,6 +8,7 @@ import { approachMaster, leaveWorkshop, walkTo } from '../fixtures/first-aid-rou
 // Exercise the real engine input and HUD; this test does not claim WebGL rendering.
 vi.mock('@game/render/ThreeRenderer', () => ({
   ThreeRenderer: class {
+    async loadVisuals(): Promise<void> {}
     render(): void {}
     destroy(): void {}
   },

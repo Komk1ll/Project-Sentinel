@@ -22,26 +22,26 @@ function drawMinimap(canvas: HTMLCanvasElement, world: TownWorld, mission: First
   }
   context.setTransform(ratio, 0, 0, ratio, 0, 0);
   context.clearRect(0, 0, MAP_SIZE, MAP_SIZE);
-  context.fillStyle = '#172e2e';
+  context.fillStyle = '#dce4cf';
   context.fillRect(0, 0, MAP_SIZE, MAP_SIZE);
   let playerX: number;
   let playerY: number;
   if (world.interior) {
     const scale = 16;
-    context.fillStyle = '#304746';
+    context.fillStyle = '#edf0df';
     context.fillRect(18, 34, 144, 112);
-    context.strokeStyle = '#78958a';
+    context.strokeStyle = '#789581';
     context.lineWidth = 3;
     context.strokeRect(18, 34, 144, 112);
-    context.fillStyle = '#819087';
+    context.fillStyle = '#a3b49c';
     for (const obstacle of getInteriorLayout(world.interior).obstacles) {
       context.fillRect(90 + (obstacle.x - obstacle.width / 2) * scale, 90 + (obstacle.z - obstacle.depth / 2) * scale, obstacle.width * scale, obstacle.depth * scale);
     }
-    context.fillStyle = '#edc076';
+    context.fillStyle = '#a77a42';
     context.fillRect(80, 143, 20, 6);
     const actor = [MASTER, MEDIC].find(person => person.buildingId === world.interior?.id);
     if (actor) {
-      context.fillStyle = mission.snapshot.targetBuildingId === actor.buildingId ? '#ffcf78' : '#aebfb7';
+      context.fillStyle = mission.snapshot.targetBuildingId === actor.buildingId ? '#bb812d' : '#799786';
       context.beginPath();
       context.arc(90 + actor.x * scale, 90 + actor.z * scale, 4, 0, Math.PI * 2);
       context.fill();
@@ -51,14 +51,14 @@ function drawMinimap(canvas: HTMLCanvasElement, world: TownWorld, mission: First
   } else {
     const scale = (MAP_SIZE - MAP_PADDING * 2) / TOWN_SIZE;
     const point = (value: number): number => MAP_PADDING + value * scale;
-    context.fillStyle = '#41514c';
+    context.fillStyle = '#b4c1af';
     for (const road of ROAD_CENTERS) {
       context.fillRect(point(road - 2.5), MAP_PADDING, 5 * scale, TOWN_SIZE * scale);
       context.fillRect(MAP_PADDING, point(road - 2.5), TOWN_SIZE * scale, 5 * scale);
     }
-    context.fillStyle = '#3d6651';
+    context.fillStyle = '#95af85';
     context.fillRect(point(PARK.x - PARK.width / 2), point(PARK.z - PARK.depth / 2), PARK.width * scale, PARK.depth * scale);
-    context.strokeStyle = '#6e91715c';
+    context.strokeStyle = '#dce1bd';
     context.lineWidth = 1;
     context.beginPath();
     context.moveTo(point(18), point(24));
@@ -70,23 +70,23 @@ function drawMinimap(canvas: HTMLCanvasElement, world: TownWorld, mission: First
     for (const building of TOWN_BUILDINGS) {
       const x = point(building.x - building.width / 2);
       const y = point(building.z - building.depth / 2);
-      context.fillStyle = building.kind === 'home' ? '#8a9a8e' : '#b3ad91';
+      context.fillStyle = building.kind === 'home' ? '#9dafa0' : '#c6b391';
       context.fillRect(x, y, building.width * scale, building.depth * scale);
-      context.strokeStyle = '#0a1c2066';
+      context.strokeStyle = '#5c776a80';
       context.lineWidth = 1;
       context.strokeRect(x, y, building.width * scale, building.depth * scale);
       const entrance = buildingEntrance(building);
-      context.fillStyle = '#edc076';
+      context.fillStyle = '#a77a42';
       context.beginPath();
       context.arc(point(entrance.x), point(entrance.z), 1.5, 0, Math.PI * 2);
       context.fill();
       if (targetBuildingId === building.id) {
-        context.strokeStyle = '#ffcf78';
+        context.strokeStyle = '#bb812d';
         context.lineWidth = 3;
         context.strokeRect(x - 2, y - 2, building.width * scale + 4, building.depth * scale + 4);
       }
       if (world.nearbyBuilding?.id === building.id) {
-        context.strokeStyle = '#f4d6a1';
+        context.strokeStyle = '#bb812d';
         context.lineWidth = 1.5;
         context.beginPath();
         context.arc(point(entrance.x), point(entrance.z), 4, 0, Math.PI * 2);
@@ -96,15 +96,15 @@ function drawMinimap(canvas: HTMLCanvasElement, world: TownWorld, mission: First
     playerX = point(world.position.x);
     playerY = point(world.position.z);
   }
-  context.fillStyle = '#5ae0e8';
-  context.shadowColor = '#5ae0e8';
-  context.shadowBlur = 9;
+  context.fillStyle = '#267e79';
+  context.shadowColor = '#267e79';
+  context.shadowBlur = 3;
   context.beginPath();
   context.arc(playerX, playerY, 3.6, 0, Math.PI * 2);
   context.fill();
   context.shadowBlur = 0;
   context.lineWidth = 1.5;
-  context.strokeStyle = '#ecffff';
+  context.strokeStyle = '#fff9e8';
   context.stroke();
 }
 
@@ -116,8 +116,15 @@ export function mountTownHud(container: HTMLElement, mission: FirstAidMission, z
   hud.lang = 'ru';
   hud.setAttribute('aria-label', 'Задание, карта и управление');
   hud.innerHTML = `
+    <header class="town-brand">
+      <span class="town-brand-symbol" aria-hidden="true">К</span>
+      <div><strong>КИБЕРЩИТ</strong><span>Истории Зареченска</span></div>
+      <div class="town-chapter">ЭПИЗОД 01 <i></i> СНАЧАЛА ЛЮДИ</div>
+    </header>
     <section class="town-mission-panel" aria-labelledby="town-mission-title">
+      <div class="town-eyebrow">ВАШЕ ДОБРОЕ ДЕЛО</div>
       <h2 id="town-mission-title">${FIRST_AID_TEXT.title}</h2>
+      <ol class="town-mission-steps" aria-label="Этапы задания"><li>Мастер</li><li>Доставка</li><li>Помощь</li></ol>
       <p class="town-objective" role="status"></p>
       <p class="town-mission-hint"></p>
       <p class="town-inventory"></p>
@@ -170,6 +177,7 @@ export function mountTownHud(container: HTMLElement, mission: FirstAidMission, z
     setText(hint, snapshot.hint);
     setText(inventory, snapshot.stage === 'completed' ? 'Набор передан · поликлиника обеспечена' : snapshot.inventory.length ? FIRST_AID_TEXT.carrying : FIRST_AID_TEXT.emptyInventory);
     hud.classList.toggle('mission-completed', snapshot.clinicSupplied);
+    hud.dataset.stage = snapshot.stage;
     setText(dialogue, snapshot.dialogue ?? '');
     dialogue.hidden = snapshot.dialogue === null;
     drawMinimap(canvas, world, mission);

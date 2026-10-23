@@ -42,9 +42,11 @@ or economy. Persistence stores the stage and derives inventory and clinic state 
   goal, item text, dialogue, contextual action and map from that state. Text nodes
   are changed only when their content changes, avoiding repeated live-region
   announcements on every movement update.
-- `ThreeRenderer` uses a procedural master mesh at the same content coordinates.
-  It is visible only in the workshop. The parcel disappears after pickup and
-  stays absent when the player returns. Normal renderer disposal owns its assets.
+- `ThreeRenderer` loads Blender characters at the same content coordinates, with
+  procedural models during loading. The master is visible only in the workshop;
+  his parcel disappears after pickup. The clinic medic receives the parcel on
+  completion, and a seated resident appears in the waiting room. Normal renderer
+  disposal owns the models. See [Cozy visuals](cozy-visuals.md).
 - The inactive zero-stat HUD is no longer mounted. The mission panel takes its
   place with a 16px main text size. Legacy progress code remains available.
 - Engine teardown removes the HUD subscription, world subscription, input handlers
