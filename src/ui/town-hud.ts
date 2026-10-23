@@ -34,25 +34,27 @@ export function mountTownHud(container: HTMLElement, mission: FirstAidMission, z
     </section>
     <section class="town-map-panel" aria-label="Миникарта">
       <div class="town-map-heading"><div class="town-map-title">КАРТА</div><button type="button" class="town-map-expand" aria-expanded="false" aria-label="Развернуть карту">Развернуть</button></div>
-      <div class="town-map-modes" role="group" aria-label="Режим карты"><button type="button" data-map-mode="nearby" aria-pressed="true">Рядом</button><button type="button" data-map-mode="district" aria-pressed="false">Весь район</button></div>
+      <div class="town-map-modes" role="group" aria-label="Режим карты"><button type="button" data-map-mode="nearby" aria-pressed="true">Рядом</button><button type="button" data-map-mode="district" aria-pressed="false">Район</button><button type="button" data-map-mode="planet" aria-pressed="false">Планета</button></div>
       <div class="town-map-location"></div>
       <div class="town-map-frame"><canvas class="town-map" role="img" aria-label="Карта квартала с положением игрока и входами в здания"></canvas><span class="town-map-north" aria-hidden="true">↑ С</span></div>
       <div class="town-map-places"><span>Маяк · мастерская</span><span>Поликлиника · помощь</span></div>
       <div class="town-map-goal" role="status"></div>
       <div class="town-map-legend"><span><i class="town-door-dot"></i> Маршрут</span><span><i class="town-player-dot"></i> Вы</span><span><i class="town-goal-dot"></i> Цель</span></div>
       <div class="town-zoom-controls" role="group" aria-label="Масштаб вида">
-        <span class="town-camera-label">Камера</span>
+        <span class="town-camera-label">Камера</span><button type="button" data-zoom="planet" aria-label="Показать всю планету" title="Обзор планеты">◎</button>
         <button type="button" data-zoom="out" aria-label="Отдалить" title="Отдалить (−)">−</button>
         <button type="button" data-zoom="reset" class="town-zoom-percent" aria-label="Сбросить масштаб" title="Сбросить масштаб (Home)">100%</button>
         <button type="button" data-zoom="in" aria-label="Приблизить" title="Приблизить (+)">+</button>
       </div>
     </section>
+    <p class="town-life-message" role="status" hidden></p>
     <div class="town-controls">
       <button type="button" class="town-interaction town-action-button" aria-live="polite"><kbd>E</kbd><span class="town-interaction-label"></span></button>
       <div class="town-control-line"><span><kbd>WASD</kbd><span class="town-arrow-keys"> / ↑←↓→</span> движение</span><span class="town-zoom-hint">Колесо / + − · масштаб</span></div>
     </div>`;
   let lastDialogue: string | null = null;
   let mapMode: MinimapMode = 'nearby';
+  const lifeMessage=hud.querySelector<HTMLElement>('.town-life-message')!;
   const mapPanel = hud.querySelector<HTMLElement>('.town-map-panel')!;
   const expandMap = hud.querySelector<HTMLButtonElement>('.town-map-expand')!;
   const canvas = hud.querySelector<HTMLCanvasElement>('.town-map');
@@ -76,16 +78,17 @@ export function mountTownHud(container: HTMLElement, mission: FirstAidMission, z
   };
   const render = (): void => {
     const snapshot = mission.snapshot;
+    setText(lifeMessage,mission.life.message);lifeMessage.hidden=!mission.life.message;
     const target = mission.interaction;
     if (snapshot.dialogue && snapshot.dialogue !== lastDialogue) {
       missionBody.hidden = false; missionToggle.setAttribute('aria-expanded','true'); missionToggle.textContent='Свернуть';
     }
     lastDialogue = snapshot.dialogue;
-    setText(location, world.interior?.name ?? (mapMode === 'nearby' ? 'Рядом с вами · север сверху' : 'Весь район · север сверху'));
+    setText(location, world.interior?.name ?? (mapMode==='planet'?'Планета · развёртка поверхности':mapMode === 'nearby' ? 'Рядом с вами · север сверху' : 'Район · север сверху'));
     setText(mapGoal, navigationGoal(world, snapshot.targetBuildingId)?.label ?? 'Помощь доставлена');
     action.disabled = target === null;
     action.classList.toggle('town-interaction-available', target !== null);
-    let idleHint = 'Подойдите к двери · E или кнопка для входа';
+    let idleHint = 'E · двери, жители и места помощи';
     if (world.interior) idleHint = world.interior.id === MASTER.buildingId
       ? 'Подойдите к мастеру или к выходу' : 'Выход у открытой стены';
     setText(actionLabel, target?.label ?? idleHint);
@@ -100,6 +103,7 @@ export function mountTownHud(container: HTMLElement, mission: FirstAidMission, z
     drawMinimap(canvas, world, mission, mapMode);
   };
   const unsubscribe = mission.subscribe(render);
+  const unsubscribeLife=mission.life.subscribe(render);
   const unsubscribeSession = session.subscribe(message => setText(saveNote, message));
   const zoomPercent = hud.querySelector<HTMLElement>('.town-zoom-percent');
   const unsubscribeZoom = zoom.subscribe(state => {
@@ -110,7 +114,7 @@ export function mountTownHud(container: HTMLElement, mission: FirstAidMission, z
     const button = event.target.closest<HTMLButtonElement>('button');
     if (!button) return;
     if (button.dataset.mapMode) {
-      mapMode = button.dataset.mapMode === 'district' ? 'district' : 'nearby';
+      mapMode = button.dataset.mapMode === 'planet'?'planet':button.dataset.mapMode === 'district' ? 'district' : 'nearby';
       hud.querySelectorAll<HTMLButtonElement>('[data-map-mode]').forEach(item=>item.setAttribute('aria-pressed',String(item.dataset.mapMode===mapMode)));
       render();
     } else if (button === expandMap) {
@@ -126,6 +130,7 @@ export function mountTownHud(container: HTMLElement, mission: FirstAidMission, z
     } else if (button === newGame) {
       if (window.confirm('Начать заново? Текущий прогресс будет заменён новой игрой.')) session.newGame();
     } else if (button === action) mission.interact();
+    else if (button.dataset.zoom === 'planet') zoom.showPlanet();
     else if (button.dataset.zoom === 'reset') zoom.reset();
     else if (button.dataset.zoom) zoom.adjust(button.dataset.zoom === 'in' ? -.2 : .2);
   };
@@ -134,6 +139,7 @@ export function mountTownHud(container: HTMLElement, mission: FirstAidMission, z
   window.addEventListener('resize', resize);
   return () => {
     unsubscribe();
+    unsubscribeLife();
     unsubscribeZoom();
     unsubscribeSession();
     hud.removeEventListener('click', click);

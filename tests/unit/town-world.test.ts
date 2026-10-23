@@ -1,8 +1,10 @@
+import { latitudeScale } from '@game/systems/planet';
+import { walkTo } from '../fixtures/first-aid-route';
 import { describe, expect, it } from 'vitest';
 import { buildingEntrance, TOWN_BUILDINGS, TOWN_SIZE, TOWN_SPAWN } from '@content/town';
 import { OUTDOOR_OBSTACLES } from '@content/town-props';
 import { getInteriorLayout } from '@content/interiors';
-import { TownWorld } from '@game/systems/town-world';
+import { TownWorld, isWalkableTownPosition } from '@game/systems/town-world';
 
 describe('Town world', () => {
   it('starts outdoors at the town spawn', () => {
@@ -18,7 +20,7 @@ describe('Town world', () => {
     const world = new TownWorld(entrance);
     expect(world.nearbyBuilding).toEqual(building);
     world.move(1, 0, 0.02);
-    expect(world.position.x).toBeCloseTo(entrance.x + 0.1);
+    expect(world.position.x).toBeCloseTo(entrance.x + 0.1/latitudeScale(entrance.z));
     const returnPosition = world.position;
     expect(world.interact()).toBe(true);
     expect(world.interior).toEqual(building);
@@ -52,10 +54,7 @@ describe('Town world', () => {
         if (nextX < 1 || nextX >= TOWN_SIZE * 2 || nextZ < 1 || nextZ >= TOWN_SIZE * 2) continue;
         const next = nextX + nextZ * stride;
         if (parents.has(next)) continue;
-        if ([...TOWN_BUILDINGS, ...OUTDOOR_OBSTACLES].some((building) => (
-          Math.abs(nextX / 2 - building.x) < building.width / 2 + 0.3
-          && Math.abs(nextZ / 2 - building.z) < building.depth / 2 + 0.3
-        ))) continue;
+        if(!isWalkableTownPosition({x:nextX/2,z:nextZ/2}))continue;
         parents.set(next, current);
         queue.push(next);
       }
@@ -76,11 +75,9 @@ describe('Town world', () => {
       for (const waypoint of path.reverse()) {
         const x = (waypoint % stride) / 2;
         const z = Math.floor(waypoint / stride) / 2;
-        // Exercise public movement in quarter-unit simulation steps.
-        for (let step = 0; step < 2; step += 1) {
-          world.move(x - world.position.x, z - world.position.z, 0.05);
-        }
-        expect(world.position, `walkable path to ${building.id}`).toEqual({ x, z });
+        walkTo(world,{x,z});
+        expect(world.position.x, `walkable path to ${building.id}`).toBeCloseTo(x,3);
+        expect(world.position.z).toBeCloseTo(z,3);
       }
       expect(Math.hypot(world.position.x - entrance.x, world.position.z - entrance.z)).toBeLessThan(0.4);
       expect(world.interact(), `enter ${building.id} after walking from spawn`).toBe(true);
@@ -139,14 +136,15 @@ describe('Town world', () => {
   });
 
   it.each([
-    [{ x: 0.51, z: 32 }, -1, 0, { x: 0.5, z: 32 }],
-    [{ x: 63.49, z: 32 }, 1, 0, { x: 63.5, z: 32 }],
-    [{ x: 32, z: 0.51 }, 0, -1, { x: 32, z: 0.5 }],
-    [{ x: 32, z: 63.49 }, 0, 1, { x: 32, z: 63.5 }],
-  ] as const)('keeps outdoor movement inside the town', (position, dx, dz, expected) => {
+    [{ x: 0.51, z: 32 }, -1, 0, { x: 0.26, z: 32 }],
+    [{ x: 63.49, z: 32 }, 1, 0, { x: 63.74, z: 32 }],
+    [{ x: 32, z: 0.51 }, 0, -1, { x: 32, z: 0.26 }],
+    [{ x: 32, z: 63.49 }, 0, 1, { x: 32, z: 63.74 }],
+  ] as const)('allows walking beyond the original town border', (position, dx, dz, expected) => {
     const world = new TownWorld(position);
     world.move(dx, dz, 0.05);
-    expect(world.position).toEqual(expected);
+    expect(world.position.x).toBeCloseTo(expected.x);
+    expect(world.position.z).toBeCloseTo(expected.z);
   });
 
   it('requires proximity to the interior exit and confines interior movement', () => {

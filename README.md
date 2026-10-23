@@ -6,19 +6,33 @@
 [![Vite](https://img.shields.io/badge/Vite-Bundler-646CFF.svg)](https://vitejs.dev/)
 [![Vitest](https://img.shields.io/badge/Vitest-TDD-green.svg)](https://vitest.dev/)
 
-**Project Sentinel** is an isometric browser-based narrative exploration game set in a post-incident small Russian town. Players uncover the causes behind municipal automation malfunctions, repair sentinel robotics, and restore essential public infrastructure through cooperation and mutual assistance.
+**CyberShield / Project Sentinel** is a browser-based narrative exploration game about helping a small community. The current prototype places Zarechensk on a real walkable mini-planet with preserved indoor missions.
 
 ---
 
 ## Playable Town Prototype
 
-Explore Zarechensk, a cozy stylized district with 19 enterable buildings, a central garden, connected furnished interiors and a live minimap. Original Blender models add pitched roofs, framed windows, shop signs, planted streets, furnished rooms and expressive characters. Soft daylight and a cream-and-teal interface unify the presentation. Use **WASD / arrow keys** to walk, **E** or the contextual on-screen button near a front door to enter or exit, and the **mouse wheel**, **+ / −** keys or minimap buttons to zoom outdoors and indoors. **Home** or the percentage button resets the current view. Walk toward the open front of an interior to reach its exit.
+Explore a spherical world with 11 enterable buildings, gardens, two ponds, a
+windmill and a continuous 256 m equatorial promenade. Six rounded residents walk,
+pause and talk; a flower bed can be watered. Animated limbs, fountain droplets,
+butterflies and windmill sails add motion. Heroes retain metre scale and 1.70 m
+height. The camera follows the radial surface through longitude seams and poles.
+
+Use **WASD / arrows** to walk and **E** or the action button for doors, people and
+notice boards. Quest actions take priority. The map offers **Nearby**, **District**
+and **Planet** modes; the last is a labelled surface atlas with connected edges.
+The **◎ camera button** frames the globe; mouse wheel and **+ / −** control zoom,
+and **Home / percentage button** returns to the normal view.
+
+Read [Living planet](docs/decisions/living-planet.md) for the coordinate, collision,
+interaction and verification contracts. Conversations and watering are temporary
+ambient activity; quest progress and player position persist.
 
 The complete first aid episode is playable: follow the golden minimap target to the Mayak workshop, enter and approach the master. Press **E** or click the contextual action to receive one aid kit. The mission panel shows the item and changes the objective to deliver it to the clinic, which becomes the map target. Repeated interaction gives a reminder without duplicating the kit. Approach the medic in the clinic and interact to hand over the kit and complete the first mission. Progress, inventory, room and position are saved automatically and restored after reload. The completed clinic state persists; repeated conversations do not issue or consume another item. The mission panel replaces the inactive zero-stat HUD.
 
 See [First aid episode](docs/architecture/first-aid-mission.md) for state contracts, verification and the manual acceptance route.
 
-See [Web asset pack](docs/architecture/web-asset-pack.md) for the active lightweight models, metric scale, remote Blender production and validation. The map labels Mayak and the clinic and guides the player around collisions. The initial GLB requests total 2,803,724 bytes (nine new models plus two existing interiors and the seated resident).
+See [Web asset pack](docs/architecture/web-asset-pack.md) for the active lightweight models, metric scale, remote Blender production and validation. The map labels Mayak and the clinic and guides the player around collisions. The initial GLB requests total 3,273,372 bytes (twelve existing GLBs; planet scenery is generated locally).
 
 The active town renders through Three.js; Phaser is retained for the earlier 2D scenes. Read [Town architecture](docs/architecture/town-world.md) for the layout, simulation and integration contracts.
 

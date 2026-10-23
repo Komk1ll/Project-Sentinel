@@ -1,4 +1,8 @@
 import * as THREE from 'three';
+import { planetFrame, walkingAltitude } from '@game/systems/planet';
+import { placeOnPlanet } from '@game/render/planet-surface';
+import { PlanetLifeView } from '@game/render/planet-life';
+import type { TownLife } from '@game/systems/town-life';
 import { disposeObject, loadTownAssets } from '@game/render/town-assets';
 import { createMasterMesh } from '@game/render/master-mesh';
 import { MASTER, MEDIC } from '@content/first-aid';
@@ -14,6 +18,7 @@ export interface ThreeRendererOptions {
   readonly world: TownWorld;
   readonly zoom: CameraZoom;
   readonly firstAid: FirstAidMission;
+  readonly life?: TownLife;
 }
 
 /** Presentation of the town simulation; all collision and transitions live in TownWorld. */
@@ -21,6 +26,11 @@ export class ThreeRenderer {
   public readonly scene = new THREE.Scene();
   public readonly camera: THREE.OrthographicCamera;
   public readonly renderer: THREE.WebGLRenderer;
+  private lifeView: PlanetLifeView;
+  private readonly sun = new THREE.DirectionalLight(0xffe2b3,2.3);
+  private readonly cameraFrame = new THREE.Quaternion();
+  private readonly sightDirection = { value: new THREE.Vector3(28,34,28).normalize() };
+  private readonly surfaceUp = { value: new THREE.Vector3(0,1,0) };
   private readonly container: HTMLElement;
   private outdoors: THREE.Group;
   private readonly assetLibrary = new THREE.Group();
@@ -56,12 +66,12 @@ export class ThreeRenderer {
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.22;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
-    this.renderer.setClearColor(0xdce5d5);
+    this.renderer.setClearColor(0xbdd9df);
     this.container.appendChild(this.renderer.domElement);
     this.camera = new THREE.OrthographicCamera(-20, 20, 14, -14, .1, 250);
-    this.scene.fog = new THREE.Fog(0xdce5d5, 95, 180);
+    this.scene.fog = new THREE.Fog(0xbdd9df, 180, 290);
     this.scene.add(new THREE.HemisphereLight(0xe8f3ef, 0x8b9b76, 1.9));
-    const sun = new THREE.DirectionalLight(0xffe2b3, 2.3);
+    const sun = this.sun;
     sun.position.set(-25, 45, -5);
     sun.target.position.set(32, 0, 32);
     sun.castShadow = true;
@@ -74,6 +84,8 @@ export class ThreeRenderer {
     const fill = new THREE.DirectionalLight(0xd0e7e2, .65);
     fill.position.set(40, 25, 60); this.scene.add(fill);
     this.outdoors = createWebTown();
+    this.lifeView=new PlanetLifeView(options.life??options.firstAid.life);
+    this.outdoors.add(this.lifeView.group);
     this.assetLibrary.visible = false;
     this.scene.add(this.assetLibrary);
     this.setupCharacterCutaway(this.outdoors);
@@ -98,6 +110,7 @@ export class ThreeRenderer {
     const { x, z } = options.world.position;
     this.target.set(x, 0, z);
     this.lastPosition.set(x, z);
+    this.cameraFrame.copy(planetFrame(options.world.interior?options.world.snapshot.outdoorReturn:options.world.position).rotation);
     this.resize();
     window.addEventListener('resize', this.resize);
     this.container.addEventListener('wheel', this.onWheel, { passive: false });
@@ -115,6 +128,8 @@ export class ThreeRenderer {
     this.disposeGroup(this.outdoors);
     this.assetLibrary.add(...assets.values());
     this.outdoors = createWebTown(assets);
+    this.lifeView=new PlanetLifeView(this.options.life??this.options.firstAid.life,take('hero'));
+    this.outdoors.add(this.lifeView.group);
     this.setupCharacterCutaway(this.outdoors);
     this.outdoors.visible = this.options.world.interior === null;
     this.scene.add(this.outdoors);
@@ -165,6 +180,8 @@ export class ThreeRenderer {
     materials.forEach(material => {
       material.onBeforeCompile = shader => {
         shader.uniforms.sentinelPlayer = this.cutawayPosition;
+        shader.uniforms.sentinelSight = this.sightDirection;
+        shader.uniforms.sentinelUp = this.surfaceUp;
         shader.vertexShader = 'varying vec3 sentinelWorldPosition;\n' + shader.vertexShader;
         shader.vertexShader = shader.vertexShader.replace('#include <project_vertex>', `
           #include <project_vertex>
@@ -174,19 +191,19 @@ export class ThreeRenderer {
           #endif
           sentinelWorldPosition = (modelMatrix * sentinelWorld).xyz;
         `);
-        shader.fragmentShader = 'varying vec3 sentinelWorldPosition;\nuniform vec3 sentinelPlayer;\n' + shader.fragmentShader;
+        shader.fragmentShader = 'varying vec3 sentinelWorldPosition;\nuniform vec3 sentinelPlayer;\nuniform vec3 sentinelSight;\nuniform vec3 sentinelUp;\n' + shader.fragmentShader;
         shader.fragmentShader = shader.fragmentShader.replace('#include <clipping_planes_fragment>', `
           #include <clipping_planes_fragment>
           vec3 sentinelDelta = sentinelWorldPosition - sentinelPlayer;
-          vec3 sentinelDirection = normalize(vec3(28.0, 34.0, 28.0));
+          vec3 sentinelDirection = sentinelSight;
           float sentinelDepth = dot(sentinelDelta, sentinelDirection);
           float sentinelDistance = length(sentinelDelta - sentinelDirection * sentinelDepth);
-          if (sentinelDepth > 1.1 && sentinelDelta.y > 0.2 && sentinelDistance < 1.15) {
+          if (sentinelDepth > 1.1 && dot(sentinelDelta,sentinelUp) > 0.2 && sentinelDistance < 1.15) {
             if (mod(floor(gl_FragCoord.x) + floor(gl_FragCoord.y), 3.0) < 2.0) discard;
           }
         `);
       };
-      material.customProgramCacheKey = () => 'sentinel-character-cutaway-v3';
+      material.customProgramCacheKey = () => 'sentinel-character-cutaway-sphere';
     });
   }
 
@@ -249,12 +266,15 @@ export class ThreeRenderer {
       this.lastPosition.set(world.position.x, world.position.z);
     }
     const { x, z } = world.position;
-    this.cutawayPosition.value.set(x, 1.05, z);
+    this.lifeView.update(deltaSeconds);
     const dx = x - this.lastPosition.x;
     const dz = z - this.lastPosition.y;
     const moving = Math.hypot(dx, dz) > .0001;
-    this.character.position.set(x, world.interior ? .08 : 0, z);
-    if (moving) this.character.rotation.y = Math.atan2(dx, dz);
+    if(world.interior){this.character.position.set(x,.08,z);this.character.rotation.set(0,world.heading,0);}
+    else placeOnPlanet(this.character,x,z,world.heading,walkingAltitude(world.position));
+    const localFrame=world.interior?new THREE.Quaternion():planetFrame(world.position).rotation;
+    this.surfaceUp.value.set(0,1,0).applyQuaternion(localFrame);
+    this.cutawayPosition.value.copy(this.character.position).addScaledVector(this.surfaceUp.value,1.05);
     this.walkTime += moving ? deltaSeconds * 10 : 0;
     const stride = moving ? Math.sin(this.walkTime) * .55 : 0;
     this.leftLeg.rotation.x = (this.limbRest[0] ?? 0) + stride; this.rightLeg.rotation.x = (this.limbRest[1] ?? 0) - stride;
@@ -274,20 +294,37 @@ export class ThreeRenderer {
     };
     poseKitHolder(this.master); poseKitHolder(this.medic);
     this.lastPosition.set(x, z);
-    const center = new THREE.Vector3(x, 0, z).multiplyScalar(this.options.zoom.followWeight);
-    this.target.lerp(center, 1 - Math.exp(-deltaSeconds * 7));
-    const height = this.options.zoom.span;
-    const aspect = this.container.clientWidth / Math.max(1, this.container.clientHeight);
+    let height = this.options.zoom.span;
+    const aspect = (this.container.clientWidth||window.innerWidth) / Math.max(1,this.container.clientHeight||window.innerHeight);
+    if(!world.interior && height>22)height*=1+(1/Math.min(1,aspect)-1)*Math.min(1,(height-22)/34);
     this.camera.left = -height * aspect; this.camera.right = height * aspect;
     this.camera.top = height; this.camera.bottom = -height;
     this.camera.updateProjectionMatrix();
-    this.camera.position.copy(this.target).add(this.cameraOffset);
+    if(world.interior){
+      this.camera.up.set(0,1,0);
+      const center=new THREE.Vector3(x,0,z).multiplyScalar(this.options.zoom.followWeight);
+      this.target.lerp(center,1-Math.exp(-deltaSeconds*7));
+      this.camera.position.copy(this.target).add(this.cameraOffset);
+    } else {
+      const desired=localFrame.clone().multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),world.viewTurn));
+      // The radial camera follows all hemispheres, including longitude seams.
+      this.cameraFrame.slerp(desired,1-Math.exp(-deltaSeconds*12));
+      const overview=Math.max(0,Math.min(1,(this.options.zoom.span-22)/34));
+      this.target.copy(this.character.position).multiplyScalar(1-overview);
+      this.camera.up.set(0,1,0).applyQuaternion(this.cameraFrame);
+      const offset=this.cameraOffset.clone().multiplyScalar(1+overview).applyQuaternion(this.cameraFrame);
+      this.camera.position.copy(this.target).add(offset);
+    }
     this.camera.lookAt(this.target);
+    this.sightDirection.value.copy(this.camera.position).sub(this.target).normalize();
+    this.sun.target.position.copy(this.target);
+    this.sun.position.copy(this.target).add(new THREE.Vector3(-25,55,10).applyQuaternion(world.interior?new THREE.Quaternion():this.cameraFrame));
     const nearby = TOWN_BUILDINGS.find(building => building.id === this.options.firstAid.snapshot.targetBuildingId) ?? world.nearbyBuilding;
     this.doorMarker.visible = Boolean(nearby) && !world.interior;
     if (nearby) {
       const entry = buildingEntrance(nearby);
-      this.doorMarker.position.set(entry.x, .025, entry.z);
+      placeOnPlanet(this.doorMarker,entry.x,entry.z,0,.09);
+      this.doorMarker.rotateX(-Math.PI/2);
     }
     this.renderer.render(this.scene, this.camera);
   }

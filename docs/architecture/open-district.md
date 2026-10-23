@@ -1,5 +1,7 @@
 # Hero and open district integration
 
+Historical milestone: the spherical world now follows [Living planet](../decisions/living-planet.md). Actor assets, quest coordinates and legacy save migration from this milestone remain active.
+
 The user requested softer character geometry, integration of the prepared graphics,
 and a less building-dominated map with a clearer minimap. This milestone uses the
 previously selected ordinary workflow with checks. No new development-mode prompt

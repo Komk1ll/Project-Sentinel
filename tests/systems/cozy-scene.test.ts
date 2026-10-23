@@ -1,8 +1,9 @@
+import { planetFrame } from '@game/systems/planet';
 // @vitest-environment jsdom
 import { URL as NodeURL } from 'node:url';
 import { readFile } from 'node:fs/promises';
 import { afterEach, expect, it, vi } from 'vitest';
-import { Mesh, Box3, Vector3 } from 'three';
+import { Mesh, Box3, Vector3, Quaternion } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { ThreeRenderer } from '@game/render/ThreeRenderer';
 import { TownWorld } from '@game/systems/town-world';
@@ -74,11 +75,15 @@ it('loads the shipped GLBs, delivers the parcel, reuses rooms and releases their
     for (const id of ['station', 'clinic', 'home-7']) {
       const building=town.getObjectByName(`building-${id}`)!;
       expect(building.scale.toArray()).toEqual([1,1,1]);
-      const door=new Box3().setFromObject(building.getObjectByName('door-panel')!);
+      const frame=planetFrame(TOWN_BUILDINGS.find(b=>b.id===id)!);
+      expect(building.position.distanceTo(frame.position)).toBeLessThan(1e-6);
+      expect(new Vector3(0,1,0).applyQuaternion(building.quaternion).distanceTo(frame.up)).toBeLessThan(1e-6);
+      const local=building.clone(true);local.position.set(0,0,0);local.quaternion.identity();local.updateMatrixWorld(true);
+      const door=new Box3().setFromObject(local.getObjectByName('door-panel')!);
       const entry=buildingEntrance(TOWN_BUILDINGS.find(b=>b.id===id)!);
       expect(door.getSize(new Vector3()).y).toBeCloseTo(2.2);
-      expect(door.getCenter(new Vector3()).x).toBeCloseTo(entry.x);
-      expect(door.max.z).toBeCloseTo(entry.z-(id === 'station' ? 1.07 : 1));
+      expect(door.getCenter(new Vector3()).x).toBeCloseTo(0);
+      expect(door.max.z).toBeCloseTo(entry.z-TOWN_BUILDINGS.find(b=>b.id===id)!.z-(id === 'station' ? 1.07 : 1));
     }
     expect(requested).not.toContain('town.glb');
     expect(requested).not.toContain('interior-home-7.glb');
@@ -113,6 +118,20 @@ it('loads the shipped GLBs, delivers the parcel, reuses rooms and releases their
     walkTo(world, { x: 0, z: .25 }); walkTo(world, { x: 0, z: 2 }); firstAid.interact(); renderer.render();
     firstAid.interact(); renderer.render();
     expect(renderer.scene.getObjectByName('cozy-interior-clinic')).toBe(clinic);
+    // The same actors and camera remain radial on the reverse side and at the pole.
+    for(const position of [{x:220,z:32},{x:100,z:-32}]){
+      expect(world.restore({interiorId:null,position,outdoorReturn:position})).toBe(true);
+      for(let i=0;i<100;i++)renderer.render(.05);
+      renderer.scene.updateMatrixWorld(true);renderer.camera.updateMatrixWorld(true);
+      const up=new Vector3(0,1,0).applyQuaternion(hero.getWorldQuaternion(new Quaternion()));
+      expect(up.distanceTo(planetFrame(position).up)).toBeLessThan(1e-6);
+      const screen=hero.getWorldPosition(new Vector3()).project(renderer.camera);
+      expect(Math.abs(screen.x)).toBeLessThan(.1);expect(Math.abs(screen.y)).toBeLessThan(.1);
+    }
+    const sails=renderer.scene.getObjectByName('windmill-sails')!,rotation=sails.rotation.z;
+    const walker=renderer.scene.getObjectByName('resident-walker')!,beforeWalker=walker.position.clone();
+    for(let i=0;i<100;i++){firstAid.life.update(.05);renderer.render(.05);}
+    expect(sails.rotation.z).not.toBe(rotation);expect(walker.position.distanceTo(beforeWalker)).toBeGreaterThan(.1);
     // Both the active room and a detached cached room must release GPU resources.
     const meshes: Mesh[] = [];
     for (const room of [clinic, workshop]) room.traverse(object => { if (object instanceof Mesh) meshes.push(object); });

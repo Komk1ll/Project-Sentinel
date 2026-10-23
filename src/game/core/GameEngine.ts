@@ -66,7 +66,9 @@ export class GameEngine {
     this.lastFrame = time;
     const right = Number(this.keys.has('KeyD') || this.keys.has('ArrowRight')) - Number(this.keys.has('KeyA') || this.keys.has('ArrowLeft'));
     const up = Number(this.keys.has('KeyW') || this.keys.has('ArrowUp')) - Number(this.keys.has('KeyS') || this.keys.has('ArrowDown'));
-    this.world.move((right - up) / Math.SQRT2, (-right - up) / Math.SQRT2, delta);
+    const dx=(right-up)/Math.SQRT2,dz=(-right-up)/Math.SQRT2,turn=this.world.viewTurn;
+    this.world.move(dx*Math.cos(turn)+dz*Math.sin(turn),dz*Math.cos(turn)-dx*Math.sin(turn),delta);
+    this.firstAid.life.update(delta);
     this.cameraZoom.step(delta);
     this.threeRenderer.render(delta);
     this.animationFrameId = requestAnimationFrame(this.loop);

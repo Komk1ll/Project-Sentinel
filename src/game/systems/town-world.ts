@@ -1,5 +1,7 @@
-import { buildingEntrance, LEGACY_TOWN_BUILDINGS, TOWN_BUILDINGS, TOWN_SIZE, TOWN_SPAWN, type TownBuilding } from '@content/town';
+import { buildingEntrance, LEGACY_TOWN_BUILDINGS, TOWN_BUILDINGS, TOWN_SPAWN, type TownBuilding } from '@content/town';
+import { WILD_TREES, WILD_BENCHES, PLANET_PONDS } from '@content/planet-life';
 import { OUTDOOR_OBSTACLES, LEGACY_OUTDOOR_OBSTACLES, type TownObstacle } from '@content/town-props';
+import { latitudeScale, normalizePlanetPosition, PLANET_NORTH, PLANET_SOUTH, PLANET_RADIUS, longitudeDelta, stepAtPole } from '@game/systems/planet';
 import { getInteriorLayout } from '@content/interiors';
 
 export interface TownPosition {
@@ -17,7 +19,28 @@ const PLAYER_RADIUS = 0.3;
 const MOVEMENT_SPEED = 5;
 const INTERACTION_DISTANCE = 2.4;
 const INTERIOR_EXIT: TownPosition = { x: 0, z: 3 };
-const TOWN_COLLIDERS = [...TOWN_BUILDINGS, ...OUTDOOR_OBSTACLES];
+const TOWN_COLLIDERS = [...TOWN_BUILDINGS, ...OUTDOOR_OBSTACLES,
+  ...WILD_TREES.map(tree=>({...tree,width:.4*tree.scale,depth:.4*tree.scale})),
+  ...WILD_BENCHES.map(bench=>({...bench,width:1.6,depth:.55})),
+  {x:152,z:24,width:3.8,depth:3.8}];
+/** Project into each rigid obstacle's tangent frame, matching radial model placement. */
+function outdoorBlocked(point:TownPosition):boolean {
+  if(PLANET_PONDS.some(pond=>{
+    const dx=longitudeDelta(pond.x,point.x)/(pond.width/2+PLAYER_RADIUS/latitudeScale(point.z));
+    const dz=(point.z-pond.z)/(pond.depth/2+PLAYER_RADIUS);
+    return dx*dx+dz*dz<1;
+  }))return true;
+  const lat=(point.z-32)/PLANET_RADIUS,cp=Math.cos(lat),sp=Math.sin(lat);
+  return TOWN_COLLIDERS.some(item=>{
+    if(Math.abs(point.z-item.z)>item.depth+2)return false;
+    const lon=longitudeDelta(item.x,point.x)/PLANET_RADIUS;
+    if(Math.abs(lon)>Math.PI/2)return false;
+    const base=(item.z-32)/PLANET_RADIUS;
+    const x=PLANET_RADIUS*cp*Math.sin(lon);
+    const z=PLANET_RADIUS*(sp*Math.cos(base)-cp*Math.sin(base)*Math.cos(lon));
+    return Math.abs(x)<item.width/2+PLAYER_RADIUS-1e-7 && Math.abs(z)<item.depth/2+PLAYER_RADIUS-1e-7;
+  });
+}
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
@@ -33,8 +56,10 @@ function record(value: unknown): value is Record<string, unknown> {
 function validPosition(value: unknown, interior: TownBuilding | null, outdoor: readonly TownObstacle[] = TOWN_COLLIDERS): value is TownPosition {
   if (!record(value) || typeof value.x !== 'number' || typeof value.z !== 'number'
     || !Number.isFinite(value.x) || !Number.isFinite(value.z)) return false;
-  if (value.x < (interior ? -4.5 : .5) || value.x > (interior ? 4.5 : TOWN_SIZE - .5)
-    || value.z < (interior ? -3.5 : .5) || value.z > (interior ? 3.5 : TOWN_SIZE - .5)) return false;
+  if (value.x < (interior ? -4.5 : 0) || value.x > (interior ? 4.5 : 256-1e-9)
+    || value.z < (interior ? -3.5 : PLANET_NORTH) || value.z > (interior ? 3.5 : PLANET_SOUTH)) return false;
+  if(!interior && outdoor===TOWN_COLLIDERS)return !outdoorBlocked({x:value.x,z:value.z});
+  if(!interior && (value.x<.5||value.x>63.5||value.z<.5||value.z>63.5))return false;
   const obstacles = interior ? getInteriorLayout(interior).obstacles : outdoor;
   const x = value.x;
   const z = value.z;
@@ -80,10 +105,11 @@ export function migrateTownWorldState(value: unknown): TownWorldState | null {
 /** Shared collision query for movement and map guidance; never mutates the world. */
 export function isWalkableTownPosition(position: TownPosition, interior: TownBuilding | null = null): boolean {
   const { x, z } = position;
-  if (!Number.isFinite(x) || !Number.isFinite(z) || x < (interior ? -4.5 : .5)
-    || x > (interior ? 4.5 : TOWN_SIZE-.5) || z < (interior ? -3.5 : .5)
-    || z > (interior ? 3.5 : TOWN_SIZE-.5)) return false;
-  const obstacles = interior ? getInteriorLayout(interior).obstacles : TOWN_COLLIDERS;
+  if (!Number.isFinite(x) || !Number.isFinite(z) || x < (interior ? -4.5 : 0)
+    || x > (interior ? 4.5 : 256-1e-9) || z < (interior ? -3.5 : PLANET_NORTH)
+    || z > (interior ? 3.5 : PLANET_SOUTH)) return false;
+  if(!interior)return !outdoorBlocked(position);
+  const obstacles = getInteriorLayout(interior).obstacles;
   return !obstacles.some(item => Math.abs(x-item.x) < item.width/2+PLAYER_RADIUS
     && Math.abs(z-item.z) < item.depth/2+PLAYER_RADIUS);
 }
@@ -94,6 +120,8 @@ export class TownWorld {
   private currentInterior: TownBuilding | null = null;
   private outdoorReturn: TownPosition;
   private facing = 0;
+  private poleTurn = 0;
+  get viewTurn(): number { return this.currentInterior ? 0 : this.poleTurn; }
   private readonly listeners = new Set<(world: TownWorld) => void>();
 
   constructor(spawn: TownPosition = TOWN_SPAWN) {
@@ -109,6 +137,7 @@ export class TownWorld {
     if (!isTownWorldState(state)) return false;
     this.currentInterior = TOWN_BUILDINGS.find(building => building.id === state.interiorId) ?? null;
     this.currentPosition = { ...state.position };
+    this.poleTurn = 0;
     this.outdoorReturn = { ...state.outdoorReturn };
     this.notify();
     return true;
@@ -149,18 +178,29 @@ export class TownWorld {
 
     const step = MOVEMENT_SPEED * Math.min(deltaSeconds, 0.05) / directionLength;
     const previousPosition = this.currentPosition;
-    const minX = this.currentInterior ? -4.5 : 0.5;
-    const maxX = this.currentInterior ? 4.5 : TOWN_SIZE - 0.5;
-    const minZ = this.currentInterior ? -3.5 : 0.5;
-    const maxZ = this.currentInterior ? 3.5 : TOWN_SIZE - 0.5;
-    const nextX = clamp(previousPosition.x + dx * step, minX, maxX);
-    const xPosition = { x: nextX, z: previousPosition.z };
-    if (this.isWalkable(xPosition)) this.currentPosition = xPosition;
-    const nextZ = clamp(previousPosition.z + dz * step, minZ, maxZ);
-    const zPosition = { x: this.currentPosition.x, z: nextZ };
-    if (this.isWalkable(zPosition)) this.currentPosition = zPosition;
+    let arrivalHeading=Math.atan2(dx,dz);
+    if(!this.currentInterior && (previousPosition.z<-30 || previousPosition.z>94)) {
+      const next=stepAtPole(previousPosition,dx,dz,step*directionLength,this.poleTurn);
+      if(this.isWalkable(next.position)){this.currentPosition=next.position;this.poleTurn=next.viewTurn;arrivalHeading=next.heading;}
+    } else if (this.currentInterior) {
+      const xPosition = {x:clamp(previousPosition.x+dx*step,-4.5,4.5),z:previousPosition.z};
+      if(this.isWalkable(xPosition)) this.currentPosition=xPosition;
+      const zPosition = {x:this.currentPosition.x,z:clamp(previousPosition.z+dz*step,-3.5,3.5)};
+      if(this.isWalkable(zPosition)) this.currentPosition=zPosition;
+    } else {
+      const next=normalizePlanetPosition(previousPosition.x+dx*step/latitudeScale(previousPosition.z),previousPosition.z+dz*step);
+      if(this.isWalkable(next.position)) {
+        this.currentPosition=next.position;
+        if(next.crossedPole) this.poleTurn=(this.poleTurn+Math.PI)%(2*Math.PI);
+      } else {
+        const xOnly=normalizePlanetPosition(previousPosition.x+dx*step/latitudeScale(previousPosition.z),previousPosition.z).position;
+        if(this.isWalkable(xOnly)) this.currentPosition=xOnly;
+        const zOnly=normalizePlanetPosition(this.currentPosition.x,previousPosition.z+dz*step);
+        if(this.isWalkable(zOnly.position)) { this.currentPosition=zOnly.position; if(zOnly.crossedPole) this.poleTurn=(this.poleTurn+Math.PI)%(2*Math.PI); }
+      }
+    }
     if (distance(previousPosition, this.currentPosition) > 0) {
-      this.facing = Math.atan2(this.currentPosition.x-previousPosition.x, this.currentPosition.z-previousPosition.z);
+      this.facing = arrivalHeading;
       this.notify();
     }
   }

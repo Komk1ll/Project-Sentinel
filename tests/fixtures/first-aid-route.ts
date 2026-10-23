@@ -1,10 +1,11 @@
+import { latitudeScale, longitudeDelta } from '@game/systems/planet';
 import type { TownPosition, TownWorld } from '@game/systems/town-world';
 import type { FirstAidMission } from '@game/systems/first-aid-mission';
 
 /** Move through the real collision model without teleporting or editing mission state. */
 export function walkTo(world: TownWorld, target: TownPosition): void {
   for (let step = 0; step < 600; step += 1) {
-    const dx = target.x - world.position.x;
+    const dx = world.interior?target.x-world.position.x:longitudeDelta(world.position.x,target.x)*latitudeScale(world.position.z);
     const dz = target.z - world.position.z;
     const remaining = Math.hypot(dx, dz);
     if (remaining < .001) return;

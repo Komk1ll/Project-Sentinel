@@ -1,3 +1,4 @@
+import { TownLife } from '@game/systems/town-life';
 import { AID_KIT, CLINIC_ID, FIRST_AID_TEXT, MASTER, MEDIC } from '@content/first-aid';
 import type { TownWorld } from '@game/systems/town-world';
 
@@ -16,18 +17,20 @@ export interface FirstAidSnapshot {
   readonly clinicSupplied: boolean;
 }
 export interface TownInteraction {
-  readonly kind: 'master' | 'medic' | 'enter' | 'exit';
+  readonly kind: 'master' | 'medic' | 'enter' | 'exit' | 'ambient';
   readonly label: string;
 }
 
 /** One authoritative stage drives inventory, completion and the visible clinic result. */
 export class FirstAidMission {
+  readonly life: TownLife;
   private stage: FirstAidStage = 'meet-master';
   private dialogue: string | null = null;
   private readonly listeners = new Set<(snapshot: FirstAidSnapshot) => void>();
   private readonly unsubscribeWorld: () => void;
 
   constructor(public readonly world: TownWorld) {
+    this.life=new TownLife(world);
     this.unsubscribeWorld = world.subscribe(() => this.notify());
   }
 
@@ -59,12 +62,15 @@ export class FirstAidMission {
     }
     if (this.world.canExit) return { kind: 'exit', label: 'Выйти на улицу' };
     const building = this.world.nearbyBuilding;
-    return building ? { kind: 'enter', label: `Войти · ${building.name}` } : null;
+    if(building)return {kind:'enter',label:`Войти · ${building.name}`};
+    const ambient=this.life.interaction;
+    return ambient?{kind:'ambient',label:ambient.label}:null;
   }
 
   interact(): boolean {
     const target = this.interaction;
     if (!target) return false;
+    if(target.kind==='ambient')return this.life.interact();
     if (target.kind === 'enter' || target.kind === 'exit') return this.world.interact();
     if (target.kind === 'master') {
       if (this.stage === 'meet-master') {
@@ -91,6 +97,6 @@ export class FirstAidMission {
     listener(this.snapshot);
     return () => this.listeners.delete(listener);
   }
-  destroy(): void { this.unsubscribeWorld(); this.listeners.clear(); }
+  destroy(): void { this.life.destroy();this.unsubscribeWorld(); this.listeners.clear(); }
   private notify(): void { for (const listener of this.listeners) listener(this.snapshot); }
 }

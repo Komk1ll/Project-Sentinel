@@ -81,3 +81,6 @@
   .town-controls { bottom:10px; left:10px; right:10px; width:auto; min-width:0; max-width:none; transform:none; padding:8px; }
   .town-arrow-keys,.town-zoom-hint { display:none; }.town-control-line { font-size:10px; }
 }
+.town-life-message {position:absolute;left:50%;bottom:105px;transform:translateX(-50%);width:min(480px,calc(100vw - 32px));box-sizing:border-box;padding:18px 22px;border:1px solid #c6d2bd;border-radius:18px;background:#fffaf0f5;color:#304b49;box-shadow:0 10px 36px #203f4020;line-height:1.55;font-size:14px;pointer-events:none;}
+.town-life-message[hidden] {display:none;}
+@media(max-width:600px){.town-life-message{bottom:115px;font-size:13px;padding:12px 16px;}}

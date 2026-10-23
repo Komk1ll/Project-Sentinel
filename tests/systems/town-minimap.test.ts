@@ -79,3 +79,22 @@ it('switches map modes independently of camera zoom and keeps the objective visi
     expand.click();expect(expand.getAttribute('aria-expanded')).toBe('false');
   } finally {unmount();session.destroy();mission.destroy();}
 });
+
+it('offers a planet atlas, a separate global camera view and ambient feedback',()=>{
+  const ctx=canvasContext(),text=vi.fn();ctx.fillText=text;
+  vi.spyOn(HTMLCanvasElement.prototype,'getContext').mockImplementation((()=>ctx) as unknown as typeof HTMLCanvasElement.prototype.getContext);
+  const world=new TownWorld(),mission=new FirstAidMission(world),session=new TownSession(world,mission),zoom=new CameraZoom();
+  const host=document.createElement('div');document.body.append(host);const unmount=mountTownHud(host,mission,zoom,session);
+  try{
+    host.querySelector<HTMLButtonElement>('[data-map-mode="planet"]')!.click();
+    expect(host.querySelector('.town-map-location')?.textContent).toContain('развёртка');
+    expect(text.mock.calls.some(call=>call[0]==='Мельница')).toBe(true);expect(zoom.span).toBe(11);
+    host.querySelector<HTMLButtonElement>('[data-zoom="planet"]')!.click();
+    for(let i=0;i<160;i++)zoom.step(.1);expect(zoom.span).toBeCloseTo(56);
+    world.restore({interiorId:null,position:{x:22,z:30},outdoorReturn:{x:22,z:30}});
+    host.querySelector<HTMLButtonElement>('.town-interaction')!.click();
+    expect(host.querySelector('.town-life-message')?.textContent).toContain('полил');
+    expect(host.querySelector<HTMLElement>('.town-life-message')!.hidden).toBe(false);
+    expect(mission.snapshot.stage).toBe('meet-master');
+  }finally{unmount();session.destroy();mission.destroy();}
+});
