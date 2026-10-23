@@ -14,7 +14,9 @@
 
 Explore Zarechensk, a procedural autumn district with 19 enterable buildings, a central garden, connected furnished interiors and a live minimap. Weathered masonry, cracked roads, varied roofing and muted autumn foliage add detail to the district. Use **WASD / arrow keys** to walk, **E** or the contextual on-screen button near a front door to enter or exit, and the **mouse wheel**, **+ / −** keys or minimap buttons to zoom outdoors and indoors. **Home** or the percentage button resets the current view. Walk toward the open front of an interior to reach its exit.
 
-The compact character HUD starts health, stamina, satiety, mood, level and experience at zero. These values are ready for future game rewards and consumables. Quests are not implemented in this prototype.
+The first aid pickup is playable: follow the golden minimap target to the Mayak workshop, enter and approach the master. Press **E** or click the contextual action to receive one aid kit. The mission panel shows the item and changes the objective to deliver it to the clinic, which becomes the map target. Repeated interaction gives a reminder without duplicating the kit. Clinic handover and saving progress across reloads are not implemented yet. The mission panel replaces the inactive zero-stat HUD.
+
+See [First aid pickup](docs/architecture/first-aid-mission.md) for state contracts, verification and the manual acceptance route.
 
 The active town renders through Three.js; Phaser is retained for the earlier 2D scenes. Read [Town architecture](docs/architecture/town-world.md) for the layout, simulation and integration contracts.
 

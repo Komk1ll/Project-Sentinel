@@ -1,6 +1,7 @@
 import { ThreeRenderer } from '@game/render/ThreeRenderer';
 import { PlayerProgress } from '@game/systems/player-progress';
 import { TownWorld } from '@game/systems/town-world';
+import { FirstAidMission } from '@game/systems/first-aid-mission';
 import { CameraZoom } from '@game/systems/camera-zoom';
 
 export interface GameEngineConfig {
@@ -12,6 +13,7 @@ export interface GameEngineConfig {
 export class GameEngine {
   public readonly playerProgress = new PlayerProgress();
   public readonly world = new TownWorld();
+  public readonly firstAid = new FirstAidMission(this.world);
   public readonly cameraZoom = new CameraZoom();
   public threeRenderer!: ThreeRenderer;
   private animationFrameId: number | null = null;
@@ -22,7 +24,7 @@ export class GameEngine {
   constructor(private readonly config: GameEngineConfig) {}
 
   public init(): void {
-    this.threeRenderer = new ThreeRenderer({ containerId: this.config.threeContainerId, world: this.world, zoom: this.cameraZoom });
+    this.threeRenderer = new ThreeRenderer({ containerId: this.config.threeContainerId, world: this.world, zoom: this.cameraZoom, firstAid: this.firstAid });
     this.registerCleanup(this.world.subscribe(world => this.cameraZoom.setInterior(world.interior !== null)));
     window.addEventListener('keydown', this.onKeyDown);
     window.addEventListener('keyup', this.onKeyUp);
@@ -39,7 +41,7 @@ export class GameEngine {
     if (event.target instanceof HTMLElement && event.target.closest('button') && ['Space', 'Enter'].includes(event.code)) return;
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(event.code)) event.preventDefault();
     this.keys.add(event.code);
-    if (event.code === 'KeyE' && !event.repeat) this.world.interact();
+    if (event.code === 'KeyE' && !event.repeat) this.firstAid.interact();
     if (['Equal', 'NumpadAdd', 'Minus', 'NumpadSubtract', 'Home'].includes(event.code)) {
       event.preventDefault();
       if (event.code === 'Home') this.cameraZoom.reset();
@@ -69,6 +71,7 @@ export class GameEngine {
     this.keys.clear();
     this.cleanups.forEach(cleanup => cleanup());
     this.cleanups.clear();
+    this.firstAid.destroy();
     this.threeRenderer.destroy();
   }
 }

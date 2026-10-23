@@ -1,5 +1,4 @@
 import { GameEngine } from '@game/core/GameEngine';
-import { mountPlayerHud } from '@ui/player-hud';
 import { mountTownHud } from '@ui/town-hud';
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -10,8 +9,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const uiContainer = document.getElementById('ui-container');
   if (uiContainer) {
-    engine.registerCleanup(mountPlayerHud(uiContainer, engine.playerProgress));
-    engine.registerCleanup(mountTownHud(uiContainer, engine.world, engine.cameraZoom));
+    engine.registerCleanup(mountTownHud(uiContainer, engine.firstAid, engine.cameraZoom));
   }
 
   engine.init();

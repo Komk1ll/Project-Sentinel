@@ -3,12 +3,14 @@ import { buildingEntrance, PARK, ROAD_CENTERS, TOWN_BUILDINGS, TOWN_SIZE } from 
 import type { TownWorld } from '@game/systems/town-world';
 import type { CameraZoom } from '@game/systems/camera-zoom';
 import { getInteriorLayout } from '@content/interiors';
+import { FIRST_AID_TEXT, MASTER } from '@content/first-aid';
+import type { FirstAidMission } from '@game/systems/first-aid-mission';
 
 const MAP_SIZE = 180;
 const MAP_PADDING = 9;
 
 /** Uses the same world coordinates as collisions, doors and the rendered town. */
-function drawMinimap(canvas: HTMLCanvasElement, world: TownWorld): void {
+function drawMinimap(canvas: HTMLCanvasElement, world: TownWorld, mission: FirstAidMission): void {
   const context = canvas.getContext('2d');
   if (!context) return;
   const ratio = Math.min(window.devicePixelRatio || 1, 2);
@@ -36,6 +38,12 @@ function drawMinimap(canvas: HTMLCanvasElement, world: TownWorld): void {
     }
     context.fillStyle = '#edc076';
     context.fillRect(80, 143, 20, 6);
+    if (world.interior.id === MASTER.buildingId) {
+      context.fillStyle = mission.snapshot.stage === 'meet-master' ? '#ffcf78' : '#aebfb7';
+      context.beginPath();
+      context.arc(90 + MASTER.x * scale, 90 + MASTER.z * scale, 4, 0, Math.PI * 2);
+      context.fill();
+    }
     playerX = 90 + world.position.x * scale;
     playerY = 90 + world.position.z * scale;
   } else {
@@ -56,18 +64,25 @@ function drawMinimap(canvas: HTMLCanvasElement, world: TownWorld): void {
     context.moveTo(point(24), point(18));
     context.lineTo(point(24), point(30));
     context.stroke();
+    const targetBuildingId = mission.snapshot.targetBuildingId;
     for (const building of TOWN_BUILDINGS) {
       const x = point(building.x - building.width / 2);
       const y = point(building.z - building.depth / 2);
       context.fillStyle = building.kind === 'home' ? '#8a9a8e' : '#b3ad91';
       context.fillRect(x, y, building.width * scale, building.depth * scale);
       context.strokeStyle = '#0a1c2066';
+      context.lineWidth = 1;
       context.strokeRect(x, y, building.width * scale, building.depth * scale);
       const entrance = buildingEntrance(building);
       context.fillStyle = '#edc076';
       context.beginPath();
       context.arc(point(entrance.x), point(entrance.z), 1.5, 0, Math.PI * 2);
       context.fill();
+      if (targetBuildingId === building.id) {
+        context.strokeStyle = '#ffcf78';
+        context.lineWidth = 3;
+        context.strokeRect(x - 2, y - 2, building.width * scale + 4, building.depth * scale + 4);
+      }
       if (world.nearbyBuilding?.id === building.id) {
         context.strokeStyle = '#f4d6a1';
         context.lineWidth = 1.5;
@@ -92,17 +107,26 @@ function drawMinimap(canvas: HTMLCanvasElement, world: TownWorld): void {
 }
 
 /** Keeps location, interaction hints and the map subscribed to the simulation. */
-export function mountTownHud(container: HTMLElement, world: TownWorld, zoom: CameraZoom): () => void {
+export function mountTownHud(container: HTMLElement, mission: FirstAidMission, zoom: CameraZoom): () => void {
+  const world = mission.world;
   const hud = document.createElement('aside');
   hud.className = 'town-hud';
   hud.lang = 'ru';
-  hud.setAttribute('aria-label', 'Карта и управление');
+  hud.setAttribute('aria-label', 'Задание, карта и управление');
   hud.innerHTML = `
+    <section class="town-mission-panel" aria-labelledby="town-mission-title">
+      <h2 id="town-mission-title">${FIRST_AID_TEXT.title}</h2>
+      <p class="town-objective" role="status"></p>
+      <p class="town-mission-hint"></p>
+      <p class="town-inventory"></p>
+      <p class="town-dialogue" role="status" hidden></p>
+      <p class="town-session-note">При перезагрузке прогресс сбросится.</p>
+    </section>
     <section class="town-map-panel" aria-label="Миникарта">
       <div class="town-map-title">ЗАРЕЧЕНСК</div>
       <div class="town-map-location"></div>
       <div class="town-map-frame"><canvas class="town-map" role="img" aria-label="Карта квартала с положением игрока и входами в здания"></canvas><span class="town-map-north" aria-hidden="true">С</span></div>
-      <div class="town-map-legend"><span><i class="town-door-dot"></i> Вход</span><span><i class="town-player-dot"></i> Вы</span><span class="town-map-count">${TOWN_BUILDINGS.length} зданий</span></div>
+      <div class="town-map-legend"><span><i class="town-door-dot"></i> Вход</span><span><i class="town-player-dot"></i> Вы</span><span><i class="town-goal-dot"></i> Цель</span></div>
       <div class="town-zoom-controls" role="group" aria-label="Масштаб вида">
         <button type="button" data-zoom="out" aria-label="Отдалить" title="Отдалить (−)">−</button>
         <button type="button" data-zoom="reset" class="town-zoom-percent" aria-label="Сбросить масштаб" title="Сбросить масштаб (Home)">100%</button>
@@ -117,21 +141,34 @@ export function mountTownHud(container: HTMLElement, world: TownWorld, zoom: Cam
   const location = hud.querySelector<HTMLElement>('.town-map-location');
   const action = hud.querySelector<HTMLButtonElement>('.town-interaction');
   const actionLabel = hud.querySelector<HTMLElement>('.town-interaction-label');
-  if (!canvas || !location || !action || !actionLabel) throw new Error('Town HUD markup is incomplete');
+  const objective = hud.querySelector<HTMLElement>('.town-objective');
+  const hint = hud.querySelector<HTMLElement>('.town-mission-hint');
+  const inventory = hud.querySelector<HTMLElement>('.town-inventory');
+  const dialogue = hud.querySelector<HTMLElement>('.town-dialogue');
+  if (!canvas || !location || !action || !actionLabel || !objective || !hint || !inventory || !dialogue) throw new Error('Town HUD markup is incomplete');
   container.append(hud);
-  const render = (state: TownWorld): void => {
-    location.textContent = state.interior?.name ?? 'Садовый квартал';
-    const available = state.interior ? state.canExit : state.nearbyBuilding !== null;
-    action.disabled = !available;
-    action.classList.toggle('town-interaction-available', available);
-    if (state.interior) {
-      actionLabel.textContent = state.canExit ? 'Выйти на улицу' : 'Выход у открытой стены';
-    } else {
-      actionLabel.textContent = state.nearbyBuilding ? `Войти · ${state.nearbyBuilding.name}` : 'Подойдите к двери · E или кнопка для входа';
-    }
-    drawMinimap(canvas, state);
+  const setText = (element: HTMLElement, text: string): void => {
+    if (element.textContent !== text) element.textContent = text;
   };
-  const unsubscribe = world.subscribe(render);
+  const render = (): void => {
+    const snapshot = mission.snapshot;
+    const target = mission.interaction;
+    setText(location, world.interior?.name ?? 'Садовый квартал');
+    action.disabled = target === null;
+    action.classList.toggle('town-interaction-available', target !== null);
+    let idleHint = 'Подойдите к двери · E или кнопка для входа';
+    if (world.interior) idleHint = world.interior.id === MASTER.buildingId
+      ? 'Подойдите к мастеру или к выходу' : 'Выход у открытой стены';
+    setText(actionLabel, target?.label ?? idleHint);
+    canvas.setAttribute('aria-label', `Миникарта. Цель: ${snapshot.objective}`);
+    setText(objective, snapshot.objective);
+    setText(hint, snapshot.hint);
+    setText(inventory, snapshot.inventory.length ? FIRST_AID_TEXT.carrying : FIRST_AID_TEXT.emptyInventory);
+    setText(dialogue, snapshot.dialogue ?? '');
+    dialogue.hidden = snapshot.dialogue === null;
+    drawMinimap(canvas, world, mission);
+  };
+  const unsubscribe = mission.subscribe(render);
   const zoomPercent = hud.querySelector<HTMLElement>('.town-zoom-percent');
   const unsubscribeZoom = zoom.subscribe(state => {
     if (zoomPercent) zoomPercent.textContent = `${state.percent}%`;
@@ -140,12 +177,12 @@ export function mountTownHud(container: HTMLElement, world: TownWorld, zoom: Cam
     if (!(event.target instanceof Element)) return;
     const button = event.target.closest<HTMLButtonElement>('button');
     if (!button) return;
-    if (button === action) world.interact();
+    if (button === action) mission.interact();
     else if (button.dataset.zoom === 'reset') zoom.reset();
     else if (button.dataset.zoom) zoom.adjust(button.dataset.zoom === 'in' ? -.2 : .2);
   };
   hud.addEventListener('click', click);
-  const resize = (): void => drawMinimap(canvas, world);
+  const resize = (): void => drawMinimap(canvas, world, mission);
   window.addEventListener('resize', resize);
   return () => {
     unsubscribe();

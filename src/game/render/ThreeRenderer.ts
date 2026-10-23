@@ -1,4 +1,7 @@
 import * as THREE from 'three';
+import { createMasterMesh } from '@game/render/master-mesh';
+import { MASTER } from '@content/first-aid';
+import type { FirstAidMission } from '@game/systems/first-aid-mission';
 import { createTownMeshes } from '@game/render/town-meshes';
 import { createInteriorMeshes } from '@game/render/interior-meshes';
 import type { TownWorld } from '@game/systems/town-world';
@@ -9,6 +12,7 @@ export interface ThreeRendererOptions {
   readonly containerId: string;
   readonly world: TownWorld;
   readonly zoom: CameraZoom;
+  readonly firstAid: FirstAidMission;
 }
 
 /** Presentation of the town simulation; all collision and transitions live in TownWorld. */
@@ -18,6 +22,7 @@ export class ThreeRenderer {
   public readonly renderer: THREE.WebGLRenderer;
   private readonly container: HTMLElement;
   private readonly outdoors: THREE.Group;
+  private readonly master = createMasterMesh();
   private readonly character = new THREE.Group();
   private readonly leftLeg = new THREE.Group();
   private readonly rightLeg = new THREE.Group();
@@ -65,6 +70,8 @@ export class ThreeRenderer {
     this.scene.add(this.outdoors);
     this.buildCharacter();
     this.scene.add(this.character);
+    this.master.group.visible = false;
+    this.scene.add(this.master.group);
     this.doorMarker = new THREE.Mesh(
       new THREE.RingGeometry(.34, .48, 40),
       new THREE.MeshBasicMaterial({ color: 0xffd08a, transparent: true, opacity: .8, depthWrite: false })
@@ -153,6 +160,8 @@ export class ThreeRenderer {
     if (this.isDestroyed) return;
     const world = this.options.world;
     const nextRoomId = world.interior?.id ?? null;
+    this.master.group.visible = nextRoomId === MASTER.buildingId;
+    this.master.kit.visible = this.options.firstAid.snapshot.stage === 'meet-master';
     if (nextRoomId !== this.roomId) {
       if (this.room) { this.scene.remove(this.room); this.disposeGroup(this.room); }
       this.room = world.interior ? createInteriorMeshes(world.interior) : null;

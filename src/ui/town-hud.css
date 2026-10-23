@@ -316,3 +316,75 @@
     display: none;
   }
 }
+
+.town-mission-panel {
+  position: absolute;
+  top: 18px;
+  left: 20px;
+  width: min(360px, calc(100vw - 270px));
+  max-height: calc(100vh - 150px);
+  overflow-y: auto;
+  padding: 18px;
+  border: 1px solid #71908766;
+  border-radius: 12px;
+  background: #081a22f2;
+  box-shadow: 0 6px 25px #0005;
+  font-size: 16px;
+  line-height: 1.45;
+  pointer-events: auto !important;
+}
+
+.town-mission-panel h2 {
+  margin: 0 0 10px;
+  color: #ffcf78;
+  font-size: 18px;
+}
+
+.town-mission-panel p {
+  margin: 0 0 12px;
+}
+
+.town-objective {
+  font-weight: 600;
+}
+
+.town-mission-hint,
+.town-session-note {
+  color: #aebfb7;
+}
+
+.town-inventory {
+  padding: 9px 0;
+  border-top: 1px solid #71908755;
+  border-bottom: 1px solid #71908755;
+}
+
+.town-dialogue {
+  color: #f1dfbd;
+}
+
+.town-mission-panel .town-session-note {
+  margin-bottom: 0;
+  font-size: 13px;
+}
+
+.town-goal-dot {
+  background: #ffcf78;
+}
+
+.town-interaction {
+  font-size: 16px;
+}
+
+@media (max-width: 700px) {
+  .town-mission-panel {
+    top: 10px;
+    left: 10px;
+    width: calc(100vw - 160px);
+    padding: 12px;
+  }
+
+  .town-map-panel {
+    top: 10px;
+  }
+}

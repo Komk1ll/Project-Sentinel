@@ -172,7 +172,7 @@ describe('Town world', () => {
     expect(layout.rooms.length).toBeGreaterThanOrEqual(2);
     expect(layout.furniture.length).toBeGreaterThanOrEqual(5);
     expect(layout.partitions.length).toBeGreaterThanOrEqual(2);
-    expect(layout.obstacles).toHaveLength(layout.furniture.length + layout.partitions.length);
+    expect(layout.obstacles).toHaveLength(layout.furniture.length + layout.partitions.length + layout.actors.length);
     const stride = 37;
     const encode = (x: number, z: number): number => Math.round((x + 4.5) * 4) + Math.round((z + 3.5) * 4) * stride;
     const decode = (key: number): { x: number; z: number } => ({ x: (key % stride) / 4 - 4.5, z: Math.floor(key / stride) / 4 - 3.5 });
