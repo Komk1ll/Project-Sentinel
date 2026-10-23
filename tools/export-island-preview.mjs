@@ -20,8 +20,8 @@ try{
   const {placeOnGround}=await server.ssrLoadModule('/src/game/render/world-surface.ts');
   const {createOcean}=await server.ssrLoadModule('/src/game/render/island-terrain.ts');
   const assets=new Map();
-  for(const name of ['hero','workshop','clinic','house-base','tree','bench']){
-    const folder=['hero','workshop'].includes(name)?'polish-v4':'web-mvp';
+  for(const name of ['hero','workshop','clinic','house-base','tree','bench','architecture-details']){
+    const folder=['tree','architecture-details'].includes(name)?'island-detail':['hero','workshop'].includes(name)?'polish-v4':'web-mvp';
     const bytes=await readFile(`public/assets/models/${folder}/${name}.glb`);
     const asset=await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),'');assets.set(name,asset.scene);
   }
@@ -35,7 +35,7 @@ try{
   ocean.material=new THREE.MeshStandardMaterial({color:0x568e96,roughness:.24,metalness:.18});
   ocean.position.y=-.65;scene.add(ocean);
   const views=[];
-  for(const [name,x,z,span,overview] of [['overview',46,32,58,true],['street',32,35,11,false],['garden',86,38,22,false]]){
+  for(const [name,x,z,span,overview] of [['overview',46,32,58,true],['street',32,35,11,false],['garden',86,38,22,false],['facades',38,26,12,false]]){
     const target=new THREE.Vector3(x,0,z);
     const camera=new THREE.OrthographicCamera(-span*1.5,span*1.5,span,-span,.1,400);camera.name=name;
     camera.up.set(0,1,0);
@@ -43,7 +43,7 @@ try{
     views.push({name,position:camera.position.toArray(),target:target.toArray(),up:camera.up.toArray(),span});
   }
   scene.updateMatrixWorld(true);
-  const output='art/coastal-island';await mkdir(output,{recursive:true});
+  const output=process.argv[2]??'art/coastal-island';await mkdir(output,{recursive:true});
   const glb=await new GLTFExporter().parseAsync(scene,{binary:true,onlyVisible:true});await writeFile(`${output}/island-review.glb`,Buffer.from(glb));
   await writeFile(`${output}/views.json`,JSON.stringify(views,null,2));
   let meshes=0,triangles=0;scene.traverse(object=>{if(object.isMesh){meshes++;triangles+=(object.geometry.index?.count??object.geometry.attributes.position.count)/3*(object.isInstancedMesh?object.count:1);}});
