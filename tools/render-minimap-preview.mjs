@@ -16,7 +16,7 @@ try {
   const world=new TownWorld(),mission=new FirstAidMission(world);
   mission.restore('deliver-aid');
   world.restore({interiorId:null,position:{x:24,z:45},outdoorReturn:{x:24,z:45}});
-  for(const [name,size,mode] of [['map-nearby',240,'nearby'],['map-district',520,'district'],['map-small',158,'nearby']]){
+  for(const [name,size,mode] of [['map-nearby',240,'nearby'],['map-district',520,'district'],['map-small',158,'nearby'],['map-planet',520,'planet']]){
     const canvas=createCanvas(size*2,size*2);canvas.clientWidth=size;
     drawMinimap(canvas,world,mission,mode);await writeFile(`${output}/${name}.png`,canvas.toBuffer('image/png'));
   }

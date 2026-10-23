@@ -34,3 +34,6 @@ coverage/
 # Temporary / Lock files
 *.tmp
 ~$*.docx
+
+# Transport archive; verified source and previews are retained separately.
+art/living-planet/render/remote-pack.zip

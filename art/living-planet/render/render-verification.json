@@ -1,0 +1,13 @@
+{
+  "gpu": [
+    "NVIDIA GeForce RTX 4070 Ti SUPER"
+  ],
+  "source": "Exported runtime Three.js geometry and cameras",
+  "views": [
+    "overview",
+    "street",
+    "reverse"
+  ],
+  "browser_verified": false,
+  "sign_textures": "omitted from offline review"
+}

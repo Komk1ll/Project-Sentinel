@@ -18,6 +18,7 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--connection', required=True, type=Path)
 parser.add_argument('--output', required=True, type=Path)
 parser.add_argument('--generator', type=Path, default=Path(__file__).with_name('build_web_asset_pack.py'))
+parser.add_argument('--input', action='append', type=Path, default=[], help='Additional local input files copied into this unique render run')
 args = parser.parse_args()
 script = args.generator.resolve()
 if not script.is_file():
@@ -55,6 +56,10 @@ helper = Path(__file__).with_name('build_web_asset_pack.py').resolve()
 subprocess.run(['scp', *options, str(script), host+':'+remote+'/'+script.name], check=True)
 if script != helper:
     subprocess.run(['scp', *options, str(helper), host+':'+remote+'/'+helper.name], check=True)
+for input_file in args.input:
+    if not input_file.is_file():
+        raise SystemExit('Input does not exist: '+str(input_file))
+    subprocess.run(['scp', *options, str(input_file.resolve()), host+':'+remote+'/'+input_file.name], check=True)
 log = out/'remote-render.log'
 print('Rendering on the configured workstation. Log: '+str(log), flush=True)
 powershell('& '+quote_ps(config['blender_executable'])+' --background --debug-cycles --python-exit-code 1 --python '+
@@ -76,6 +81,7 @@ with zipfile.ZipFile(archive) as z:
             target.write_bytes(z.read(item))
 receipt = {'remote_run': run, 'archive_sha256': remote_hash.lower(), 'transfer_verified': True,
            'generator': script.name, 'generator_sha256': hashlib.sha256(script.read_bytes()).hexdigest(),
-           'helper_sha256': hashlib.sha256(helper.read_bytes()).hexdigest()}
+           'helper_sha256': hashlib.sha256(helper.read_bytes()).hexdigest(),
+           'inputs': {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in args.input}}
 (out/'transfer-receipt.json').write_text(json.dumps(receipt, indent=2)+'\n')
 print('Downloaded and hash-verified: '+str(out), flush=True)
