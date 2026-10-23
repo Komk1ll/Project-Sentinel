@@ -1,5 +1,5 @@
-import { buildingEntrance, TOWN_BUILDINGS, TOWN_SIZE, TOWN_SPAWN, type TownBuilding } from '@content/town';
-import { OUTDOOR_OBSTACLES } from '@content/town-props';
+import { buildingEntrance, LEGACY_TOWN_BUILDINGS, TOWN_BUILDINGS, TOWN_SIZE, TOWN_SPAWN, type TownBuilding } from '@content/town';
+import { OUTDOOR_OBSTACLES, LEGACY_OUTDOOR_OBSTACLES, type TownObstacle } from '@content/town-props';
 import { getInteriorLayout } from '@content/interiors';
 
 export interface TownPosition {
@@ -30,12 +30,12 @@ function distance(first: TownPosition, second: TownPosition): number {
 function record(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
-function validPosition(value: unknown, interior: TownBuilding | null): value is TownPosition {
+function validPosition(value: unknown, interior: TownBuilding | null, outdoor: readonly TownObstacle[] = TOWN_COLLIDERS): value is TownPosition {
   if (!record(value) || typeof value.x !== 'number' || typeof value.z !== 'number'
     || !Number.isFinite(value.x) || !Number.isFinite(value.z)) return false;
   if (value.x < (interior ? -4.5 : .5) || value.x > (interior ? 4.5 : TOWN_SIZE - .5)
     || value.z < (interior ? -3.5 : .5) || value.z > (interior ? 3.5 : TOWN_SIZE - .5)) return false;
-  const obstacles = interior ? getInteriorLayout(interior).obstacles : TOWN_COLLIDERS;
+  const obstacles = interior ? getInteriorLayout(interior).obstacles : outdoor;
   const x = value.x;
   const z = value.z;
   return !obstacles.some(item => Math.abs(x - item.x) < item.width / 2 + PLAYER_RADIUS - 1e-7
@@ -47,6 +47,34 @@ export function isTownWorldState(value: unknown): value is TownWorldState {
   const interior = value.interiorId === null ? null : TOWN_BUILDINGS.find(building => building.id === value.interiorId);
   if (interior === undefined || !validPosition(value.position, interior) || !validPosition(value.outdoorReturn, null)) return false;
   return !interior || distance(value.outdoorReturn, buildingEntrance(interior)) <= INTERACTION_DISTANCE + 1e-7;
+}
+
+/** Accept a previous-layout save only after full validation against its old geometry. */
+export function migrateTownWorldState(value: unknown): TownWorldState | null {
+  if (isTownWorldState(value)) return value;
+  if (!record(value)) return null;
+  const oldRoom = value.interiorId === null ? null : LEGACY_TOWN_BUILDINGS.find(b => b.id === value.interiorId);
+  const oldObstacles = [...LEGACY_TOWN_BUILDINGS, ...LEGACY_OUTDOOR_OBSTACLES];
+  if (oldRoom === undefined || !validPosition(value.position, oldRoom, oldObstacles)
+    || !validPosition(value.outdoorReturn, null, oldObstacles)) return null;
+  if (oldRoom && distance(value.outdoorReturn, buildingEntrance(oldRoom)) > INTERACTION_DISTANCE+1e-7) return null;
+  const currentRoom = oldRoom ? TOWN_BUILDINGS.find(b => b.id === oldRoom.id) : null;
+  const safeNear = (point: TownPosition, maxDistance = 4): TownPosition | null => {
+    if (isWalkableTownPosition(point)) return point;
+    for (let radius = .5; radius <= maxDistance; radius += .5) for (let i=0; i<16; i++) {
+      const candidate = {x: point.x+Math.sin(i*Math.PI/8)*radius, z: point.z+Math.cos(i*Math.PI/8)*radius};
+      if (isWalkableTownPosition(candidate)) return candidate;
+    }
+    return null;
+  };
+  if (currentRoom) {
+    const entry = buildingEntrance(currentRoom);
+    const outdoorReturn = safeNear(value.outdoorReturn, 1) ?? entry;
+    if (distance(outdoorReturn, entry) <= INTERACTION_DISTANCE && isWalkableTownPosition(outdoorReturn))
+      return { interiorId: currentRoom.id, position: value.position, outdoorReturn };
+  }
+  const position = safeNear(oldRoom ? value.outdoorReturn : value.position) ?? { ...TOWN_SPAWN };
+  return { interiorId: null, position, outdoorReturn: position };
 }
 
 /** Shared collision query for movement and map guidance; never mutates the world. */
@@ -65,6 +93,7 @@ export class TownWorld {
   private currentPosition: TownPosition;
   private currentInterior: TownBuilding | null = null;
   private outdoorReturn: TownPosition;
+  private facing = 0;
   private readonly listeners = new Set<(world: TownWorld) => void>();
 
   constructor(spawn: TownPosition = TOWN_SPAWN) {
@@ -88,6 +117,8 @@ export class TownWorld {
   get position(): TownPosition {
     return this.currentPosition;
   }
+
+  get heading(): number { return this.facing; }
 
   get interior(): TownBuilding | null {
     return this.currentInterior;
@@ -128,7 +159,10 @@ export class TownWorld {
     const nextZ = clamp(previousPosition.z + dz * step, minZ, maxZ);
     const zPosition = { x: this.currentPosition.x, z: nextZ };
     if (this.isWalkable(zPosition)) this.currentPosition = zPosition;
-    if (distance(previousPosition, this.currentPosition) > 0) this.notify();
+    if (distance(previousPosition, this.currentPosition) > 0) {
+      this.facing = Math.atan2(this.currentPosition.x-previousPosition.x, this.currentPosition.z-previousPosition.z);
+      this.notify();
+    }
   }
 
   interact(): boolean {

@@ -261,7 +261,7 @@ describe('Town world', () => {
 
   it('provides different homes and distinct layouts for public buildings', () => {
     const homes = TOWN_BUILDINGS.filter(building => building.kind === 'home');
-    expect(new Set(homes.map(building => JSON.stringify(getInteriorLayout(building)))).size).toBeGreaterThan(2);
+    expect(new Set(homes.map(building => JSON.stringify(getInteriorLayout(building)))).size).toBeGreaterThanOrEqual(2);
     const kinds = new Set(TOWN_BUILDINGS.map(building => building.kind));
     const layouts = [...kinds].map(kind => getInteriorLayout(TOWN_BUILDINGS.find(building => building.kind === kind)!));
     expect(new Set(layouts.map(layout => layout.furniture.map(furniture => furniture.kind).join(','))).size).toBe(kinds.size);

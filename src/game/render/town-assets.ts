@@ -22,9 +22,10 @@ export function disposeObject(group: THREE.Object3D): void {
 export async function loadTownAssets(): Promise<Map<string, THREE.Group>> {
   const loader = new GLTFLoader();
   const web = ['hero', 'master', 'medic', 'workshop', 'clinic', 'house-base', 'tree', 'bench', 'aid-kit'];
+  const polished = ['hero', 'master', 'medic', 'workshop'];
   const names = [...web, 'resident', 'interior-station', 'interior-clinic'];
   const results = await Promise.allSettled(names.map(async name => {
-    const folder = web.includes(name) ? 'web-mvp' : 'cozy';
+    const folder = polished.includes(name) ? 'polish-v4' : web.includes(name) ? 'web-mvp' : 'cozy';
     const url = new URL(`${import.meta.env.BASE_URL}assets/models/${folder}/${name}.glb`, document.baseURI).href;
     const gltf = await loader.loadAsync(url);
     gltf.scene.name = `${web.includes(name) ? 'web' : 'cozy'}-${name}`;

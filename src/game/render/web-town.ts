@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { ROAD_CENTERS, TOWN_BUILDINGS, TOWN_SIZE, type TownBuilding } from '@content/town';
-import { TOWN_CARS } from '@content/town-props';
+import { ROAD_CENTERS, TOWN_BUILDINGS, TOWN_OPEN_SPACES, TOWN_SIZE, type TownBuilding } from '@content/town';
+import { TOWN_CARS, TOWN_TREES, TOWN_BENCHES, TOWN_PLANTERS } from '@content/town-props';
 
 /** Metre-scale scenery. Never stretch imported buildings to fit unrelated lots. */
 export function createWebTown(assets?: ReadonlyMap<string, THREE.Group>): THREE.Group {
@@ -32,7 +32,7 @@ export function createWebTown(assets?: ReadonlyMap<string, THREE.Group>): THREE.
       if (!geometry) throw new Error('Town material batching failed');
       const merged = new THREE.Mesh(geometry, material);
       merged.name = 'batch'; merged.castShadow = meshes.some(mesh => mesh.castShadow); merged.receiveShadow = true;
-      meshes.forEach(mesh => group.remove(mesh)); group.add(merged);
+      meshes.forEach(mesh => { group.remove(mesh); if (mesh.geometry !== cube) mesh.geometry.dispose(); }); group.add(merged);
     }
   }
   const ground = new THREE.Group(); ground.name = 'street-surfaces'; town.add(ground);
@@ -57,8 +57,24 @@ export function createWebTown(assets?: ReadonlyMap<string, THREE.Group>): THREE.
       box(ground, 'crosswalk', 0xeee4cd, cross+3.7, .003, road-1.6+i*.8, 1.2, .004, .4);
     }
   }
-  box(ground, 'park-path', 0xd8d1b9, 24, .003, 24, 1.9, .006, 12);
-  box(ground, 'park-path', 0xd8d1b9, 24, .004, 24, 12, .008, 1.9);
+  for (const space of TOWN_OPEN_SPACES) {
+    box(ground, `space-${space.id}`, space.kind === 'square' ? 0xd8c9ac : 0x88a478,
+      space.x, -.019, space.z, space.width, .014, space.depth);
+    if (space.kind !== 'square') {
+      box(ground, 'garden-path', 0xd8c9ac, space.x, .001, space.z, 2.4, .008, space.depth);
+      box(ground, 'garden-path', 0xd8c9ac, space.x, .003, space.z, space.width, .012, 2.4);
+    } else {
+      for (let x=-5;x<=5;x+=2) box(ground, 'square-inlay', 0xb8aa92, space.x+x, .002, space.z, .04, .006, space.depth);
+      for (let z=-5;z<=5;z+=2) box(ground, 'square-inlay', 0xb8aa92, space.x, .003, space.z+z, space.width, .008, .04);
+    }
+  }
+  // Connect every entrance to the nearest south street with a clear pavement spur.
+  for (const building of TOWN_BUILDINGS) {
+    const front=building.z+building.depth/2;
+    const south=ROAD_CENTERS.find(road=>road>front) ?? 64;
+    const length=south-2.05-front;
+    if(length>0) box(ground,'entrance-path',0xd8d1b9,building.x,.001,front+length/2,2.4,.006,length);
+  }
   batch(ground);
 
   function genericBuilding(b: TownBuilding): THREE.Group {
@@ -66,7 +82,15 @@ export function createWebTown(assets?: ReadonlyMap<string, THREE.Group>): THREE.
     const h = b.floors*3.2, w = b.width, d = b.depth;
     const wall = [0xd8bc8b, 0xd4d7bd, 0xb8ccc5][TOWN_BUILDINGS.indexOf(b)%3] ?? 0xd8bc8b;
     box(group, 'walls', wall, 0, h/2, 0, w, h, d);
-    box(group, 'roof', 0x347d78, 0, h+.10, 0, w+.3, .20, d+.3);
+    box(group, 'roof', b.kind === 'home' ? 0x61756a : 0x347d78, 0, h+.10, 0, w+.3, .20, d+.3);
+    box(group, 'plinth', 0x927961, 0, .18, 0, w+.05, .36, d+.05);
+    box(group, 'cornice', 0xeee4cd, 0, h-.12, 0, w+.15, .18, d+.15);
+    if (b.kind === 'home' || b.kind === 'cafe') {
+      const roof = new THREE.ConeGeometry(1, 1.1, 4);
+      roof.rotateY(Math.PI/4); roof.scale((w+.5)/Math.SQRT2,1,(d+.5)/Math.SQRT2);
+      const mesh=new THREE.Mesh(roof,mat(b.kind==='home'?0x61756a:0x956f54));
+      mesh.position.y=h+.7; mesh.castShadow=true; mesh.receiveShadow=true; group.add(mesh);
+    }
     const columns = Math.max(2, Math.floor((w-1)/1.65));
     for (let floor = 0; floor < b.floors; floor++) {
       for (let col = 0; col < columns; col++) {
@@ -96,10 +120,10 @@ export function createWebTown(assets?: ReadonlyMap<string, THREE.Group>): THREE.
     }
     const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace;
     const width = b.id === 'station' ? 2.65 : b.id === 'clinic' ? 2.26 : Math.min(3.6, b.width-.4);
-    const height = b.id === 'clinic' ? .25 : .35;
+    const height = b.id === 'clinic' ? .25 : b.id === 'station' ? .29 : .35;
     const material = new THREE.MeshBasicMaterial({ map: texture });
     const plane = new THREE.Mesh(new THREE.PlaneGeometry(width, height), material);
-    plane.name = 'building-sign'; plane.position.set(0, b.id === 'clinic' ? 2.99 : 2.82, b.depth/2+.14); group.add(plane);
+    plane.name = 'building-sign'; plane.position.set(0, b.id === 'clinic' ? 2.99 : b.id === 'station' ? 2.84 : 2.82, b.depth/2+(b.id === 'station' ? .21 : .14)); group.add(plane);
   }
   for (const building of TOWN_BUILDINGS) {
     const name = building.id === 'station' ? 'workshop' : building.id === 'clinic' ? 'clinic'
@@ -109,14 +133,23 @@ export function createWebTown(assets?: ReadonlyMap<string, THREE.Group>): THREE.
     group.userData.footprint = { width: building.width, depth: building.depth };
     sign(group, building); town.add(group);
   }
-  const trees = [[20,20], [28,20], [20,28], [28,28], [19,36], [29,36], [35,36], [46,36], [3,19], [61,44], [19,60], [29,60]];
-  const benches = [[21,26,0], [27,22,Math.PI], [29,26,-Math.PI/2], [35,45,0]];
-  for (const [name, locations] of [['tree', trees], ['bench', benches]] as const) {
-    const prototype = assets?.get(name);
-    if (prototype) for (const [x, z, angle] of locations) {
-      const item = prototype.clone(true); item.position.set(x ?? 0, 0, z ?? 0); item.rotation.y = angle ?? 0; town.add(item);
-    }
+  function instances(name: string, locations: readonly { x: number; z: number; rotation: number; scale?: number }[]): void {
+    const prototype=assets?.get(name); if (!prototype) return;
+    prototype.updateWorldMatrix(true,true);
+    const placement=new THREE.Object3D(), matrix=new THREE.Matrix4();
+    prototype.traverse(object=>{
+      if (!(object instanceof THREE.Mesh)) return;
+      const mesh=new THREE.InstancedMesh(object.geometry,object.material,locations.length);
+      mesh.name=`${name}-instances`; mesh.castShadow=true; mesh.receiveShadow=true;
+      locations.forEach((location,index)=>{
+        placement.position.set(location.x,0,location.z); placement.rotation.set(0,location.rotation,0);
+        placement.scale.setScalar(location.scale ?? 1); placement.updateMatrix();
+        matrix.multiplyMatrices(placement.matrix,object.matrixWorld); mesh.setMatrixAt(index,matrix);
+      });
+      mesh.computeBoundingSphere(); town.add(mesh);
+    });
   }
+  instances('tree',TOWN_TREES); instances('bench',TOWN_BENCHES);
   const props = new THREE.Group(); props.name = 'collision-props'; town.add(props);
   box(props, 'monument', 0xd8bc8b, 24, .45, 24, 1.8, .9, 1.8);
   box(props, 'monument-top', 0x347d78, 24, 1.3, 24, .7, .8, .7);
@@ -126,6 +159,10 @@ export function createWebTown(assets?: ReadonlyMap<string, THREE.Group>): THREE.
     box(group, 'car-roof', 0x3e4c4c, 0, .98, -.1, 1.1, .42, 1.35);
     for (const x of [-.52,.52]) for (const z of [-.8,.8]) box(group, 'wheel', 0x3e4c4c, x, .20, z, .25, .4, .45);
     batch(group); props.add(group);
+  }
+  for (const planter of TOWN_PLANTERS) {
+    box(props,'planter',0x927961,planter.x,.25,planter.z,planter.width,.5,planter.depth);
+    box(props,'planting',0x64825d,planter.x,.64,planter.z,planter.width-.15,.32,planter.depth-.15);
   }
   batch(props);
   // All boxes have been baked into batches; this template is no longer referenced.

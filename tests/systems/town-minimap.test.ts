@@ -56,3 +56,26 @@ it('lets the player collapse and reopen the mission panel without changing progr
     expect(mission.snapshot.stage).toBe('meet-master');
   } finally {unmount();session.destroy();mission.destroy();}
 });
+
+it('switches map modes independently of camera zoom and keeps the objective visible when collapsed',()=>{
+  const ctx=canvasContext(), text=vi.fn();ctx.fillText=text;
+  vi.spyOn(HTMLCanvasElement.prototype,'getContext').mockImplementation((()=>ctx) as unknown as typeof HTMLCanvasElement.prototype.getContext);
+  const world=new TownWorld(),mission=new FirstAidMission(world),session=new TownSession(world,mission),zoom=new CameraZoom();
+  const host=document.createElement('div');document.body.append(host);
+  const unmount=mountTownHud(host,mission,zoom,session);
+  try {
+    const body=host.querySelector<HTMLElement>('#town-mission-body')!;
+    expect(body.hidden).toBe(true);
+    expect(body.contains(host.querySelector('.town-objective'))).toBe(false);
+    const initial=zoom.span;
+    host.querySelector<HTMLButtonElement>('[data-map-mode="district"]')!.click();
+    expect(host.querySelector('[data-map-mode="district"]')!.getAttribute('aria-pressed')).toBe('true');
+    expect(host.querySelector('[data-map-mode="nearby"]')!.getAttribute('aria-pressed')).toBe('false');
+    expect(zoom.span).toBe(initial);
+    for(const label of ['Маяк','Клиника','Сад','Роща','Площадь','Вы'])expect(text.mock.calls.some(call=>call[0]===label)).toBe(true);
+    const expand=host.querySelector<HTMLButtonElement>('.town-map-expand')!;expand.click();
+    expect(expand.getAttribute('aria-expanded')).toBe('true');
+    expect(host.querySelector('.town-map-panel')!.classList.contains('town-map-expanded')).toBe(true);
+    expand.click();expect(expand.getAttribute('aria-expanded')).toBe('false');
+  } finally {unmount();session.destroy();mission.destroy();}
+});

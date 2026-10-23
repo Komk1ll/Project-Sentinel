@@ -1,5 +1,8 @@
 # Web MVP asset pack
 
+The v3 production record below is retained as history. The current integration uses
+rounded v4 actors and the polished workshop; see [open district](open-district.md).
+
 The approved simplified art direction uses original, procedural Blender models with
 flat PBR materials and no textures. Assets are authored and rendered on the user's
 Windows workstation with Cycles/OptiX, then returned for independent GLB checks.
@@ -103,7 +106,7 @@ through TownWorld, including actor collision and furniture avoidance. HUD tests
 cover map destinations and collapsing the mission panel. Save tests retain schema
 version 1 and cover reload. The nine public GLBs match the authoring files by SHA-256.
 
-The initial requested GLBs total 2,803,724 bytes; unused legacy files are still
+At the v3 integration milestone, initial requested GLBs totaled 2,803,724 bytes; unused legacy files are still
 present in public assets and therefore in the build output. This is a request-size
 reduction, not the total deployment archive size. Browser pixels, device frame rate
 and manual visual acceptance are not established by these tests.

@@ -78,15 +78,24 @@ it('loads the shipped GLBs, delivers the parcel, reuses rooms and releases their
       const entry=buildingEntrance(TOWN_BUILDINGS.find(b=>b.id===id)!);
       expect(door.getSize(new Vector3()).y).toBeCloseTo(2.2);
       expect(door.getCenter(new Vector3()).x).toBeCloseTo(entry.x);
-      expect(door.max.z).toBeCloseTo(entry.z-1);
+      expect(door.max.z).toBeCloseTo(entry.z-(id === 'station' ? 1.07 : 1));
     }
     expect(requested).not.toContain('town.glb');
     expect(requested).not.toContain('interior-home-7.glb');
+    expect(town.getObjectByName('building-home-6')).toBeUndefined();
+    expect(town.getObjectByName('tree-instances')).toBeDefined();
+    expect(town.getObjectByName('bench-instances')).toBeDefined();
     const master = renderer.scene.getObjectByName(MASTER.id)!;
     expect(master.getObjectByName('aid-kit-parcel')!.visible).toBe(true);
     firstAid.interact(); renderer.render();
     expect(master.getObjectByName('aid-kit-parcel')!.visible).toBe(false);
     expect(parcel.visible).toBe(true);
+    expect(hero.getObjectByName('left-arm')!.rotation.x).toBeCloseTo(-.75);
+    const leg=hero.getObjectByName('left-leg')!;
+    const before=new Box3().setFromObject(leg).clone();
+    world.move(-1,0,.04);renderer.render(.04);renderer.scene.updateMatrixWorld(true);
+    expect(new Box3().setFromObject(leg).equals(before)).toBe(false);
+    expect(hero.scale.toArray()).toEqual([1,1,1]);
     leaveWorkshop(firstAid); renderer.render();
     expect(town.visible).toBe(true);
     walkTo(world, { x: 32, z: 46 }); walkTo(world, { x: 40, z: 46 }); firstAid.interact();

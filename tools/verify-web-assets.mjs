@@ -7,7 +7,7 @@ import { Box3, Mesh, Vector3 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 const root = resolve(process.argv[2] ?? 'art/web-mvp-v3');
-const expected = {
+const expected = process.argv.includes('--actors') ? { hero: [6000,6], master: [6000,6], medic: [6000,6] } : {
   hero: [2500, 5], master: [2500, 5], medic: [2500, 5],
   workshop: [3000, 5], clinic: [5000, 5], 'house-base': [2500, 4],
   tree: [400, 2], bench: [300, 2], 'aid-kit': [200, 2],

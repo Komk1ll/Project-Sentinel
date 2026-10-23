@@ -19,7 +19,8 @@ export const PARK = { x: 24, z: 24, width: 12, depth: 12 } as const;
 export const TOWN_SPAWN = { x: 32, z: 35 } as const;
 
 // Editable lots keep the town layout independent from rendering and future quests.
-export const TOWN_BUILDINGS: readonly TownBuilding[] = [
+/** Previous layout retained only to validate and migrate existing saves. */
+export const LEGACY_TOWN_BUILDINGS: readonly TownBuilding[] = [
   { id: 'station', name: 'Мастерская «Маяк»', kind: 'workshop', x: 24, z: 40, width: 9, depth: 8, floors: 1, color: 0x9c8063, roof: 0x474f4e },
   { id: 'cafe', name: 'Кафе «Листва»', kind: 'cafe', x: 40, z: 24, width: 9, depth: 7, floors: 2, color: 0xb3916d, roof: 0x52554d },
   { id: 'clinic', name: 'Городская поликлиника', kind: 'clinic', x: 40, z: 40, width: 10, depth: 8, floors: 3, color: 0xa5aaa0, roof: 0x555b5a },
@@ -39,6 +40,28 @@ export const TOWN_BUILDINGS: readonly TownBuilding[] = [
   { id: 'home-10', name: 'Тихий переулок, 8', kind: 'home', x: 38, z: 56, width: 5, depth: 8, floors: 3, color: 0x9fa8a1, roof: 0x4b565b },
   { id: 'home-11', name: 'Тихий переулок, 10', kind: 'home', x: 44, z: 56, width: 4, depth: 8, floors: 2, color: 0xb4a38e, roof: 0x535753 },
   { id: 'post', name: 'Почтовое отделение', kind: 'shop', x: 55, z: 56, width: 8, depth: 7, floors: 2, color: 0x919d9c, roof: 0x515a60 },
+];
+
+export const RETIRED_HOME_IDS = new Set(['home-2', 'home-4', 'home-5', 'home-6', 'home-8', 'home-9', 'home-10', 'home-11']);
+export const TOWN_BUILDINGS: readonly TownBuilding[] = LEGACY_TOWN_BUILDINGS
+  .filter(building => !RETIRED_HOME_IDS.has(building.id))
+  .map(building => building.kind === 'home' ? { ...building, floors: 2 } : building);
+
+export interface TownOpenSpace {
+  readonly id: string;
+  readonly label: string;
+  readonly kind: 'park' | 'garden' | 'grove' | 'square' | 'orchard';
+  readonly x: number;
+  readonly z: number;
+  readonly width: number;
+  readonly depth: number;
+}
+export const TOWN_OPEN_SPACES: readonly TownOpenSpace[] = [
+  { id: 'park', label: 'Парк', kind: 'park', ...PARK },
+  { id: 'garden', label: 'Сад', kind: 'garden', x: 8, z: 40, width: 12, depth: 12 },
+  { id: 'grove', label: 'Роща', kind: 'grove', x: 56, z: 24, width: 12, depth: 12 },
+  { id: 'square', label: 'Площадь', kind: 'square', x: 40, z: 56, width: 12, depth: 12 },
+  { id: 'orchard', label: 'Яблоневый сад', kind: 'orchard', x: 8, z: 56, width: 12, depth: 12 },
 ];
 
 export function buildingEntrance(building: TownBuilding): { x: number; z: number } {

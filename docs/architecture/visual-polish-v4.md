@@ -1,5 +1,9 @@
 # Visual polish preparation, 23 October 2026
 
+This document records the preparation milestone. The workshop has since been
+integrated in [the open district update](open-district.md). Status statements below
+describe the original study, not the newer running build.
+
 ## Goal and status
 
 Raise the craft of the approved cozy, stylized, isometric web game while retaining

@@ -1,4 +1,4 @@
-import { isTownWorldState, type TownWorldState } from '@game/systems/town-world';
+import { migrateTownWorldState, type TownWorldState } from '@game/systems/town-world';
 import { isFirstAidStage, type FirstAidStage } from '@game/systems/first-aid-mission';
 
 export const TOWN_SAVE_KEY = 'cybershield.town.v1';
@@ -26,8 +26,10 @@ export function parseTownSave(raw: string | null): TownSave | null {
     const save = value as Record<string, unknown>;
     if (save.schemaVersion !== 1 || save.buildId !== 'cybershield-first-aid'
       || typeof save.savedAt !== 'number' || !Number.isFinite(save.savedAt) || save.savedAt < 0
-      || !isTownWorldState(save.world) || !isFirstAidStage(save.stage)) return null;
-    return { schemaVersion: 1, buildId: 'cybershield-first-aid', savedAt: save.savedAt, world: save.world, stage: save.stage };
+      || !isFirstAidStage(save.stage)) return null;
+    const world = migrateTownWorldState(save.world);
+    if (!world) return null;
+    return { schemaVersion: 1, buildId: 'cybershield-first-aid', savedAt: save.savedAt, world, stage: save.stage };
   } catch { return null; }
 }
 

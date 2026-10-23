@@ -4,7 +4,7 @@
 
 The playable district is the fictional neighborhood Zarechensk. The approved visual direction uses original stylized Blender models, soft daylight, planted courtyards and an isometric view. See [Web asset pack](web-asset-pack.md) for the current asset pipeline and editable sources.
 
-`src/content/town.ts` is the authoritative layout. It defines a 64 x 64 meter district, three crossing streets on each axis, a garden at (24, 24), the initial player position, and 19 named buildings. Lots include apartments, a cafe, library, clinic, workshop, grocery, bakery, post office and district administration. Building footprints, front entrances and minimap markers use these same records. Quest placement can be revised later by editing these data rather than scene code.
+`src/content/town.ts` is the authoritative layout. It defines a 64 x 64 meter district, three crossing streets on each axis, five open public spaces, the initial player position, and 11 named buildings. Lots include apartments, a cafe, library, clinic, workshop, grocery, bakery, post office and district administration. Building footprints, front entrances and minimap markers use these same records. Quest placement can be revised later by editing these data rather than scene code.
 
 The current streets are broad enough for traversal between every lot. The front of every building faces positive Z. `buildingEntrance` derives an interaction point one meter in front of that facade. Every building is enterable. Interiors use a 10 x 8 meter cutaway floor plan, with connected rooms, broad doorways and furnishings defined by building kind. Homes have bedrooms, living spaces and kitchen areas; public buildings have purpose-specific rooms and furniture.
 
@@ -46,6 +46,16 @@ WASD and arrow keys move relative to the screen. Physical key codes also support
 
 ## Validation and limits
 
-Vitest tests cover all 19 doorway round trips, exterior spawn-to-door routes, connected interior room routes and return exits, partition collision and doorways, furniture collision, frame caps, normalized movement, bounds, subscriptions, and smooth zoom limits, reset and mode retention. Scene tests validate both fallback meshes and the shipped Blender models using the real GLTF decoder with a stub GPU backend; browser appearance still requires manual visual review. TypeScript checks and a production build validate integration.
+Vitest tests cover all 11 doorway round trips, exterior spawn-to-door routes, connected interior room routes and return exits, partition collision and doorways, furniture collision, frame caps, normalized movement, bounds, subscriptions, and smooth zoom limits, reset and mode retention. Scene tests validate both fallback meshes and the shipped Blender models using the real GLTF decoder with a stub GPU backend; browser appearance still requires manual visual review. TypeScript checks and a production build validate integration.
 
 The district is a playable visual prototype. The first aid pickup adds one NPC, an interior actor collision footprint, a single quest item and a clinic delivery objective. The medic handover completes the first episode. TownSession persists the room, position and mission with backup recovery. Later episodes, consumables, collision for minor street decoration and touch controls remain outside this milestone.
+
+
+## Open district update
+
+See [hero and open district integration](open-district.md) for the current layout,
+rounded actor asset contract and migration of previous-layout saves. The minimap
+has separate nearby/district modes, an expand control, direction-aware player icon,
+and shared public-space geometry. Map zoom does not change camera zoom. Repeated
+trees and benches use GPU instancing; their collision positions are shared with
+content. The current objective remains visible when mission details are collapsed.
