@@ -56,6 +56,11 @@ with Windows. Connection settings and SSH keys stay outside the repository. The
 runner does not install software or change Windows security settings. It leaves
 remote source files available for further Blender work.
 
+An optional `--generator /path/to/generator.py` selects a separate art study. The
+runner also uploads `build_web_asset_pack.py` as its shared modelling helper and
+records both source hashes. The default nine-asset build remains unchanged. See
+[visual polish preparation](visual-polish-v4.md) for the next review milestone.
+
 ## Integration boundary
 
 These separate buildings cannot directly replace the old combined `town.glb`.

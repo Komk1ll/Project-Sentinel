@@ -1,0 +1,68 @@
+{
+  "stage": "art-direction-study",
+  "assets": [
+    {
+      "asset": "workshop",
+      "triangles": 3749,
+      "materials": [
+        "brick",
+        "glass",
+        "glint",
+        "metal",
+        "plaster",
+        "roof",
+        "timber",
+        "trim"
+      ],
+      "meshes": 10,
+      "bounds": {
+        "min": [
+          -4.827184200286865,
+          0.0,
+          -4.350000381469727
+        ],
+        "max": [
+          4.827184200286865,
+          5.122499465942383,
+          4.559999942779541
+        ],
+        "size": [
+          9.65436840057373,
+          5.122499465942383,
+          8.910000324249268
+        ]
+      },
+      "bytes": 288472,
+      "sha256": "f72b86c86ae01a97e5381aef6babe2babc2ff2f1f41e27f838690315b6f569b5",
+      "reimported": true,
+      "rendered_from_reimport": true,
+      "runtime_integrated": false,
+      "door_bounds": {
+        "min": [
+          -0.6000000238418579,
+          0.0,
+          3.870000123977661
+        ],
+        "max": [
+          0.6000000238418579,
+          2.200000047683716,
+          3.930000066757202
+        ],
+        "size": [
+          1.2000000476837158,
+          2.200000047683716,
+          0.059999942779541016
+        ]
+      },
+      "blender": "5.2.3 LTS",
+      "gpu": [
+        "NVIDIA GeForce RTX 4070 Ti SUPER"
+      ]
+    }
+  ],
+  "notes": [
+    "Offline Cycles renders, not browser screenshots.",
+    "The hero is the unchanged v3 scale reference.",
+    "The study is not installed in the game."
+  ]
+}

@@ -17,7 +17,11 @@ from pathlib import Path
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--connection', required=True, type=Path)
 parser.add_argument('--output', required=True, type=Path)
+parser.add_argument('--generator', type=Path, default=Path(__file__).with_name('build_web_asset_pack.py'))
 args = parser.parse_args()
+script = args.generator.resolve()
+if not script.is_file():
+    raise SystemExit('Generator does not exist: '+str(script))
 config = json.loads(args.connection.read_text())
 out = args.output.resolve()
 if out.exists():
@@ -46,13 +50,15 @@ def powershell(script, output=None):
     return result.stdout.decode('utf-8', errors='replace').strip()
 
 powershell('New-Item -ItemType Directory -Path '+quote_ps(remote)+' | Out-Null')
-script = Path(__file__).with_name('build_web_asset_pack.py')
+helper = Path(__file__).with_name('build_web_asset_pack.py').resolve()
 # Modern scp uses SFTP. Absolute Windows paths avoid assumptions about the SSH home.
-subprocess.run(['scp', *options, str(script), host+':'+remote+'/build_web_asset_pack.py'], check=True)
+subprocess.run(['scp', *options, str(script), host+':'+remote+'/'+script.name], check=True)
+if script != helper:
+    subprocess.run(['scp', *options, str(helper), host+':'+remote+'/'+helper.name], check=True)
 log = out/'remote-render.log'
 print('Rendering on the configured workstation. Log: '+str(log), flush=True)
 powershell('& '+quote_ps(config['blender_executable'])+' --background --debug-cycles --python-exit-code 1 --python '+
-           quote_ps(remote+'/build_web_asset_pack.py')+' -- '+quote_ps(remote+'/pack')+'; exit $LASTEXITCODE', log)
+           quote_ps(remote+'/'+script.name)+' -- '+quote_ps(remote+'/pack')+'; exit $LASTEXITCODE', log)
 remote_hash = powershell('Compress-Archive -Path '+quote_ps(remote+'/pack/*')+' -DestinationPath '+
                         quote_ps(remote+'/pack.zip')+'; (Get-FileHash '+quote_ps(remote+'/pack.zip')+' -Algorithm SHA256).Hash')
 assert re.fullmatch('[A-Fa-f0-9]{64}', remote_hash), remote_hash
@@ -69,6 +75,7 @@ with zipfile.ZipFile(archive) as z:
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(z.read(item))
 receipt = {'remote_run': run, 'archive_sha256': remote_hash.lower(), 'transfer_verified': True,
-           'generator_sha256': hashlib.sha256(script.read_bytes()).hexdigest()}
+           'generator': script.name, 'generator_sha256': hashlib.sha256(script.read_bytes()).hexdigest(),
+           'helper_sha256': hashlib.sha256(helper.read_bytes()).hexdigest()}
 (out/'transfer-receipt.json').write_text(json.dumps(receipt, indent=2)+'\n')
 print('Downloaded and hash-verified: '+str(out), flush=True)

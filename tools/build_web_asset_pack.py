@@ -465,15 +465,16 @@ def comparison():
     render_view(camera, (0, 4.5, 1), 70, 'front', OUT/'previews'/'scale-front.png', 31)
 
 
-names = ARGS[1:] or list(LIMITS)
-for name in names:
-    if name not in LIMITS:
-        raise ValueError('Unknown asset: '+name)
-    print('BUILDING_ASSET '+name, flush=True)
-    build(name)
-if all((OUT/'models'/(n+'.glb')).exists() for n in ('hero', 'workshop', 'clinic')):
-    comparison()
-reports = [json.loads(p.read_text(encoding='utf-8')) for p in sorted(OUT.glob('*-report.json'))]
-(OUT/'manifest.json').write_text(json.dumps({'assets': reports, 'total_glb_bytes': sum(r['bytes'] for r in reports),
-    'total_triangles': sum(r['triangles'] for r in reports), 'coordinate_system': 'metres, Y up, +Z forward'}, indent=2), encoding='utf-8')
-print('PACK_COMPLETE '+str(OUT), flush=True)
+if __name__ == '__main__':
+    names = ARGS[1:] or list(LIMITS)
+    for name in names:
+        if name not in LIMITS:
+            raise ValueError('Unknown asset: '+name)
+        print('BUILDING_ASSET '+name, flush=True)
+        build(name)
+    if all((OUT/'models'/(n+'.glb')).exists() for n in ('hero', 'workshop', 'clinic')):
+        comparison()
+    reports = [json.loads(p.read_text(encoding='utf-8')) for p in sorted(OUT.glob('*-report.json'))]
+    (OUT/'manifest.json').write_text(json.dumps({'assets': reports, 'total_glb_bytes': sum(r['bytes'] for r in reports),
+        'total_triangles': sum(r['triangles'] for r in reports), 'coordinate_system': 'metres, Y up, +Z forward'}, indent=2), encoding='utf-8')
+    print('PACK_COMPLETE '+str(OUT), flush=True)
