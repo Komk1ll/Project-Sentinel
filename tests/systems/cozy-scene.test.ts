@@ -2,12 +2,13 @@
 import { URL as NodeURL } from 'node:url';
 import { readFile } from 'node:fs/promises';
 import { afterEach, expect, it, vi } from 'vitest';
-import { Mesh } from 'three';
+import { Mesh, Box3, Vector3 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { ThreeRenderer } from '@game/render/ThreeRenderer';
 import { TownWorld } from '@game/systems/town-world';
 import { FirstAidMission } from '@game/systems/first-aid-mission';
 import { CameraZoom } from '@game/systems/camera-zoom';
+import { buildingEntrance, TOWN_BUILDINGS } from '@content/town';
 import { MASTER, MEDIC } from '@content/first-aid';
 import { approachMaster, leaveWorkshop, walkTo } from '../fixtures/first-aid-route';
 
@@ -42,9 +43,10 @@ it('loads the shipped GLBs, delivers the parcel, reuses rooms and releases their
   const requested: string[] = [];
   // Replace transport only: decode the exact shipped binaries with the real GLTFLoader.
   vi.spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async function (url) {
-    const filename = new URL(url).pathname.split('/').at(-1)!;
+    const path = new URL(url).pathname;
+    const filename = path.split('/').at(-1)!;
     requested.push(filename);
-    const bytes = await readFile(new NodeURL(`../../public/assets/models/cozy/${filename}`, import.meta.url));
+    const bytes = await readFile(new NodeURL(`../../public${path}`, import.meta.url));
     const buffer = new ArrayBuffer(bytes.byteLength);
     new Uint8Array(buffer).set(bytes);
     return new GLTFLoader().parseAsync(buffer, '');
@@ -57,16 +59,34 @@ it('loads the shipped GLBs, delivers the parcel, reuses rooms and releases their
     // Models can finish loading after the player has already entered a fallback room.
     approachMaster(firstAid); renderer.render();
     await renderer.loadVisuals(); renderer.render();
-    expect(requested).toHaveLength(24);
+    expect(requested).toHaveLength(12);
     const workshop = renderer.scene.getObjectByName('cozy-interior-station')!;
-    const town = renderer.scene.getObjectByName('cozy-town')!;
-    const hero = renderer.scene.getObjectByName('cozy-hero')!;
+    const town = renderer.scene.getObjectByName('web-town')!;
+    const hero = renderer.scene.getObjectByName('web-hero')!;
     expect(workshop).toBeDefined(); expect(town.visible).toBe(false);
     expect(hero.getObjectByName('left-leg')).toBeDefined();
+    const parcel = hero.getObjectByName('aid-kit-parcel')!;
+    expect(parcel.parent?.name).toBe('aid-kit-socket');
+    expect(parcel.visible).toBe(false);
+    expect(new Box3().setFromObject(hero).getSize(new Vector3()).y).toBeCloseTo(1.7);
+    // The stub GPU does not perform WebGLRenderer's matrix propagation.
+    renderer.scene.updateMatrixWorld(true);
+    for (const id of ['station', 'clinic', 'home-7']) {
+      const building=town.getObjectByName(`building-${id}`)!;
+      expect(building.scale.toArray()).toEqual([1,1,1]);
+      const door=new Box3().setFromObject(building.getObjectByName('door-panel')!);
+      const entry=buildingEntrance(TOWN_BUILDINGS.find(b=>b.id===id)!);
+      expect(door.getSize(new Vector3()).y).toBeCloseTo(2.2);
+      expect(door.getCenter(new Vector3()).x).toBeCloseTo(entry.x);
+      expect(door.max.z).toBeCloseTo(entry.z-1);
+    }
+    expect(requested).not.toContain('town.glb');
+    expect(requested).not.toContain('interior-home-7.glb');
     const master = renderer.scene.getObjectByName(MASTER.id)!;
     expect(master.getObjectByName('aid-kit-parcel')!.visible).toBe(true);
     firstAid.interact(); renderer.render();
     expect(master.getObjectByName('aid-kit-parcel')!.visible).toBe(false);
+    expect(parcel.visible).toBe(true);
     leaveWorkshop(firstAid); renderer.render();
     expect(town.visible).toBe(true);
     walkTo(world, { x: 32, z: 46 }); walkTo(world, { x: 40, z: 46 }); firstAid.interact();
@@ -76,8 +96,10 @@ it('loads the shipped GLBs, delivers the parcel, reuses rooms and releases their
     expect(medic.visible).toBe(true); expect(resident.visible).toBe(false);
     firstAid.interact(); renderer.render();
     expect(firstAid.snapshot.stage).toBe('completed');
+    expect(parcel.visible).toBe(false);
     expect(medic.getObjectByName('aid-kit-parcel')!.visible).toBe(true);
     expect(resident.visible).toBe(true);
+    expect(new Box3().setFromObject(resident).getSize(new Vector3()).y).toBeLessThan(1.6);
     const clinic = renderer.scene.getObjectByName('cozy-interior-clinic')!;
     walkTo(world, { x: 0, z: .25 }); walkTo(world, { x: 0, z: 2 }); firstAid.interact(); renderer.render();
     firstAid.interact(); renderer.render();

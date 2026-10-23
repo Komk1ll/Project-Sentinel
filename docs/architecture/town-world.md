@@ -2,7 +2,7 @@
 
 ## Scope and layout
 
-The playable district is the fictional neighborhood Zarechensk. The approved visual direction uses original stylized Blender models, soft daylight, planted courtyards and an isometric view. See [Cozy visuals](cozy-visuals.md) for the current asset pipeline and editable sources.
+The playable district is the fictional neighborhood Zarechensk. The approved visual direction uses original stylized Blender models, soft daylight, planted courtyards and an isometric view. See [Web asset pack](web-asset-pack.md) for the current asset pipeline and editable sources.
 
 `src/content/town.ts` is the authoritative layout. It defines a 64 x 64 meter district, three crossing streets on each axis, a garden at (24, 24), the initial player position, and 19 named buildings. Lots include apartments, a cafe, library, clinic, workshop, grocery, bakery, post office and district administration. Building footprints, front entrances and minimap markers use these same records. Quest placement can be revised later by editing these data rather than scene code.
 
@@ -23,7 +23,7 @@ The current streets are broad enough for traversal between every lot. The front 
 
 `ThreeRenderer` presents the simulation through an orthographic camera facing from positive X and Z. It follows the player smoothly outdoors. Indoors, a wide view frames the floor plan and a close view follows the player so magnification cannot leave the character outside the frame. The camera uses an offset of (28, 30, 28) and warm daylight with soft shadows. `CameraZoom` smooths changes with independent remembered settings for outdoors and indoors. Outdoor half-span is bounded to 5–30 meters; indoor half-span is 3.5–11 meters. Mouse wheel, +/− keys and on-screen buttons share the same zoom state. Home or the percentage button resets the active view.
 
-`cozy-assets.ts` loads the local Blender GLB set. `ThreeRenderer` installs the exterior,
+`town-assets.ts` loads the lightweight local Blender GLB set. `ThreeRenderer` installs the exterior,
 characters and cached interior models, with a narrow dithered sight-line cutaway to keep
 the character visible behind foreground geometry. Lighting uses a hemisphere light,
 one shadow-casting sun and a non-shadowing fill. Pixel ratio is limited to 1.75 and

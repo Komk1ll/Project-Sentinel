@@ -32,7 +32,7 @@ export const TOWN_BUILDINGS: readonly TownBuilding[] = [
   { id: 'home-4', name: 'Лесная, 2', kind: 'home', x: 54, z: 24, width: 5, depth: 8, floors: 2, color: 0xa1866d, roof: 0x5b5147 },
   { id: 'home-5', name: 'Лесная, 4', kind: 'home', x: 60, z: 24, width: 4, depth: 7, floors: 2, color: 0xb0a99a, roof: 0x4a5559 },
   { id: 'home-6', name: 'Набережная, 5', kind: 'home', x: 8, z: 40, width: 9, depth: 9, floors: 4, color: 0xaaa293, roof: 0x51575a },
-  { id: 'home-7', name: 'Набережная, 9', kind: 'home', x: 56, z: 40, width: 9, depth: 8, floors: 3, color: 0xaca080, roof: 0x515955 },
+  { id: 'home-7', name: 'Набережная, 9', kind: 'home', x: 56, z: 40, width: 9, depth: 8, floors: 2, color: 0xaca080, roof: 0x515955 },
   { id: 'home-8', name: 'Тихий переулок, 1', kind: 'home', x: 6, z: 56, width: 5, depth: 7, floors: 2, color: 0x969d8d, roof: 0x4c5652 },
   { id: 'home-9', name: 'Тихий переулок, 3', kind: 'home', x: 12, z: 56, width: 4, depth: 7, floors: 1, color: 0xb09a82, roof: 0x59544a },
   { id: 'bakery', name: 'Пекарня «Тёплый хлеб»', kind: 'shop', x: 24, z: 56, width: 9, depth: 7, floors: 2, color: 0xb49a78, roof: 0x63534b },

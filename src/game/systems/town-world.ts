@@ -49,6 +49,17 @@ export function isTownWorldState(value: unknown): value is TownWorldState {
   return !interior || distance(value.outdoorReturn, buildingEntrance(interior)) <= INTERACTION_DISTANCE + 1e-7;
 }
 
+/** Shared collision query for movement and map guidance; never mutates the world. */
+export function isWalkableTownPosition(position: TownPosition, interior: TownBuilding | null = null): boolean {
+  const { x, z } = position;
+  if (!Number.isFinite(x) || !Number.isFinite(z) || x < (interior ? -4.5 : .5)
+    || x > (interior ? 4.5 : TOWN_SIZE-.5) || z < (interior ? -3.5 : .5)
+    || z > (interior ? 3.5 : TOWN_SIZE-.5)) return false;
+  const obstacles = interior ? getInteriorLayout(interior).obstacles : TOWN_COLLIDERS;
+  return !obstacles.some(item => Math.abs(x-item.x) < item.width/2+PLAYER_RADIUS
+    && Math.abs(z-item.z) < item.depth/2+PLAYER_RADIUS);
+}
+
 /** Pure movement and doorway transitions, independent of the renderer. */
 export class TownWorld {
   private currentPosition: TownPosition;
@@ -145,11 +156,7 @@ export class TownWorld {
   }
 
   private isWalkable(position: TownPosition): boolean {
-    const obstacles = this.currentInterior ? getInteriorLayout(this.currentInterior).obstacles : TOWN_COLLIDERS;
-    return !obstacles.some((building) => (
-      Math.abs(position.x - building.x) < building.width / 2 + PLAYER_RADIUS
-      && Math.abs(position.z - building.z) < building.depth / 2 + PLAYER_RADIUS
-    ));
+    return isWalkableTownPosition(position, this.currentInterior);
   }
 
   private notify(): void {

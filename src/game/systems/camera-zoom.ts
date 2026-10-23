@@ -10,7 +10,7 @@ interface ZoomState {
   target: number;
 }
 
-const OUTDOOR_RANGE: ZoomRange = { initial: 14, minimum: 5, maximum: 30 };
+const OUTDOOR_RANGE: ZoomRange = { initial: 11, minimum: 5, maximum: 26 };
 const INDOOR_RANGE: ZoomRange = { initial: 6.5, minimum: 3.5, maximum: 11 };
 
 function createState(range: ZoomRange): ZoomState {

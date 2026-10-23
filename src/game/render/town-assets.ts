@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { TOWN_BUILDINGS } from '@content/town';
 
 export function disposeObject(group: THREE.Object3D): void {
   const geometries = new Set<THREE.BufferGeometry>();
@@ -20,13 +19,15 @@ export function disposeObject(group: THREE.Object3D): void {
 }
 
 /** All assets are bundled locally, with no CDN or external texture dependencies. */
-export async function loadCozyAssets(): Promise<Map<string, THREE.Group>> {
+export async function loadTownAssets(): Promise<Map<string, THREE.Group>> {
   const loader = new GLTFLoader();
-  const names = ['town', 'hero', 'master', 'medic', 'resident', ...TOWN_BUILDINGS.map(building => `interior-${building.id}`)];
+  const web = ['hero', 'master', 'medic', 'workshop', 'clinic', 'house-base', 'tree', 'bench', 'aid-kit'];
+  const names = [...web, 'resident', 'interior-station', 'interior-clinic'];
   const results = await Promise.allSettled(names.map(async name => {
-    const url = new URL(`${import.meta.env.BASE_URL}assets/models/cozy/${name}.glb`, document.baseURI).href;
+    const folder = web.includes(name) ? 'web-mvp' : 'cozy';
+    const url = new URL(`${import.meta.env.BASE_URL}assets/models/${folder}/${name}.glb`, document.baseURI).href;
     const gltf = await loader.loadAsync(url);
-    gltf.scene.name = `cozy-${name}`;
+    gltf.scene.name = `${web.includes(name) ? 'web' : 'cozy'}-${name}`;
     gltf.scene.traverse(object => {
       if (object instanceof THREE.Mesh) { object.castShadow = true; object.receiveShadow = true; }
     });

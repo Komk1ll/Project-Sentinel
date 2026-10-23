@@ -18,7 +18,7 @@ The complete first aid episode is playable: follow the golden minimap target to 
 
 See [First aid episode](docs/architecture/first-aid-mission.md) for state contracts, verification and the manual acceptance route.
 
-See [Cozy visuals](docs/architecture/cozy-visuals.md) for editable Blender sources, reproducible exports and validation.
+See [Web asset pack](docs/architecture/web-asset-pack.md) for the active lightweight models, metric scale, remote Blender production and validation. The map labels Mayak and the clinic and guides the player around collisions. The initial GLB requests total 2,803,724 bytes (nine new models plus two existing interiors and the seated resident).
 
 The active town renders through Three.js; Phaser is retained for the earlier 2D scenes. Read [Town architecture](docs/architecture/town-world.md) for the layout, simulation and integration contracts.
 

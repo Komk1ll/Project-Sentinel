@@ -104,3 +104,23 @@
   .town-controls { left: 10px; right: 10px; bottom: 10px; min-width: 0; width: auto; max-width: none; padding: 8px; }
   .town-arrow-keys, .town-zoom-hint { display: none; }
 }
+/* A readable north-up route map, with text keys outside the drawing. */
+.town-map-panel { width: 278px; padding: 17px 18px 14px; }
+.town-map-frame { width: 240px; height: 240px; }
+.town-map-north { left: 7px; width: 25px; }
+.town-map-places { display: flex; justify-content: space-between; gap: 7px; margin-top: 12px; font-size: 12px; }
+.town-map-places b { display: inline-grid; place-items: center; width: 18px; height: 18px; background: #347d78; color: #fff4d8; border-radius: 4px; }
+.town-map-goal { margin-top: 8px; color: #865512; font-weight: 650; font-size: 13px; text-align: center; }
+.town-player-dot { background: #146fca; }
+.town-door-dot { width: 12px !important; height: 3px !important; border-radius: 0 !important; background: #b87919; }
+.town-hud .town-mission-toggle { pointer-events: auto !important; display: block; margin: -4px 0 12px auto; border: 0; padding: 3px; background: transparent; color: #347d78; font: inherit; font-size: 12px; cursor: pointer; }
+@media (max-width: 700px) {
+  .town-map-panel { width: 170px; padding: 10px; }
+  .town-map-frame { width: 148px; height: 148px; }
+  .town-map-places { flex-direction: column; gap: 4px; font-size: 11px; }
+  .town-map-goal { font-size: 11px; }
+  .town-map-legend { font-size: 9px; }
+  .town-mission-panel { width: calc(100vw - 200px); min-width: 130px; }
+  .town-mission-panel h2 { font-size: 19px; }
+  .town-mission-toggle { margin-bottom: 8px !important; }
+}

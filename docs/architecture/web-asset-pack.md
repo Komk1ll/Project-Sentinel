@@ -3,7 +3,8 @@
 The approved simplified art direction uses original, procedural Blender models with
 flat PBR materials and no textures. Assets are authored and rendered on the user's
 Windows workstation with Cycles/OptiX, then returned for independent GLB checks.
-The existing cozy models and runtime remain intact while this pack is reviewed.
+The original cozy source assets remain intact. The runtime integration below uses
+this pack for the active exterior and main characters.
 
 ## Contract
 
@@ -37,8 +38,8 @@ before measurement and rendering. The script writes a machine-readable manifest.
 `tools/verify-web-assets.mjs` independently checks the GLB using Three.js and raw
 glTF metadata, including bounds, triangle budgets, textures and animation pivots.
 
-Outputs live under `art/web-mvp-v3/`; they are review/source artifacts, not files
-automatically served by Vite. Cameras, lights and preview floors are excluded from
+Authoring outputs live under `art/web-mvp-v3/`. The verified nine GLBs are copied
+to `public/assets/models/web-mvp/` for Vite; source scenes and previews are not served. Cameras, lights and preview floors are excluded from
 each GLB. The generated comparison scene is an offline render, not a gameplay
 screenshot or browser performance test.
 
@@ -63,3 +64,41 @@ to the actor socket, preserve door/interior transitions and test camera occlusio
 The minimap is a separate UI change. A 9 x 8 m house must not be stretched onto
 incompatible lots without a deliberate map update. No game save schema changes
 are needed for producing this art pack.
+
+## Runtime integration (2026-10-23)
+
+The active loader now requests the nine web GLBs, the existing seated resident and
+only the workshop/clinic interior GLBs. Other interiors use their existing procedural
+layout. The old combined town and nineteen-room eager load are no longer used.
+Existing files remain available for art editing and regression checks.
+
+The workshop and clinic retain their exact collision footprints. The matching 9 x 8 m
+lot at home-7 becomes a two-storey house so house-base can be used at unit scale;
+its footprint, door, interior ID and saved positions stay unchanged. Other exterior
+buildings are simple geometry authored to the original lot sizes with 3.20 m floors
+and 2.20 m doors. Trees and benches clone the exported GLBs; parked vehicles and
+the park monument remain visible at their collision locations.
+
+The hero, master and medic keep unit scale. An independent aid-kit instance attaches
+to each socket; mission state controls which one is visible, including after reload.
+The walking datum is Y=0, with grass 2 cm below the streets to avoid coplanar
+flicker. Existing interiors retain their floor height. The legacy seated resident
+is scaled to 70% to fit the clinic sofa and the new adult character proportions. The camera starts closer and uses the same direction as the cutaway shader.
+A north-up map labels the two mission buildings and shows a collision-aware walking
+route to the current door, actor or exit. Navigation only guides; it never moves the
+player or changes mission state. Room and street maps use separate metric transforms.
+
+
+## Integration verification
+
+The production scene test decodes the exact twelve requested GLBs and exercises
+pickup, carried parcel visibility, delivery and cached room reuse with the real
+scene graph and a stub WebGL backend. Navigation tests walk the generated routes
+through TownWorld, including actor collision and furniture avoidance. HUD tests
+cover map destinations and collapsing the mission panel. Save tests retain schema
+version 1 and cover reload. The nine public GLBs match the authoring files by SHA-256.
+
+The initial requested GLBs total 2,803,724 bytes; unused legacy files are still
+present in public assets and therefore in the build output. This is a request-size
+reduction, not the total deployment archive size. Browser pixels, device frame rate
+and manual visual acceptance are not established by these tests.

@@ -1,12 +1,12 @@
 import * as THREE from 'three';
-import { disposeObject, loadCozyAssets } from '@game/render/cozy-assets';
+import { disposeObject, loadTownAssets } from '@game/render/town-assets';
 import { createMasterMesh } from '@game/render/master-mesh';
 import { MASTER, MEDIC } from '@content/first-aid';
 import type { FirstAidMission } from '@game/systems/first-aid-mission';
-import { createTownMeshes } from '@game/render/town-meshes';
+import { createWebTown } from '@game/render/web-town';
 import { createInteriorMeshes } from '@game/render/interior-meshes';
 import type { TownWorld } from '@game/systems/town-world';
-import { buildingEntrance } from '@content/town';
+import { buildingEntrance, TOWN_BUILDINGS } from '@content/town';
 import type { CameraZoom } from '@game/systems/camera-zoom';
 
 export interface ThreeRendererOptions {
@@ -23,6 +23,8 @@ export class ThreeRenderer {
   public readonly renderer: THREE.WebGLRenderer;
   private readonly container: HTMLElement;
   private outdoors: THREE.Group;
+  private readonly assetLibrary = new THREE.Group();
+  private heroKit: THREE.Object3D | null = null;
   private readonly interiorAssets = new Map<string, THREE.Group>();
   private readonly resident = new THREE.Group();
   private readonly limbRest = [0, 0, 0, 0];
@@ -34,7 +36,7 @@ export class ThreeRenderer {
   private leftArm: THREE.Object3D = new THREE.Group();
   private rightArm: THREE.Object3D = new THREE.Group();
   private readonly target = new THREE.Vector3();
-  private readonly cameraOffset = new THREE.Vector3(28, 30, 28);
+  private readonly cameraOffset = new THREE.Vector3(28, 34, 28);
   private readonly doorMarker: THREE.Mesh;
   private room: THREE.Group | null = null;
   private roomId: string | null = null;
@@ -71,7 +73,9 @@ export class ThreeRenderer {
     this.scene.add(sun, sun.target);
     const fill = new THREE.DirectionalLight(0xd0e7e2, .65);
     fill.position.set(40, 25, 60); this.scene.add(fill);
-    this.outdoors = createTownMeshes();
+    this.outdoors = createWebTown();
+    this.assetLibrary.visible = false;
+    this.scene.add(this.assetLibrary);
     this.setupCharacterCutaway(this.outdoors);
     this.scene.add(this.outdoors);
     this.buildCharacter();
@@ -81,7 +85,7 @@ export class ThreeRenderer {
     this.medic.group.visible = false;
     this.scene.add(this.medic.group);
     this.resident.name = 'clinic-resident';
-    this.resident.position.set(3.8, .02, 1.8);
+    this.resident.position.set(3.8, .08, 1.8);
     this.resident.rotation.y = -Math.PI / 2;
     this.resident.visible = false;
     this.scene.add(this.resident);
@@ -100,7 +104,7 @@ export class ThreeRenderer {
   }
 
   public async loadVisuals(): Promise<void> {
-    const assets = await loadCozyAssets();
+    const assets = await loadTownAssets();
     if (this.isDestroyed) { assets.forEach(disposeObject); return; }
     const take = (name: string): THREE.Group => {
       const asset = assets.get(name);
@@ -109,7 +113,8 @@ export class ThreeRenderer {
     };
     this.scene.remove(this.outdoors);
     this.disposeGroup(this.outdoors);
-    this.outdoors = take('town');
+    this.assetLibrary.add(...assets.values());
+    this.outdoors = createWebTown(assets);
     this.setupCharacterCutaway(this.outdoors);
     this.outdoors.visible = this.options.world.interior === null;
     this.scene.add(this.outdoors);
@@ -117,6 +122,13 @@ export class ThreeRenderer {
     this.character.clear();
     const hero = take('hero');
     this.character.add(hero);
+    const attachKit = (model: THREE.Group): THREE.Group => {
+      const socket = model.getObjectByName('aid-kit-socket');
+      if (!socket) throw new Error('Actor has no aid-kit socket');
+      const kit = take('aid-kit').clone(true); kit.name = 'aid-kit-parcel';
+      socket.add(kit); return kit;
+    };
+    this.heroKit = attachKit(hero);
     this.leftLeg = hero.getObjectByName('left-leg') ?? new THREE.Object3D();
     this.rightLeg = hero.getObjectByName('right-leg') ?? new THREE.Object3D();
     this.leftArm = hero.getObjectByName('left-arm') ?? new THREE.Object3D();
@@ -128,9 +140,11 @@ export class ThreeRenderer {
       this.disposeGroup(actor.group); actor.group.clear();
       const model = take(name); actor.group.add(model);
       actor.group.position.y = .08;
-      actor.kit = model.getObjectByName('aid-kit-parcel') ?? new THREE.Object3D();
+      actor.kit = attachKit(model);
     }
-    this.resident.add(take('resident'));
+    const seatedResident = take('resident');
+    seatedResident.scale.setScalar(.70);
+    this.resident.add(seatedResident);
     for (const [name, model] of assets) if (name.startsWith('interior-')) {
       this.setupCharacterCutaway(model);
       this.interiorAssets.set(name.slice('interior-'.length), model);
@@ -164,7 +178,7 @@ export class ThreeRenderer {
         shader.fragmentShader = shader.fragmentShader.replace('#include <clipping_planes_fragment>', `
           #include <clipping_planes_fragment>
           vec3 sentinelDelta = sentinelWorldPosition - sentinelPlayer;
-          vec3 sentinelDirection = normalize(vec3(28.0, 30.0, 28.0));
+          vec3 sentinelDirection = normalize(vec3(28.0, 34.0, 28.0));
           float sentinelDepth = dot(sentinelDelta, sentinelDirection);
           float sentinelDistance = length(sentinelDelta - sentinelDirection * sentinelDepth);
           if (sentinelDepth > 1.1 && sentinelDelta.y > 0.2 && sentinelDistance < 1.15) {
@@ -172,7 +186,7 @@ export class ThreeRenderer {
           }
         `);
       };
-      material.customProgramCacheKey = () => 'sentinel-character-cutaway-v2';
+      material.customProgramCacheKey = () => 'sentinel-character-cutaway-v3';
     });
   }
 
@@ -215,6 +229,7 @@ export class ThreeRenderer {
     const nextRoomId = world.interior?.id ?? null;
     this.master.group.visible = nextRoomId === MASTER.buildingId;
     this.master.kit.visible = this.options.firstAid.snapshot.stage === 'meet-master';
+    if (this.heroKit) this.heroKit.visible = this.options.firstAid.snapshot.stage === 'deliver-aid';
     this.medic.group.visible = nextRoomId === MEDIC.buildingId;
     this.medic.kit.visible = this.options.firstAid.snapshot.clinicSupplied;
     this.resident.visible = nextRoomId === MEDIC.buildingId && this.options.firstAid.snapshot.clinicSupplied;
@@ -238,12 +253,26 @@ export class ThreeRenderer {
     const dx = x - this.lastPosition.x;
     const dz = z - this.lastPosition.y;
     const moving = Math.hypot(dx, dz) > .0001;
-    this.character.position.set(x, world.interior ? .08 : .24, z);
+    this.character.position.set(x, world.interior ? .08 : 0, z);
     if (moving) this.character.rotation.y = Math.atan2(dx, dz);
     this.walkTime += moving ? deltaSeconds * 10 : 0;
     const stride = moving ? Math.sin(this.walkTime) * .55 : 0;
     this.leftLeg.rotation.x = (this.limbRest[0] ?? 0) + stride; this.rightLeg.rotation.x = (this.limbRest[1] ?? 0) - stride;
     this.leftArm.rotation.x = (this.limbRest[2] ?? 0) - stride * .7; this.rightArm.rotation.x = (this.limbRest[3] ?? 0) + stride * .7;
+    if (this.heroKit?.visible) {
+      this.leftArm.rotation.x = -.75; this.rightArm.rotation.x = -.75;
+      this.leftArm.rotation.z = -.28; this.rightArm.rotation.z = .28;
+    } else { this.leftArm.rotation.z = 0; this.rightArm.rotation.z = 0; }
+    const poseKitHolder = (actor: typeof this.master): void => {
+      const left = actor.group.getObjectByName('left-arm');
+      const right = actor.group.getObjectByName('right-arm');
+      if (left && right) {
+        left.rotation.x = right.rotation.x = actor.kit.visible ? -.75 : 0;
+        left.rotation.z = actor.kit.visible ? -.28 : 0;
+        right.rotation.z = actor.kit.visible ? .28 : 0;
+      }
+    };
+    poseKitHolder(this.master); poseKitHolder(this.medic);
     this.lastPosition.set(x, z);
     const center = new THREE.Vector3(x, 0, z).multiplyScalar(this.options.zoom.followWeight);
     this.target.lerp(center, 1 - Math.exp(-deltaSeconds * 7));
@@ -254,11 +283,11 @@ export class ThreeRenderer {
     this.camera.updateProjectionMatrix();
     this.camera.position.copy(this.target).add(this.cameraOffset);
     this.camera.lookAt(this.target);
-    const nearby = world.nearbyBuilding;
+    const nearby = TOWN_BUILDINGS.find(building => building.id === this.options.firstAid.snapshot.targetBuildingId) ?? world.nearbyBuilding;
     this.doorMarker.visible = Boolean(nearby) && !world.interior;
     if (nearby) {
       const entry = buildingEntrance(nearby);
-      this.doorMarker.position.set(entry.x, .3, entry.z);
+      this.doorMarker.position.set(entry.x, .025, entry.z);
     }
     this.renderer.render(this.scene, this.camera);
   }
@@ -283,8 +312,8 @@ export class ThreeRenderer {
     this.isDestroyed = true;
     window.removeEventListener('resize', this.resize);
     this.container.removeEventListener('wheel', this.onWheel);
+    for (const room of this.interiorAssets.values()) if (room !== this.room) this.scene.add(room);
     this.disposeGroup(this.scene);
-    for (const room of this.interiorAssets.values()) if (room !== this.room) this.disposeGroup(room);
     this.interiorAssets.clear();
     this.renderer.dispose();
     this.renderer.domElement.remove();

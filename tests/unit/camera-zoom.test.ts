@@ -29,34 +29,34 @@ describe('Camera zoom', () => {
   });
   it('starts at a useful outdoor view and reports magnification', () => {
     const zoom = new CameraZoom();
-    expect(zoom.span).toBe(14);
+    expect(zoom.span).toBe(11);
     expect(zoom.percent).toBe(100);
     zoom.adjust(Math.log(0.5));
     settle(zoom);
-    expect(zoom.span).toBeCloseTo(7);
+    expect(zoom.span).toBeCloseTo(5.5);
     expect(zoom.percent).toBe(200);
   });
 
   it('approaches the requested span smoothly and monotonically', () => {
     const zoom = new CameraZoom();
     zoom.adjust(Math.log(2));
-    expect(zoom.span).toBe(14);
+    expect(zoom.span).toBe(11);
     zoom.step(1 / 60);
     const first = zoom.span;
-    expect(first).toBeGreaterThan(14);
-    expect(first).toBeLessThan(28);
+    expect(first).toBeGreaterThan(11);
+    expect(first).toBeLessThan(22);
     zoom.step(1 / 60);
     expect(zoom.span).toBeGreaterThan(first);
-    expect(zoom.span).toBeLessThan(28);
+    expect(zoom.span).toBeLessThan(22);
     settle(zoom);
-    expect(zoom.span).toBeCloseTo(28);
+    expect(zoom.span).toBeCloseTo(22);
   });
 
   it('bounds outdoor and indoor zoom even for extreme finite input', () => {
     const zoom = new CameraZoom();
     zoom.adjust(1e100);
     settle(zoom);
-    expect(zoom.span).toBeCloseTo(30);
+    expect(zoom.span).toBeCloseTo(26);
     zoom.adjust(-1e100);
     settle(zoom);
     expect(zoom.span).toBeCloseTo(5);
@@ -83,7 +83,7 @@ describe('Camera zoom', () => {
     zoom.setInterior(false);
     expect(zoom.span).toBe(outdoor);
     settle(zoom);
-    expect(zoom.span).toBeCloseTo(28);
+    expect(zoom.span).toBeCloseTo(22);
     zoom.setInterior(true);
     expect(zoom.span).toBe(indoor);
     settle(zoom);
@@ -95,9 +95,9 @@ describe('Camera zoom', () => {
     for (const amount of [NaN, Infinity, -Infinity]) zoom.adjust(amount);
     zoom.adjust(Math.log(2));
     for (const time of [NaN, Infinity, -Infinity, -1, 0]) zoom.step(time);
-    expect(zoom.span).toBe(14);
+    expect(zoom.span).toBe(11);
     zoom.step(100);
-    expect(zoom.span).toBeCloseTo(14 + 14 * (1 - Math.exp(-1.2)));
+    expect(zoom.span).toBeCloseTo(11 + 11 * (1 - Math.exp(-1.2)));
   });
 
   it('resets only the active mode toward its default', () => {
@@ -111,10 +111,10 @@ describe('Camera zoom', () => {
     settle(zoom);
     expect(zoom.span).toBeCloseTo(6.5);
     zoom.setInterior(false);
-    expect(zoom.span).toBeCloseTo(28);
+    expect(zoom.span).toBeCloseTo(22);
     zoom.reset();
     settle(zoom);
-    expect(zoom.span).toBeCloseTo(14);
+    expect(zoom.span).toBeCloseTo(11);
   });
 
   it('publishes the current view immediately and stops after unsubscribe', () => {

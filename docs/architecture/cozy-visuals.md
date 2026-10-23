@@ -1,5 +1,9 @@
 # Cozy Zarechensk visuals
 
+Historical pipeline: the active exterior and characters now use the
+[web asset pack](web-asset-pack.md). The original files are preserved; only its
+workshop/clinic rooms and seated resident remain in the initial runtime load.
+
 ## Direction and scope
 
 The approved direction is a detailed stylized 3D town with soft light and Blender
