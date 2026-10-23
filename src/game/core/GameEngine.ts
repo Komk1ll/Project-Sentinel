@@ -1,6 +1,7 @@
 import { ThreeRenderer } from '@game/render/ThreeRenderer';
 import { PlayerProgress } from '@game/systems/player-progress';
 import { TownWorld } from '@game/systems/town-world';
+import { TownSession } from '@game/systems/town-session';
 import { FirstAidMission } from '@game/systems/first-aid-mission';
 import { CameraZoom } from '@game/systems/camera-zoom';
 
@@ -14,6 +15,7 @@ export class GameEngine {
   public readonly playerProgress = new PlayerProgress();
   public readonly world = new TownWorld();
   public readonly firstAid = new FirstAidMission(this.world);
+  public readonly session = new TownSession(this.world, this.firstAid);
   public readonly cameraZoom = new CameraZoom();
   public threeRenderer!: ThreeRenderer;
   private animationFrameId: number | null = null;
@@ -29,6 +31,8 @@ export class GameEngine {
     window.addEventListener('keydown', this.onKeyDown);
     window.addEventListener('keyup', this.onKeyUp);
     window.addEventListener('blur', this.clearInput);
+    window.addEventListener('pagehide', this.saveProgress);
+    document.addEventListener('visibilitychange', this.onVisibilityChange);
     this.animationFrameId = requestAnimationFrame(this.loop);
   }
 
@@ -49,6 +53,9 @@ export class GameEngine {
     }
   };
 
+  private readonly saveProgress = (): void => { this.session.flush(); };
+  private readonly onVisibilityChange = (): void => { if (document.visibilityState === 'hidden') this.session.flush(); };
+
   private readonly onKeyUp = (event: KeyboardEvent): void => { this.keys.delete(event.code); };
   private readonly clearInput = (): void => { this.keys.clear(); };
 
@@ -68,6 +75,9 @@ export class GameEngine {
     window.removeEventListener('keydown', this.onKeyDown);
     window.removeEventListener('keyup', this.onKeyUp);
     window.removeEventListener('blur', this.clearInput);
+    window.removeEventListener('pagehide', this.saveProgress);
+    document.removeEventListener('visibilitychange', this.onVisibilityChange);
+    this.session.destroy();
     this.keys.clear();
     this.cleanups.forEach(cleanup => cleanup());
     this.cleanups.clear();

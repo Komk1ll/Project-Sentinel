@@ -63,15 +63,17 @@ describe('First aid mission through real town actions', () => {
     mission.destroy();
   });
 
-  it('does not expose the master at identical interior coordinates in another building', () => {
+  it('does not issue a kit when visiting the medic before the master', () => {
     const clinic = TOWN_BUILDINGS.find(building => building.id === CLINIC_ID)!;
     const mission = new FirstAidMission(new TownWorld(buildingEntrance(clinic)));
     mission.interact();
     walkTo(mission.world, { x: 0, z: .25 });
     walkTo(mission.world, { x: .75, z: .25 });
-    expect(mission.interaction).toBeNull();
-    expect(mission.interact()).toBe(false);
+    expect(mission.interaction?.kind).toBe('medic');
+    expect(mission.interact()).toBe(true);
     expect(mission.snapshot.inventory).toEqual([]);
+    expect(mission.snapshot.stage).toBe('meet-master');
+    expect(mission.snapshot.dialogue).toBe(FIRST_AID_TEXT.needKit);
     mission.destroy();
   });
 

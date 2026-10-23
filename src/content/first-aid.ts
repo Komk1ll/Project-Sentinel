@@ -9,11 +9,19 @@ export const MASTER = {
   interactionRadius: 1.4,
 } as const;
 
+export const MEDIC = { ...MASTER, id: 'clinic-medic', buildingId: 'clinic' } as const;
+
 export const AID_KIT = { id: 'aid-kit', name: 'Набор помощи', quantity: 1 } as const;
 export const CLINIC_ID = 'clinic';
 
 export const FIRST_AID_TEXT = {
   title: 'Сначала люди',
+  completedObjective: 'Помощь доставлена — задание завершено',
+  completedHint: 'Поликлиника получила материалы. Житель может получить помощь, а вы — свободно исследовать Зареченск.',
+  delivered: 'Медработник: «Спасибо, Алексей! Материалы как раз вовремя. Мы можем принять следующего пациента. Ты очень помог».',
+  medicThanks: 'Медработник: «Набор уже в работе. Спасибо за помощь!»',
+  masterThanks: 'Мастер: «Уже доставил? Спасибо, Алексей. Вместе мы справимся».',
+  needKit: 'Медработник: «Нам нужны перевязочные материалы. Мастер в «Маяке» подготовил набор — загляни к нему».',
   meetObjective: 'Поговорите с мастером в мастерской «Маяк»',
   deliverObjective: 'Доставить набор помощи в поликлинику',
   meetHint: 'Золотая метка на карте ведёт к мастерской. Войдите и подойдите к мастеру.',

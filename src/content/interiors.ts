@@ -1,4 +1,4 @@
-import { MASTER } from '@content/first-aid';
+import { MASTER, MEDIC } from '@content/first-aid';
 import type { TownBuilding } from '@content/town';
 import type { TownObstacle } from '@content/town-props';
 
@@ -136,7 +136,7 @@ export function getInteriorLayout(building: TownBuilding): InteriorLayout {
     { name: names[1], x: 2, z: 1.4, width: 6, depth: 5.2, center: { x: 1.25, z: 2.5 }, finish: floorFinish },
     { name: names[2], x: 2, z: -2.6, width: 6, depth: 2.8, center: { x: 1, z: -1.25 }, finish: building.kind === 'home' || building.kind === 'cafe' ? 'tile' : floorFinish },
   ];
-  const actors: readonly TownObstacle[] = building.id === MASTER.buildingId ? [MASTER] : [];
+  const actors: readonly TownObstacle[] = [MASTER, MEDIC].filter(actor => actor.buildingId === building.id);
   const layout: InteriorLayout = { palette, floorFinish, rooms, furniture, partitions: PARTITIONS, actors, obstacles: [...furniture, ...PARTITIONS, ...actors] };
   cache.set(building.id, layout);
   return layout;

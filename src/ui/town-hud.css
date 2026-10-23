@@ -388,3 +388,15 @@
     top: 10px;
   }
 }
+
+.town-hud .town-new-game {
+  pointer-events: auto !important;
+  margin-top: 10px;
+  border: 1px solid #71908766;
+  border-radius: 6px;
+  padding: 6px 10px;
+  background: transparent;
+  color: #c5d4cd;
+  cursor: pointer;
+}
+.mission-completed .town-objective { color: #91ddae; }

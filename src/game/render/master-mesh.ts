@@ -1,13 +1,13 @@
 import * as THREE from 'three';
-import { MASTER } from '@content/first-aid';
+import { MASTER, MEDIC } from '@content/first-aid';
 
 /** A modest procedural workshop character, using the existing town's scale. */
-export function createMasterMesh(): { group: THREE.Group; kit: THREE.Group } {
+export function createMasterMesh(actor: { readonly id: string; readonly x: number; readonly z: number } = MASTER): { group: THREE.Group; kit: THREE.Group } {
   const group = new THREE.Group();
-  group.name = MASTER.id;
-  group.position.set(MASTER.x, .02, MASTER.z);
-  const cloth = new THREE.MeshStandardMaterial({ color: 0x758a72, roughness: .95 });
-  const apron = new THREE.MeshStandardMaterial({ color: 0x986c41, roughness: 1 });
+  group.name = actor.id;
+  group.position.set(actor.x, .02, actor.z);
+  const cloth = new THREE.MeshStandardMaterial({ color: actor.id === MEDIC.id ? 0xe8eee1 : 0x758a72, roughness: .95 });
+  const apron = new THREE.MeshStandardMaterial({ color: actor.id === MEDIC.id ? 0x72a3a0 : 0x986c41, roughness: 1 });
   const skin = new THREE.MeshStandardMaterial({ color: 0xc5a084, roughness: 1 });
   const dark = new THREE.MeshStandardMaterial({ color: 0x343936, roughness: 1 });
   const hair = new THREE.MeshStandardMaterial({ color: 0xaaa69b, roughness: 1 });

@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { GameEngine } from '@game/core/GameEngine';
 import { mountTownHud } from '@ui/town-hud';
 import { AID_KIT, FIRST_AID_TEXT } from '@content/first-aid';
-import { approachMaster } from '../fixtures/first-aid-route';
+import { approachMaster, leaveWorkshop, walkTo } from '../fixtures/first-aid-route';
 
 // Exercise the real engine input and HUD; this test does not claim WebGL rendering.
 vi.mock('@game/render/ThreeRenderer', () => ({
@@ -21,13 +21,14 @@ const pressE = (repeat = false): void => {
 
 describe('First aid engine and HUD integration', () => {
   beforeEach(() => {
+    localStorage.clear();
     vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
     vi.stubGlobal('requestAnimationFrame', vi.fn(() => 1));
     vi.stubGlobal('cancelAnimationFrame', vi.fn());
     host = document.createElement('div');
     document.body.append(host);
     engine = new GameEngine({ gameContainerId: 'unused', threeContainerId: 'unused' });
-    engine.registerCleanup(mountTownHud(host, engine.firstAid, engine.cameraZoom));
+    engine.registerCleanup(mountTownHud(host, engine.firstAid, engine.cameraZoom, engine.session));
     engine.init();
   });
 
@@ -88,6 +89,24 @@ describe('First aid engine and HUD integration', () => {
     expect(engine.world.interior).toBeNull();
     button.click();
     expect(engine.firstAid.snapshot.inventory).toEqual([]);
+  });
+
+  it('completes the handover with E and restores completion into a newly mounted engine', () => {
+    approachMaster(engine.firstAid); pressE(); leaveWorkshop(engine.firstAid);
+    walkTo(engine.world, { x: 32, z: 46 }); walkTo(engine.world, { x: 40, z: 46 });
+    pressE(); walkTo(engine.world, { x: 0, z: .25 }); walkTo(engine.world, { x: .75, z: .25 });
+    pressE();
+    expect(host.querySelector('.town-objective')?.textContent).toBe(FIRST_AID_TEXT.completedObjective);
+    window.dispatchEvent(new Event('pagehide'));
+    engine.destroy();
+    engine = new GameEngine({ gameContainerId: 'unused', threeContainerId: 'unused' });
+    engine.registerCleanup(mountTownHud(host, engine.firstAid, engine.cameraZoom, engine.session));
+    engine.init();
+    expect(engine.world.interior?.id).toBe('clinic');
+    expect(host.querySelector('.town-objective')?.textContent).toBe(FIRST_AID_TEXT.completedObjective);
+    expect(host.querySelector('.town-inventory')?.textContent).toContain('Набор передан');
+    expect(host.querySelector('.town-session-note')?.textContent).toContain('восстановлен');
+    pressE(); expect(engine.firstAid.snapshot.inventory).toEqual([]);
   });
 
   it('removes UI and keyboard handling on engine cleanup', () => {

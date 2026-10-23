@@ -7,6 +7,12 @@ export interface TownPosition {
   readonly z: number;
 }
 
+export interface TownWorldState {
+  readonly interiorId: string | null;
+  readonly position: TownPosition;
+  readonly outdoorReturn: TownPosition;
+}
+
 const PLAYER_RADIUS = 0.3;
 const MOVEMENT_SPEED = 5;
 const INTERACTION_DISTANCE = 2.4;
@@ -21,6 +27,28 @@ function distance(first: TownPosition, second: TownPosition): number {
   return Math.hypot(first.x - second.x, first.z - second.z);
 }
 
+function record(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+function validPosition(value: unknown, interior: TownBuilding | null): value is TownPosition {
+  if (!record(value) || typeof value.x !== 'number' || typeof value.z !== 'number'
+    || !Number.isFinite(value.x) || !Number.isFinite(value.z)) return false;
+  if (value.x < (interior ? -4.5 : .5) || value.x > (interior ? 4.5 : TOWN_SIZE - .5)
+    || value.z < (interior ? -3.5 : .5) || value.z > (interior ? 3.5 : TOWN_SIZE - .5)) return false;
+  const obstacles = interior ? getInteriorLayout(interior).obstacles : TOWN_COLLIDERS;
+  const x = value.x;
+  const z = value.z;
+  return !obstacles.some(item => Math.abs(x - item.x) < item.width / 2 + PLAYER_RADIUS - 1e-7
+    && Math.abs(z - item.z) < item.depth / 2 + PLAYER_RADIUS - 1e-7);
+}
+
+export function isTownWorldState(value: unknown): value is TownWorldState {
+  if (!record(value)) return false;
+  const interior = value.interiorId === null ? null : TOWN_BUILDINGS.find(building => building.id === value.interiorId);
+  if (interior === undefined || !validPosition(value.position, interior) || !validPosition(value.outdoorReturn, null)) return false;
+  return !interior || distance(value.outdoorReturn, buildingEntrance(interior)) <= INTERACTION_DISTANCE + 1e-7;
+}
+
 /** Pure movement and doorway transitions, independent of the renderer. */
 export class TownWorld {
   private currentPosition: TownPosition;
@@ -31,6 +59,19 @@ export class TownWorld {
   constructor(spawn: TownPosition = TOWN_SPAWN) {
     this.currentPosition = { ...spawn };
     this.outdoorReturn = { ...spawn };
+  }
+
+  get snapshot(): TownWorldState {
+    return { interiorId: this.currentInterior?.id ?? null, position: { ...this.currentPosition }, outdoorReturn: { ...this.outdoorReturn } };
+  }
+
+  restore(state: TownWorldState): boolean {
+    if (!isTownWorldState(state)) return false;
+    this.currentInterior = TOWN_BUILDINGS.find(building => building.id === state.interiorId) ?? null;
+    this.currentPosition = { ...state.position };
+    this.outdoorReturn = { ...state.outdoorReturn };
+    this.notify();
+    return true;
   }
 
   get position(): TownPosition {

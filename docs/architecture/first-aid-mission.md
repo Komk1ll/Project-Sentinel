@@ -1,12 +1,11 @@
-# First aid pickup
+# First aid episode
 
 ## Scope
 
 This increment implements meeting the Mayak workshop master, receiving one aid kit,
-and changing the objective and outdoor minimap target to the clinic. It stops at
-that delivery objective. Entering the clinic does not consume the kit or complete
-the mission. Medic handover, rewards, save/load and subsequent episodes remain
-separate increments. The HUD states that progress resets on reload.
+and delivering it to the clinic medic. Only an interaction near the medic consumes
+the kit and completes the episode; entering the building alone does not. The completed
+clinic state, stage, position and room survive a reload. Subsequent episodes remain separate.
 
 ## Content and state
 
@@ -16,19 +15,20 @@ interior position, collision footprint, interaction radius, item identity
 interior X/Z meters, with an interaction radius of 1.4 meters. The shared interior
 layout includes this actor in its obstacle list, without blocking the entry aisle.
 
-`FirstAidMission` owns a two-state progression:
+`FirstAidMission` owns a three-state progression:
 
 | State | Inventory | Objective target | Eligible master action |
 | --- | --- | --- | --- |
 | `meet-master` | Empty | `station` | Give the kit and explain the delivery |
 | `deliver-aid` | One `aid-kit` | `clinic` | Repeat the delivery reminder |
+| `completed` | Empty | None | Thank the player; never issue another kit |
 
 The inventory snapshot is derived from the mission stage. A pickup changes the
 stage and dialogue before notifying listeners; subscribers never receive the new
 objective without its kit. Repeated actions and leaving/re-entering the building
 cannot issue another kit. Snapshots do not expose mutable internal inventory.
 This is a small mission-owned inventory, not the final general-purpose inventory
-or persistent save schema.
+or economy. Persistence stores the stage and derives inventory and clinic state from it.
 
 ## Integration
 
@@ -81,7 +81,25 @@ increment; final layout, contrast and appearance still require a manual playtest
 4. Trigger the action. Read the master's request; confirm exactly one aid kit in
    the panel and the delivery objective. Repeat using the other input method:
    only the reminder should change, not the item count.
-5. Exit and follow the highlighted clinic across the street to the east. Enter
-   it; the kit and pending delivery objective remain. Handover is not yet added.
-6. Return to the master: no second kit is available. Reload only when ready to
-   reset this in-memory increment.
+5. Exit and follow the highlighted clinic across the street to the east. Enter,
+   approach the medic and hand over the kit. Confirm the completed objective and empty inventory.
+6. Reload: the completed task, clinic and position must be restored. Return to the
+   master: no second kit is available. The New Game button requests confirmation before resetting.
+
+## Persistence contract
+
+`TownSession` restores before HUD mounting and subscribes to the real mission/world.
+Stage and room changes save immediately; movement saves at most once per 500ms.
+Page hide, hidden visibility and teardown flush the latest position. The UI reports
+saving, restoration, backup recovery and storage failure. Denied access or quota
+failure leaves the game playable in memory without claiming a successful save.
+
+`TownSaveStore` uses `cybershield.town.v1` and `.backup`, independently of the old
+2D save. Schema 1 includes a build-family id, timestamp, mission stage and world
+position/interior/outdoor-return point. Validation rejects unknown rooms/stages,
+nonfinite coordinates, bounds/collisions and invalid return points. Primary and
+backup are validated independently; corrupt primary data never replaces valid backup.
+
+Completion is one stage transition: the kit disappears and `clinicSupplied` becomes
+true together. No separate mutable item/reward counter can drift from that state.
+The new-game action resets only this session, preserving unrelated local storage.

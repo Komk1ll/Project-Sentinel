@@ -3,7 +3,8 @@ import { buildingEntrance, PARK, ROAD_CENTERS, TOWN_BUILDINGS, TOWN_SIZE } from 
 import type { TownWorld } from '@game/systems/town-world';
 import type { CameraZoom } from '@game/systems/camera-zoom';
 import { getInteriorLayout } from '@content/interiors';
-import { FIRST_AID_TEXT, MASTER } from '@content/first-aid';
+import { FIRST_AID_TEXT, MASTER, MEDIC } from '@content/first-aid';
+import type { TownSession } from '@game/systems/town-session';
 import type { FirstAidMission } from '@game/systems/first-aid-mission';
 
 const MAP_SIZE = 180;
@@ -38,10 +39,11 @@ function drawMinimap(canvas: HTMLCanvasElement, world: TownWorld, mission: First
     }
     context.fillStyle = '#edc076';
     context.fillRect(80, 143, 20, 6);
-    if (world.interior.id === MASTER.buildingId) {
-      context.fillStyle = mission.snapshot.stage === 'meet-master' ? '#ffcf78' : '#aebfb7';
+    const actor = [MASTER, MEDIC].find(person => person.buildingId === world.interior?.id);
+    if (actor) {
+      context.fillStyle = mission.snapshot.targetBuildingId === actor.buildingId ? '#ffcf78' : '#aebfb7';
       context.beginPath();
-      context.arc(90 + MASTER.x * scale, 90 + MASTER.z * scale, 4, 0, Math.PI * 2);
+      context.arc(90 + actor.x * scale, 90 + actor.z * scale, 4, 0, Math.PI * 2);
       context.fill();
     }
     playerX = 90 + world.position.x * scale;
@@ -107,7 +109,7 @@ function drawMinimap(canvas: HTMLCanvasElement, world: TownWorld, mission: First
 }
 
 /** Keeps location, interaction hints and the map subscribed to the simulation. */
-export function mountTownHud(container: HTMLElement, mission: FirstAidMission, zoom: CameraZoom): () => void {
+export function mountTownHud(container: HTMLElement, mission: FirstAidMission, zoom: CameraZoom, session: TownSession): () => void {
   const world = mission.world;
   const hud = document.createElement('aside');
   hud.className = 'town-hud';
@@ -120,7 +122,8 @@ export function mountTownHud(container: HTMLElement, mission: FirstAidMission, z
       <p class="town-mission-hint"></p>
       <p class="town-inventory"></p>
       <p class="town-dialogue" role="status" hidden></p>
-      <p class="town-session-note">При перезагрузке прогресс сбросится.</p>
+      <p class="town-session-note" role="status"></p>
+      <button type="button" class="town-new-game">Новая игра</button>
     </section>
     <section class="town-map-panel" aria-label="Миникарта">
       <div class="town-map-title">ЗАРЕЧЕНСК</div>
@@ -141,11 +144,13 @@ export function mountTownHud(container: HTMLElement, mission: FirstAidMission, z
   const location = hud.querySelector<HTMLElement>('.town-map-location');
   const action = hud.querySelector<HTMLButtonElement>('.town-interaction');
   const actionLabel = hud.querySelector<HTMLElement>('.town-interaction-label');
+  const saveNote = hud.querySelector<HTMLElement>('.town-session-note');
+  const newGame = hud.querySelector<HTMLButtonElement>('.town-new-game');
   const objective = hud.querySelector<HTMLElement>('.town-objective');
   const hint = hud.querySelector<HTMLElement>('.town-mission-hint');
   const inventory = hud.querySelector<HTMLElement>('.town-inventory');
   const dialogue = hud.querySelector<HTMLElement>('.town-dialogue');
-  if (!canvas || !location || !action || !actionLabel || !objective || !hint || !inventory || !dialogue) throw new Error('Town HUD markup is incomplete');
+  if (!canvas || !location || !action || !actionLabel || !objective || !hint || !inventory || !dialogue || !saveNote || !newGame) throw new Error('Town HUD markup is incomplete');
   container.append(hud);
   const setText = (element: HTMLElement, text: string): void => {
     if (element.textContent !== text) element.textContent = text;
@@ -163,12 +168,14 @@ export function mountTownHud(container: HTMLElement, mission: FirstAidMission, z
     canvas.setAttribute('aria-label', `Миникарта. Цель: ${snapshot.objective}`);
     setText(objective, snapshot.objective);
     setText(hint, snapshot.hint);
-    setText(inventory, snapshot.inventory.length ? FIRST_AID_TEXT.carrying : FIRST_AID_TEXT.emptyInventory);
+    setText(inventory, snapshot.stage === 'completed' ? 'Набор передан · поликлиника обеспечена' : snapshot.inventory.length ? FIRST_AID_TEXT.carrying : FIRST_AID_TEXT.emptyInventory);
+    hud.classList.toggle('mission-completed', snapshot.clinicSupplied);
     setText(dialogue, snapshot.dialogue ?? '');
     dialogue.hidden = snapshot.dialogue === null;
     drawMinimap(canvas, world, mission);
   };
   const unsubscribe = mission.subscribe(render);
+  const unsubscribeSession = session.subscribe(message => setText(saveNote, message));
   const zoomPercent = hud.querySelector<HTMLElement>('.town-zoom-percent');
   const unsubscribeZoom = zoom.subscribe(state => {
     if (zoomPercent) zoomPercent.textContent = `${state.percent}%`;
@@ -177,7 +184,9 @@ export function mountTownHud(container: HTMLElement, mission: FirstAidMission, z
     if (!(event.target instanceof Element)) return;
     const button = event.target.closest<HTMLButtonElement>('button');
     if (!button) return;
-    if (button === action) mission.interact();
+    if (button === newGame) {
+      if (window.confirm('Начать заново? Текущий прогресс будет заменён новой игрой.')) session.newGame();
+    } else if (button === action) mission.interact();
     else if (button.dataset.zoom === 'reset') zoom.reset();
     else if (button.dataset.zoom) zoom.adjust(button.dataset.zoom === 'in' ? -.2 : .2);
   };
@@ -187,6 +196,7 @@ export function mountTownHud(container: HTMLElement, mission: FirstAidMission, z
   return () => {
     unsubscribe();
     unsubscribeZoom();
+    unsubscribeSession();
     hud.removeEventListener('click', click);
     window.removeEventListener('resize', resize);
     hud.remove();
