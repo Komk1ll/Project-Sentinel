@@ -1,0 +1,119 @@
+{
+  "status": "PASS",
+  "independentLoader": "Three.js GLTFLoader",
+  "assets": [
+    {
+      "name": "aid-kit",
+      "triangles": 188,
+      "meshes": 2,
+      "materials": 2,
+      "size": [
+        0.3,
+        0.22,
+        0.16
+      ],
+      "bytes": 16608
+    },
+    {
+      "name": "bench",
+      "triangles": 168,
+      "meshes": 2,
+      "materials": 2,
+      "size": [
+        1.6,
+        0.85,
+        0.55
+      ],
+      "bytes": 14184
+    },
+    {
+      "name": "clinic",
+      "triangles": 2024,
+      "meshes": 5,
+      "materials": 3,
+      "size": [
+        10.3,
+        10.1,
+        8.74
+      ],
+      "bytes": 150156
+    },
+    {
+      "name": "hero",
+      "triangles": 1312,
+      "meshes": 10,
+      "materials": 4,
+      "size": [
+        0.67,
+        1.7,
+        0.465
+      ],
+      "bytes": 106700
+    },
+    {
+      "name": "house-base",
+      "triangles": 1324,
+      "meshes": 5,
+      "materials": 4,
+      "size": [
+        9.4,
+        7.7,
+        8.4
+      ],
+      "bytes": 99860
+    },
+    {
+      "name": "master",
+      "triangles": 1376,
+      "meshes": 11,
+      "materials": 5,
+      "size": [
+        0.67,
+        1.7,
+        0.315
+      ],
+      "bytes": 111756
+    },
+    {
+      "name": "medic",
+      "triangles": 1500,
+      "meshes": 10,
+      "materials": 4,
+      "size": [
+        0.67,
+        1.7,
+        0.41
+      ],
+      "bytes": 120792
+    },
+    {
+      "name": "tree",
+      "triangles": 348,
+      "meshes": 2,
+      "materials": 2,
+      "size": [
+        2.8,
+        4.5,
+        2.8
+      ],
+      "bytes": 36708
+    },
+    {
+      "name": "workshop",
+      "triangles": 612,
+      "meshes": 5,
+      "materials": 4,
+      "size": [
+        9.4,
+        4.65,
+        8.4
+      ],
+      "bytes": 48744
+    }
+  ],
+  "totalBytes": 705508,
+  "totalTriangles": 8852,
+  "limitations": [
+    "Offline validation; no browser GPU performance measurement or gameplay integration."
+  ]
+}

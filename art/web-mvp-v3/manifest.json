@@ -1,0 +1,439 @@
+{
+  "assets": [
+    {
+      "name": "aid-kit",
+      "bounds": {
+        "min": [
+          -0.15000000596046448,
+          0.0,
+          -0.07999999821186066
+        ],
+        "max": [
+          0.15000000596046448,
+          0.2199999988079071,
+          0.07999999821186066
+        ],
+        "size": [
+          0.30000001192092896,
+          0.2199999988079071,
+          0.1599999964237213
+        ]
+      },
+      "triangles": 188,
+      "materials": [
+        "cream",
+        "teal"
+      ],
+      "bytes": 16608,
+      "sha256": "04a1134fef3b24d549b3e2bb53194870bdffa1b37bd213fb323e8c812c966222",
+      "root": "aid-kit-root",
+      "source_measurements": {},
+      "reimported": true,
+      "rendered_from_reimport": true,
+      "gpu": [
+        "NVIDIA GeForce RTX 4070 Ti SUPER"
+      ],
+      "blender": "5.2.3 LTS"
+    },
+    {
+      "name": "bench",
+      "bounds": {
+        "min": [
+          -0.800000011920929,
+          0.0,
+          -0.2750000059604645
+        ],
+        "max": [
+          0.800000011920929,
+          0.8500000238418579,
+          0.2750000059604645
+        ],
+        "size": [
+          1.600000023841858,
+          0.8500000238418579,
+          0.550000011920929
+        ]
+      },
+      "triangles": 168,
+      "materials": [
+        "dark",
+        "wood"
+      ],
+      "bytes": 14184,
+      "sha256": "9cf165f67037e35b67e2630ef20aa9f1d43a18fac00981f34a3cff4db658fbe1",
+      "root": "bench-root",
+      "source_measurements": {},
+      "reimported": true,
+      "rendered_from_reimport": true,
+      "gpu": [
+        "NVIDIA GeForce RTX 4070 Ti SUPER"
+      ],
+      "blender": "5.2.3 LTS"
+    },
+    {
+      "name": "clinic",
+      "bounds": {
+        "min": [
+          -5.150000095367432,
+          0.0,
+          -4.15000057220459
+        ],
+        "max": [
+          5.150000095367432,
+          10.09999942779541,
+          4.589999675750732
+        ],
+        "size": [
+          10.300000190734863,
+          10.09999942779541,
+          8.740000247955322
+        ]
+      },
+      "triangles": 2024,
+      "materials": [
+        "cream",
+        "dark",
+        "teal"
+      ],
+      "bytes": 150156,
+      "sha256": "3d534199613a45ec5856546c3649e02c79ffebf431c9ef3fa11bd266c029e092",
+      "root": "clinic-root",
+      "source_measurements": {
+        "walls": {
+          "min": [
+            -5.0,
+            0.0,
+            -4.0
+          ],
+          "max": [
+            5.0,
+            9.600000381469727,
+            4.0
+          ],
+          "size": [
+            10.0,
+            9.600000381469727,
+            8.0
+          ]
+        },
+        "door": {
+          "min": [
+            -0.6499999761581421,
+            0.0,
+            3.9699997901916504
+          ],
+          "max": [
+            0.6499999761581421,
+            2.200000047683716,
+            4.0
+          ],
+          "size": [
+            1.2999999523162842,
+            2.200000047683716,
+            0.03000020980834961
+          ]
+        }
+      },
+      "reimported": true,
+      "rendered_from_reimport": true,
+      "gpu": [
+        "NVIDIA GeForce RTX 4070 Ti SUPER"
+      ],
+      "blender": "5.2.3 LTS"
+    },
+    {
+      "name": "hero",
+      "bounds": {
+        "min": [
+          -0.3349999785423279,
+          0.0,
+          -0.2749999761581421
+        ],
+        "max": [
+          0.3349999785423279,
+          1.7000000476837158,
+          0.1899999976158142
+        ],
+        "size": [
+          0.6699999570846558,
+          1.7000000476837158,
+          0.4649999737739563
+        ]
+      },
+      "triangles": 1312,
+      "materials": [
+        "dark",
+        "ochre",
+        "skin",
+        "teal"
+      ],
+      "bytes": 106700,
+      "sha256": "42bc956cc8d6a710464a147cb525bc04045cba9009f91dfa3b898a6c4be7b3f8",
+      "root": "hero-root",
+      "source_measurements": {},
+      "reimported": true,
+      "rendered_from_reimport": true,
+      "gpu": [
+        "NVIDIA GeForce RTX 4070 Ti SUPER"
+      ],
+      "blender": "5.2.3 LTS"
+    },
+    {
+      "name": "house-base",
+      "bounds": {
+        "min": [
+          -4.700000286102295,
+          0.0,
+          -4.199999809265137
+        ],
+        "max": [
+          4.700000286102295,
+          7.699999809265137,
+          4.200000286102295
+        ],
+        "size": [
+          9.40000057220459,
+          7.699999809265137,
+          8.400000095367432
+        ]
+      },
+      "triangles": 1324,
+      "materials": [
+        "cream",
+        "dark",
+        "green",
+        "sand"
+      ],
+      "bytes": 99860,
+      "sha256": "36bd8918e422bcb7c35a6b5df50547b1ce51849682a4b356597c7144b4a85637",
+      "root": "house-root",
+      "source_measurements": {
+        "walls": {
+          "min": [
+            -4.5,
+            0.0,
+            -4.0
+          ],
+          "max": [
+            4.5,
+            6.400000095367432,
+            4.0
+          ],
+          "size": [
+            9.0,
+            6.400000095367432,
+            8.0
+          ]
+        },
+        "door": {
+          "min": [
+            -0.6000000238418579,
+            0.0,
+            3.9699997901916504
+          ],
+          "max": [
+            0.6000000238418579,
+            2.200000047683716,
+            4.0
+          ],
+          "size": [
+            1.2000000476837158,
+            2.200000047683716,
+            0.03000020980834961
+          ]
+        }
+      },
+      "reimported": true,
+      "rendered_from_reimport": true,
+      "gpu": [
+        "NVIDIA GeForce RTX 4070 Ti SUPER"
+      ],
+      "blender": "5.2.3 LTS"
+    },
+    {
+      "name": "master",
+      "bounds": {
+        "min": [
+          -0.3349999785423279,
+          0.0,
+          -0.125
+        ],
+        "max": [
+          0.3349999785423279,
+          1.6999999284744263,
+          0.1899999976158142
+        ],
+        "size": [
+          0.6699999570846558,
+          1.6999999284744263,
+          0.3149999976158142
+        ]
+      },
+      "triangles": 1376,
+      "materials": [
+        "cream",
+        "dark",
+        "green",
+        "ochre",
+        "skin"
+      ],
+      "bytes": 111756,
+      "sha256": "0f465df487175e75ce5e21438fb3e5b718a5cf79c77c76ca3354d94516e3fc8c",
+      "root": "master-root",
+      "source_measurements": {},
+      "reimported": true,
+      "rendered_from_reimport": true,
+      "gpu": [
+        "NVIDIA GeForce RTX 4070 Ti SUPER"
+      ],
+      "blender": "5.2.3 LTS"
+    },
+    {
+      "name": "medic",
+      "bounds": {
+        "min": [
+          -0.3349999785423279,
+          0.0,
+          -0.2199999988079071
+        ],
+        "max": [
+          0.3349999785423279,
+          1.7000000476837158,
+          0.1899999976158142
+        ],
+        "size": [
+          0.6699999570846558,
+          1.7000000476837158,
+          0.4099999964237213
+        ]
+      },
+      "triangles": 1500,
+      "materials": [
+        "cream",
+        "dark",
+        "skin",
+        "teal"
+      ],
+      "bytes": 120792,
+      "sha256": "99257a4165cf7b7457ed29415b23f6339878467c2f752d78182860e96f0c882b",
+      "root": "medic-root",
+      "source_measurements": {},
+      "reimported": true,
+      "rendered_from_reimport": true,
+      "gpu": [
+        "NVIDIA GeForce RTX 4070 Ti SUPER"
+      ],
+      "blender": "5.2.3 LTS"
+    },
+    {
+      "name": "tree",
+      "bounds": {
+        "min": [
+          -1.399999976158142,
+          0.0,
+          -1.399999976158142
+        ],
+        "max": [
+          1.4000000953674316,
+          4.5,
+          1.399999976158142
+        ],
+        "size": [
+          2.8000000715255737,
+          4.5,
+          2.799999952316284
+        ]
+      },
+      "triangles": 348,
+      "materials": [
+        "green",
+        "wood"
+      ],
+      "bytes": 36708,
+      "sha256": "9e4bcc2a27254f0a4a4b59bbeaed07738fde66d22cf15aa898fdbc1e54f21def",
+      "root": "tree-root",
+      "source_measurements": {},
+      "reimported": true,
+      "rendered_from_reimport": true,
+      "gpu": [
+        "NVIDIA GeForce RTX 4070 Ti SUPER"
+      ],
+      "blender": "5.2.3 LTS"
+    },
+    {
+      "name": "workshop",
+      "bounds": {
+        "min": [
+          -4.700000286102295,
+          0.0,
+          -4.199999809265137
+        ],
+        "max": [
+          4.700000286102295,
+          4.650000095367432,
+          4.200000286102295
+        ],
+        "size": [
+          9.40000057220459,
+          4.650000095367432,
+          8.400000095367432
+        ]
+      },
+      "triangles": 612,
+      "materials": [
+        "cream",
+        "dark",
+        "sand",
+        "teal"
+      ],
+      "bytes": 48744,
+      "sha256": "ea36eb0a5c5a19f906bb47b5bcd9581986a429f9daf67bc860dd91575c910ac1",
+      "root": "workshop-root",
+      "source_measurements": {
+        "walls": {
+          "min": [
+            -4.5,
+            0.0,
+            -4.0
+          ],
+          "max": [
+            4.5,
+            3.200000047683716,
+            4.0
+          ],
+          "size": [
+            9.0,
+            3.200000047683716,
+            8.0
+          ]
+        },
+        "door": {
+          "min": [
+            -0.6000000238418579,
+            0.0,
+            3.9699997901916504
+          ],
+          "max": [
+            0.6000000238418579,
+            2.200000047683716,
+            4.0
+          ],
+          "size": [
+            1.2000000476837158,
+            2.200000047683716,
+            0.03000020980834961
+          ]
+        }
+      },
+      "reimported": true,
+      "rendered_from_reimport": true,
+      "gpu": [
+        "NVIDIA GeForce RTX 4070 Ti SUPER"
+      ],
+      "blender": "5.2.3 LTS"
+    }
+  ],
+  "total_glb_bytes": 705508,
+  "total_triangles": 8852,
+  "coordinate_system": "metres, Y up, +Z forward"
+}

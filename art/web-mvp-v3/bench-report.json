@@ -1,0 +1,35 @@
+{
+  "name": "bench",
+  "bounds": {
+    "min": [
+      -0.800000011920929,
+      0.0,
+      -0.2750000059604645
+    ],
+    "max": [
+      0.800000011920929,
+      0.8500000238418579,
+      0.2750000059604645
+    ],
+    "size": [
+      1.600000023841858,
+      0.8500000238418579,
+      0.550000011920929
+    ]
+  },
+  "triangles": 168,
+  "materials": [
+    "dark",
+    "wood"
+  ],
+  "bytes": 14184,
+  "sha256": "9cf165f67037e35b67e2630ef20aa9f1d43a18fac00981f34a3cff4db658fbe1",
+  "root": "bench-root",
+  "source_measurements": {},
+  "reimported": true,
+  "rendered_from_reimport": true,
+  "gpu": [
+    "NVIDIA GeForce RTX 4070 Ti SUPER"
+  ],
+  "blender": "5.2.3 LTS"
+}

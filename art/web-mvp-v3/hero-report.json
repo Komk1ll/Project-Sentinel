@@ -1,0 +1,37 @@
+{
+  "name": "hero",
+  "bounds": {
+    "min": [
+      -0.3349999785423279,
+      0.0,
+      -0.2749999761581421
+    ],
+    "max": [
+      0.3349999785423279,
+      1.7000000476837158,
+      0.1899999976158142
+    ],
+    "size": [
+      0.6699999570846558,
+      1.7000000476837158,
+      0.4649999737739563
+    ]
+  },
+  "triangles": 1312,
+  "materials": [
+    "dark",
+    "ochre",
+    "skin",
+    "teal"
+  ],
+  "bytes": 106700,
+  "sha256": "42bc956cc8d6a710464a147cb525bc04045cba9009f91dfa3b898a6c4be7b3f8",
+  "root": "hero-root",
+  "source_measurements": {},
+  "reimported": true,
+  "rendered_from_reimport": true,
+  "gpu": [
+    "NVIDIA GeForce RTX 4070 Ti SUPER"
+  ],
+  "blender": "5.2.3 LTS"
+}
