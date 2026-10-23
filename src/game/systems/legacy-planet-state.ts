@@ -57,4 +57,3 @@ export function isPreviousPlanetState(value: unknown): value is TownWorldState {
   if (interior === undefined || !validPosition(value.position, interior) || !validPosition(value.outdoorReturn, null)) return false;
   return !interior || distance(value.outdoorReturn, buildingEntrance(interior)) <= INTERACTION_DISTANCE + 1e-7;
 }
-

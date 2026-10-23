@@ -6,7 +6,7 @@ import { createServer } from 'vite';
 const require=createRequire(import.meta.url);
 const {createCanvas,GlobalFonts}=require(process.argv[2] || '@napi-rs/canvas');
 GlobalFonts.registerFromPath('/System/Library/Fonts/Supplemental/Arial.ttf','Arial');
-const output=resolve(process.argv[3] || 'art/open-district-v4');await mkdir(output,{recursive:true});
+const output=resolve(process.argv[3] || 'art/coastal-island');await mkdir(output,{recursive:true});
 globalThis.window={devicePixelRatio:2};
 const server=await createServer({server:{middlewareMode:true}});
 try {
@@ -16,7 +16,7 @@ try {
   const world=new TownWorld(),mission=new FirstAidMission(world);
   mission.restore('deliver-aid');
   world.restore({interiorId:null,position:{x:24,z:45},outdoorReturn:{x:24,z:45}});
-  for(const [name,size,mode] of [['map-nearby',240,'nearby'],['map-district',520,'district'],['map-small',158,'nearby'],['map-planet',520,'planet']]){
+  for(const [name,size,mode] of [['map-nearby',240,'nearby'],['map-district',520,'district'],['map-small',158,'nearby'],['map-island',520,'island']]){
     const canvas=createCanvas(size*2,size*2);canvas.clientWidth=size;
     drawMinimap(canvas,world,mission,mode);await writeFile(`${output}/${name}.png`,canvas.toBuffer('image/png'));
   }
