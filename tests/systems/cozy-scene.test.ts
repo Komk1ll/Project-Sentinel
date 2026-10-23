@@ -1,9 +1,8 @@
-import { planetFrame } from '@game/systems/planet';
 // @vitest-environment jsdom
 import { URL as NodeURL } from 'node:url';
 import { readFile } from 'node:fs/promises';
 import { afterEach, expect, it, vi } from 'vitest';
-import { Mesh, Box3, Vector3, Quaternion } from 'three';
+import { Mesh, Box3, Vector3, Quaternion, ShaderMaterial, MeshStandardMaterial, ShaderLib } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { ThreeRenderer } from '@game/render/ThreeRenderer';
 import { TownWorld } from '@game/systems/town-world';
@@ -65,6 +64,7 @@ it('loads the shipped GLBs, delivers the parcel, reuses rooms and releases their
     const town = renderer.scene.getObjectByName('web-town')!;
     const hero = renderer.scene.getObjectByName('web-hero')!;
     expect(workshop).toBeDefined(); expect(town.visible).toBe(false);
+    expect(renderer.scene.getObjectByName('island-ocean')!.visible).toBe(false);
     expect(hero.getObjectByName('left-leg')).toBeDefined();
     const parcel = hero.getObjectByName('aid-kit-parcel')!;
     expect(parcel.parent?.name).toBe('aid-kit-socket');
@@ -75,7 +75,8 @@ it('loads the shipped GLBs, delivers the parcel, reuses rooms and releases their
     for (const id of ['station', 'clinic', 'home-7']) {
       const building=town.getObjectByName(`building-${id}`)!;
       expect(building.scale.toArray()).toEqual([1,1,1]);
-      const frame=planetFrame(TOWN_BUILDINGS.find(b=>b.id===id)!);
+      const data=TOWN_BUILDINGS.find(b=>b.id===id)!;
+      const frame={position:new Vector3(data.x,0,data.z),up:new Vector3(0,1,0)};
       expect(building.position.distanceTo(frame.position)).toBeLessThan(1e-6);
       expect(new Vector3(0,1,0).applyQuaternion(building.quaternion).distanceTo(frame.up)).toBeLessThan(1e-6);
       const local=building.clone(true);local.position.set(0,0,0);local.quaternion.identity();local.updateMatrixWorld(true);
@@ -118,16 +119,29 @@ it('loads the shipped GLBs, delivers the parcel, reuses rooms and releases their
     walkTo(world, { x: 0, z: .25 }); walkTo(world, { x: 0, z: 2 }); firstAid.interact(); renderer.render();
     firstAid.interact(); renderer.render();
     expect(renderer.scene.getObjectByName('cozy-interior-clinic')).toBe(clinic);
-    // The same actors and camera remain radial on the reverse side and at the pole.
-    for(const position of [{x:220,z:32},{x:100,z:-32}]){
+    // Actors and camera keep the same metric scale and vertical axis around the island.
+    for(const position of [{x:98,z:32},{x:32,z:-6}]){
       expect(world.restore({interiorId:null,position,outdoorReturn:position})).toBe(true);
       for(let i=0;i<100;i++)renderer.render(.05);
       renderer.scene.updateMatrixWorld(true);renderer.camera.updateMatrixWorld(true);
       const up=new Vector3(0,1,0).applyQuaternion(hero.getWorldQuaternion(new Quaternion()));
-      expect(up.distanceTo(planetFrame(position).up)).toBeLessThan(1e-6);
+      expect(up.distanceTo(new Vector3(0,1,0))).toBeLessThan(1e-6);
       const screen=hero.getWorldPosition(new Vector3()).project(renderer.camera);
       expect(Math.abs(screen.x)).toBeLessThan(.1);expect(Math.abs(screen.y)).toBeLessThan(.1);
     }
+    expect(renderer.scene.getObjectByName('planet-ground')).toBeUndefined();
+    const ocean=renderer.scene.getObjectByName('island-ocean') as Mesh;
+    expect(ocean.visible).toBe(true);
+    const water=ocean.material as ShaderMaterial,previousTime=water.uniforms.uTime!.value as number;
+    renderer.render(.05);expect(water.uniforms.uTime!.value).toBeGreaterThan(previousTime);
+    const terrain=renderer.scene.getObjectByName('island-terrain') as Mesh;
+    const material=terrain.material as MeshStandardMaterial;
+    const shader={...ShaderLib.standard,uniforms:{...ShaderLib.standard.uniforms}};
+    material.onBeforeCompile(shader as unknown as Parameters<typeof material.onBeforeCompile>[0],renderer.renderer);
+    expect(shader.fragmentShader).toContain('islandGrain');
+    expect(shader.fragmentShader).toContain('sentinelPlayer');
+    expect(shader.vertexShader).toContain('instanceMatrix * sentinelWorld');
+    const waterDisposed=vi.spyOn(water,'dispose');
     const sails=renderer.scene.getObjectByName('windmill-sails')!,rotation=sails.rotation.z;
     const walker=renderer.scene.getObjectByName('resident-walker')!,beforeWalker=walker.position.clone();
     for(let i=0;i<100;i++){firstAid.life.update(.05);renderer.render(.05);}
@@ -137,6 +151,7 @@ it('loads the shipped GLBs, delivers the parcel, reuses rooms and releases their
     for (const room of [clinic, workshop]) room.traverse(object => { if (object instanceof Mesh) meshes.push(object); });
     const disposed = meshes.map(mesh => vi.spyOn(mesh.geometry, 'dispose'));
     renderer.destroy();
+    expect(waterDisposed).toHaveBeenCalledOnce();
     expect(disposed.every(spy => spy.mock.calls.length > 0)).toBe(true);
   } finally {
     renderer.destroy(); firstAid.destroy();

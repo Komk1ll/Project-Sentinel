@@ -56,7 +56,7 @@ describe('Camera zoom', () => {
     const zoom = new CameraZoom();
     zoom.adjust(1e100);
     settle(zoom);
-    expect(zoom.span).toBeCloseTo(75);
+    expect(zoom.span).toBeCloseTo(85);
     zoom.adjust(-1e100);
     settle(zoom);
     expect(zoom.span).toBeCloseTo(5);

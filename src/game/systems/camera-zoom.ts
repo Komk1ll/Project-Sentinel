@@ -10,7 +10,7 @@ interface ZoomState {
   target: number;
 }
 
-const OUTDOOR_RANGE: ZoomRange = { initial: 11, minimum: 5, maximum: 75 };
+const OUTDOOR_RANGE: ZoomRange = { initial: 11, minimum: 5, maximum: 85 };
 const INDOOR_RANGE: ZoomRange = { initial: 6.5, minimum: 3.5, maximum: 11 };
 
 function createState(range: ZoomRange): ZoomState {
@@ -65,7 +65,7 @@ export class CameraZoom {
     if (state.current !== previous) this.notify();
   }
 
-  showPlanet(): void {if(!this.inside)this.outdoor.target=56;}
+  showIsland(): void {if(!this.inside)this.outdoor.target=65;}
 
   reset(): void {
     this.active.target = this.active.range.initial;

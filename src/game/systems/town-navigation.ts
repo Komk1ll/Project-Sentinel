@@ -1,4 +1,3 @@
-import { longitudeDelta, wrapLongitude } from '@game/systems/planet';
 import { buildingEntrance, TOWN_BUILDINGS, type TownBuilding } from '@content/town';
 import { MASTER, MEDIC } from '@content/first-aid';
 import { isWalkableTownPosition, type TownPosition, type TownWorld } from '@game/systems/town-world';
@@ -21,24 +20,24 @@ export function navigationGoal(world: TownWorld, buildingId: string | null): Nav
 
 /** Check every short segment against the same player-radius collision query as movement. */
 export function clearWalkingSegment(a: TownPosition, b: TownPosition, interior: TownBuilding | null): boolean {
-  const dx=interior?b.x-a.x:longitudeDelta(a.x,b.x);
+  const dx=b.x-a.x;
   const steps = Math.max(1, Math.ceil(Math.hypot(dx, b.z-a.z)/.1));
-  for (let i = 0; i <= steps; i++) if (!isWalkableTownPosition({ x:interior?a.x+dx*i/steps:wrapLongitude(a.x+dx*i/steps), z:a.z+(b.z-a.z)*i/steps }, interior)) return false;
+  for (let i = 0; i <= steps; i++) if (!isWalkableTownPosition({ x:a.x+dx*i/steps, z:a.z+(b.z-a.z)*i/steps }, interior)) return false;
   return true;
 }
 
 interface Grid { readonly points: TownPosition[]; readonly adjacent: number[][]; readonly minX: number; readonly minZ: number; readonly step: number; readonly width: number; readonly height: number; }
 const grids = new Map<string, Grid>();
 function gridFor(interior: TownBuilding | null, local:boolean): Grid {
-  const key = interior?.id ?? (local?'town':'planet');
+  const key = interior?.id ?? (local?'town':'island');
   const cached = grids.get(key); if (cached) return cached;
-  const step = interior ? .5 : local?1:2, minX = interior ? -4.5 : 0, minZ = interior ? -3.5 : local?0:-30;
-  const width = interior ? 19 : local?65:128, height = interior ? 15 : 63+(local?2:0);
+  const step = interior ? .5 : 1, minX = interior ? -4.5 : local?0:-18, minZ = interior ? -3.5 : local?0:-16;
+  const width = interior ? 19 : local?65:129, height = interior ? 15 : local?65:97;
   const points = Array.from({length:width*height}, (_,i) => ({x:minX+i%width*step,z:minZ+Math.floor(i/width)*step}));
   const free = points.map(point => isWalkableTownPosition(point, interior));
   const adjacent = points.map((point,i) => {
     if (!free[i]) return [];
-    return [i%width>0 ? i-1 : interior||local?-1:i+width-1, i%width<width-1 ? i+1 : interior||local?-1:i-width+1, i-width, i+width]
+    return [i%width>0 ? i-1 : -1, i%width<width-1 ? i+1 : -1, i-width, i+width]
       .filter(j=> j>=0 && j<points.length && free[j] && clearWalkingSegment(point, points[j]!, interior));
   });
   const grid = {points,adjacent,minX,minZ,step,width,height}; grids.set(key,grid); return grid;
@@ -53,8 +52,8 @@ export function walkingRoute(start: TownPosition, goal: TownPosition, interior: 
     const cx = Math.round((point.x-grid.minX)/grid.step), cz = Math.round((point.z-grid.minZ)/grid.step);
     const candidates: number[] = [];
     for (let z = Math.max(0,cz-2); z <= Math.min(grid.height-1,cz+2); z++)
-      for (let x = cx-2; x <= cx+2; x++) {const col=interior||local?x:((x%grid.width)+grid.width)%grid.width;if(col>=0&&col<grid.width)candidates.push(z*grid.width+col);}
-    return candidates.sort((a,b)=>Math.hypot(interior?grid.points[a]!.x-point.x:longitudeDelta(point.x,grid.points[a]!.x),grid.points[a]!.z-point.z)-Math.hypot(interior?grid.points[b]!.x-point.x:longitudeDelta(point.x,grid.points[b]!.x),grid.points[b]!.z-point.z))
+      for (let x = cx-2; x <= cx+2; x++) {const col=x;if(col>=0&&col<grid.width)candidates.push(z*grid.width+col);}
+    return candidates.sort((a,b)=>Math.hypot(grid.points[a]!.x-point.x,grid.points[a]!.z-point.z)-Math.hypot(grid.points[b]!.x-point.x,grid.points[b]!.z-point.z))
       .find(i=>grid.adjacent[i]!.length && clearWalkingSegment(point,grid.points[i]!,interior)) ?? -1;
   };
   const first = anchor(start), last = anchor(goal);

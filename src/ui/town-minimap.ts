@@ -1,5 +1,5 @@
-import { longitudeDelta, latitudeScale } from '@game/systems/planet';
-import { PLANET_STOPS, WILD_TREES, PLANET_PONDS } from '@content/planet-life';
+import { ISLAND_BOUNDS, COAST_PATH, coastOutline, MILL } from '@content/island';
+import { TOWN_STOPS, WILD_TREES, ISLAND_PONDS } from '@content/town-life';
 import { TOWN_OPEN_SPACES, ROAD_CENTERS, TOWN_BUILDINGS, TOWN_SIZE } from '@content/town';
 import { TOWN_TREES } from '@content/town-props';
 import { getInteriorLayout } from '@content/interiors';
@@ -8,7 +8,7 @@ import type { FirstAidMission } from '@game/systems/first-aid-mission';
 import type { TownPosition, TownWorld } from '@game/systems/town-world';
 import { navigationGoal, walkingRoute } from '@game/systems/town-navigation';
 
-export type MinimapMode = 'nearby' | 'district' | 'planet';
+export type MinimapMode = 'nearby' | 'district' | 'island';
 interface MapProjection { readonly x: (value: number) => number; readonly z: (value: number) => number; readonly scale: number; }
 
 /** North stays at the top; room dimensions match movement collision. */
@@ -20,12 +20,15 @@ export function minimapProjection(size: number, indoors: boolean): MapProjection
 
 /** Frame the complete route, never just the player with an off-screen destination. */
 export function routeMapProjection(size: number, points: readonly TownPosition[], mode: MinimapMode): MapProjection {
-  if(mode==='planet'){const scale=(size-24)/256;return {scale,x:value=>12+value*scale,z:value=>size/2+(value-32)*scale};}
-  if(points.some(point=>point.x>64||point.z<0||point.z>64)&&mode==='nearby'){
-    const origin=points[0]!;const xs=points.map(point=>origin.x+longitudeDelta(origin.x,point.x)),zs=points.map(point=>point.z);
+  if(mode==='island'){
+    const scale=(size-24)/(ISLAND_BOUNDS.maxX-ISLAND_BOUNDS.minX);
+    return {scale,x:value=>12+(value-ISLAND_BOUNDS.minX)*scale,z:value=>size/2+(value-32)*scale};
+  }
+  if(points.some(point=>point.x<0||point.x>64||point.z<0||point.z>64)&&mode==='nearby'){
+    const xs=points.map(point=>point.x),zs=points.map(point=>point.z);
     const span=Math.max(32,Math.max(...xs)-Math.min(...xs)+16,Math.max(...zs)-Math.min(...zs)+16);
     const scale=(size-24)/span,startX=(Math.max(...xs)+Math.min(...xs)-span)/2,startZ=(Math.max(...zs)+Math.min(...zs)-span)/2;
-    return {scale,x:value=>12+(origin.x+longitudeDelta(origin.x,value)-startX)*scale,z:value=>12+(value-startZ)*scale};
+    return {scale,x:value=>12+(value-startX)*scale,z:value=>12+(value-startZ)*scale};
   }
   if (mode==='district' || points.length===0) return minimapProjection(size,false);
   const xs=points.map(point=>point.x), zs=points.map(point=>point.z);
@@ -55,7 +58,7 @@ export function drawMinimap(canvas: HTMLCanvasElement, world: TownWorld, mission
     ctx.strokeStyle='#fffaf0';ctx.lineWidth=3;ctx.strokeText(label,p.x(x),p.z(z));
     ctx.fillStyle=color;ctx.fillText(label,p.x(x),p.z(z));
   };
-  ctx.fillStyle='#edf0e2';ctx.fillRect(0,0,size,size);
+  ctx.fillStyle=world.interior?'#edf0e2':'#9cc8ce';ctx.fillRect(0,0,size,size);
   ctx.save();ctx.beginPath();ctx.rect(7,7,size-14,size-14);ctx.clip();
   if(world.interior){
     ctx.fillStyle='#fffaf0';rect(0,0,10,8);
@@ -65,8 +68,15 @@ export function drawMinimap(canvas: HTMLCanvasElement, world: TownWorld, mission
     ctx.fillStyle='#267e7b';rect(0,4,1.6,.16);
     text('Выход',0,3.65);
   } else {
-    ctx.fillStyle='#c7d6ad';rect(128,32,256,128);
-    ctx.fillStyle='#f2e6c9';rect(128,32,256,3.4);
+    for(const [fraction,color] of [[1.06,'#dfd0ac'],[.94,'#c7d6ad']] as const){
+      ctx.beginPath();coastOutline(fraction).forEach((point,i)=>i?ctx.lineTo(p.x(point.x),p.z(point.z)):ctx.moveTo(p.x(point.x),p.z(point.z)));
+      ctx.closePath();ctx.fillStyle=color;ctx.fill();
+    }
+    ctx.beginPath();COAST_PATH.forEach((point,i)=>i?ctx.lineTo(p.x(point.x),p.z(point.z)):ctx.moveTo(p.x(point.x),p.z(point.z)));
+    ctx.closePath();ctx.strokeStyle='#f2e6c9';ctx.lineWidth=2.6*p.scale;ctx.stroke();
+    ctx.fillStyle='#f2e6c9';
+    for(const road of ROAD_CENTERS){rect(road,-3,2.6,6);rect(road,67,2.6,6);rect(-4,road,8,2.6);rect(82,road,36,2.6);}
+
     for(const space of TOWN_OPEN_SPACES){
       ctx.fillStyle=space.kind==='square'?'#e5d4b1':'#bdd3a7';rect(space.x,space.z,space.width,space.depth);
       ctx.fillStyle='#ede5cd';rect(space.x,space.z,2.4,space.depth);rect(space.x,space.z,space.width,2.4);
@@ -78,30 +88,24 @@ export function drawMinimap(canvas: HTMLCanvasElement, world: TownWorld, mission
     ctx.fillStyle='#88a175';
     for(const tree of [...TOWN_TREES,...WILD_TREES]){ctx.beginPath();ctx.arc(p.x(tree.x),p.z(tree.z),Math.max(1.8,tree.scale*.65*p.scale),0,Math.PI*2);ctx.fill();}
     for(const b of TOWN_BUILDINGS){
-      ctx.fillStyle=b.id==='station'?'#427d7a':b.id==='clinic'?'#7197a0':'#c4bbaa';rect(b.x,b.z,b.width/latitudeScale(b.z),b.depth);
-      ctx.strokeStyle='#fdf9ef';ctx.lineWidth=1;ctx.strokeRect(p.x(b.x-b.width/2/latitudeScale(b.z)),p.z(b.z-b.depth/2),b.width/latitudeScale(b.z)*p.scale,b.depth*p.scale);
+      ctx.fillStyle=b.id==='station'?'#427d7a':b.id==='clinic'?'#7197a0':'#c4bbaa';rect(b.x,b.z,b.width,b.depth);
+      ctx.strokeStyle='#fdf9ef';ctx.lineWidth=1;ctx.strokeRect(p.x(b.x-b.width/2),p.z(b.z-b.depth/2),b.width*p.scale,b.depth*p.scale);
       // A short gap/entry tab shows which facade has the door.
       ctx.fillStyle='#fffaf0';rect(b.x,b.z+b.depth/2,1.6,.6);
     }
-    if(mode!=='planet')for(const space of TOWN_OPEN_SPACES)text(space.kind==='orchard'?'Сад':space.label,space.x,space.z-2.1,'#4b6a40');
-    ctx.fillStyle='#69aeb8';for(const pond of PLANET_PONDS){ctx.beginPath();ctx.ellipse(p.x(pond.x),p.z(pond.z),pond.width*p.scale/2,pond.depth*p.scale/2,0,0,Math.PI*2);ctx.fill();}
-    for(const stop of PLANET_STOPS){ctx.fillStyle='#6c9a81';rect(stop.x,stop.z,1.8,1.8);}
+    if(mode!=='island')for(const space of TOWN_OPEN_SPACES)text(space.kind==='orchard'?'Сад':space.label,space.x,space.z-2.1,'#4b6a40');
+    ctx.fillStyle='#69aeb8';for(const pond of ISLAND_PONDS){ctx.beginPath();ctx.ellipse(p.x(pond.x),p.z(pond.z),pond.width*p.scale/2,pond.depth*p.scale/2,0,0,Math.PI*2);ctx.fill();}
+    for(const stop of TOWN_STOPS){ctx.fillStyle='#6c9a81';rect(stop.x,stop.z,1.8,1.8);}
     for(const resident of mission.life.residents){ctx.fillStyle='#8e6182';ctx.beginPath();ctx.arc(p.x(resident.position.x),p.z(resident.position.z),2.4,0,Math.PI*2);ctx.fill();}
-    if(mode==='planet'){text('Зареченск',32,-10);text('Мельница',152,24);text('Круговая тропа',128,44);text('← края соединяются →',128,82);}
-    if(mode!=='planet')for(const b of TOWN_BUILDINGS){
+    if(mode==='island'){text('Зареченск',32,-10);text('Мельница',MILL.x,MILL.z-3);text('Береговая тропа',46,73);}
+    ctx.fillStyle='#b3a686';rect(MILL.x,MILL.z,3.8,3.8);
+    if(mode!=='island'||size>360)for(const b of TOWN_BUILDINGS){
       if(b.id==='station'||b.id==='clinic')text(b.id==='station'?'Маяк':'Клиника',b.x,b.z);
-      else if(size>360)text(b.kind==='home'?'Дом':b.id==='townhall'?'Администрация':b.id==='post'?'Почта':b.id==='grocery'?'Магазин':b.name.replace(/ «.*»/,''),b.x,b.z);
+      else if(size>360&&mode!=='island')text(b.kind==='home'?'Дом':b.id==='townhall'?'Администрация':b.id==='post'?'Почта':b.id==='grocery'?'Магазин':b.name.replace(/ «.*»/,''),b.x,b.z);
     }
   }
   if(route.length){
-    ctx.beginPath();route.forEach((point,i)=>{
-      const previous=route[i-1];
-      if(!world.interior&&mode==='planet'&&previous&&Math.abs(point.x-previous.x)>128){
-        const boundary=previous.x<128?0:256,t=(boundary-previous.x)/longitudeDelta(previous.x,point.x),seamZ=previous.z+(point.z-previous.z)*t;
-        ctx.lineTo(p.x(boundary),p.z(seamZ));ctx.moveTo(p.x(boundary===0?256:0),p.z(seamZ));ctx.lineTo(p.x(point.x),p.z(point.z));
-      }else if(i===0||previous&&Math.abs(p.x(point.x)-p.x(previous.x))>size*.65)ctx.moveTo(p.x(point.x),p.z(point.z));
-      else ctx.lineTo(p.x(point.x),p.z(point.z));
-    });
+    ctx.beginPath();route.forEach((point,i)=>i?ctx.lineTo(p.x(point.x),p.z(point.z)):ctx.moveTo(p.x(point.x),p.z(point.z)));
     ctx.lineJoin='round';ctx.lineCap='round';ctx.strokeStyle='#fffaf0';ctx.lineWidth=6;ctx.stroke();
     ctx.strokeStyle='#b67c1e';ctx.lineWidth=3;ctx.stroke();
   }
@@ -115,7 +119,7 @@ export function drawMinimap(canvas: HTMLCanvasElement, world: TownWorld, mission
     if(actor)text(actor===MASTER?'Мастер':'Медик',actor.x,actor.z-.65);
   }
   // A directional triangle distinguishes the player from destination diamonds.
-  const px=p.x(world.position.x), pz=p.z(world.position.z), heading=world.interior?world.heading:Math.atan2(Math.sin(world.heading)/latitudeScale(world.position.z),Math.cos(world.heading));
+  const px=p.x(world.position.x), pz=p.z(world.position.z), heading=world.heading;
   ctx.beginPath();
   for(const [index,angle] of [heading,heading+2.4,heading-2.4].entries()){
     const x=px+Math.sin(angle)*7,y=pz+Math.cos(angle)*7;
@@ -127,7 +131,7 @@ export function drawMinimap(canvas: HTMLCanvasElement, world: TownWorld, mission
   ctx.strokeStyle='#fffaf0';ctx.lineWidth=3;ctx.strokeText('Вы',tx,ty);ctx.fillStyle='#174e85';ctx.fillText('Вы',tx,ty);
   ctx.restore();
   // Metric scale is map-specific, separate from the game's camera controls.
-  const metres=world.interior?2:mode==='planet'?40:10,length=metres*p.scale;
+  const metres=world.interior?2:mode==='island'?20:10,length=metres*p.scale;
   ctx.strokeStyle='#304b49';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(12,size-14);ctx.lineTo(12+length,size-14);ctx.stroke();
-  ctx.font='10px Arial';ctx.textAlign='left';ctx.textBaseline='bottom';ctx.fillStyle='#304b49';ctx.fillText(world.interior?`${metres} м`:`${Math.round(metres*latitudeScale(mode==='planet'?32:world.position.z))} м по широте`,12,size-18);
+  ctx.font='10px Arial';ctx.textAlign='left';ctx.textBaseline='bottom';ctx.fillStyle='#304b49';ctx.fillText(`${metres} м`,12,size-18);
 }

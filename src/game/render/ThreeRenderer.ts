@@ -1,7 +1,9 @@
 import * as THREE from 'three';
-import { planetFrame, walkingAltitude } from '@game/systems/planet';
-import { placeOnPlanet } from '@game/render/planet-surface';
-import { PlanetLifeView } from '@game/render/planet-life';
+import { ISLAND_CENTER } from '@content/island';
+import { createOcean } from '@game/render/island-terrain';
+import { enhanceSurfaceMaterials } from '@game/render/surface-materials';
+import { placeOnGround } from '@game/render/world-surface';
+import { TownLifeView } from '@game/render/town-life-view';
 import type { TownLife } from '@game/systems/town-life';
 import { disposeObject, loadTownAssets } from '@game/render/town-assets';
 import { createMasterMesh } from '@game/render/master-mesh';
@@ -26,9 +28,10 @@ export class ThreeRenderer {
   public readonly scene = new THREE.Scene();
   public readonly camera: THREE.OrthographicCamera;
   public readonly renderer: THREE.WebGLRenderer;
-  private lifeView: PlanetLifeView;
-  private readonly sun = new THREE.DirectionalLight(0xffe2b3,2.3);
-  private readonly cameraFrame = new THREE.Quaternion();
+  private lifeView: TownLifeView;
+  private readonly sun = new THREE.DirectionalLight(0xffe2b3,2.8);
+  private readonly shaderTime = {value:0};
+  private readonly ocean = createOcean(this.shaderTime);
   private readonly sightDirection = { value: new THREE.Vector3(28,34,28).normalize() };
   private readonly surfaceUp = { value: new THREE.Vector3(0,1,0) };
   private readonly container: HTMLElement;
@@ -64,32 +67,33 @@ export class ThreeRenderer {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.22;
+    this.renderer.toneMappingExposure = 1.12;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.setClearColor(0xbdd9df);
     this.container.appendChild(this.renderer.domElement);
-    this.camera = new THREE.OrthographicCamera(-20, 20, 14, -14, .1, 250);
-    this.scene.fog = new THREE.Fog(0xbdd9df, 180, 290);
-    this.scene.add(new THREE.HemisphereLight(0xe8f3ef, 0x8b9b76, 1.9));
+    this.camera = new THREE.OrthographicCamera(-20, 20, 14, -14, .1, 500);
+    this.scene.fog = new THREE.Fog(0xbdd9df, 180, 380);
+    this.scene.add(new THREE.HemisphereLight(0xe8f3ef, 0x8b9b76, 1.05));
     const sun = this.sun;
     sun.position.set(-25, 45, -5);
     sun.target.position.set(32, 0, 32);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
-    Object.assign(sun.shadow.camera, { left: -55, right: 55, top: 55, bottom: -55, near: 1, far: 150 });
+    Object.assign(sun.shadow.camera, { left: -55, right: 55, top: 55, bottom: -55, near: 1, far: 250 });
     sun.shadow.bias = -.0005;
     sun.shadow.normalBias = .025;
     sun.shadow.radius = 4;
     this.scene.add(sun, sun.target);
-    const fill = new THREE.DirectionalLight(0xd0e7e2, .65);
+    const fill = new THREE.DirectionalLight(0xd0e7e2, .35);
     fill.position.set(40, 25, 60); this.scene.add(fill);
     this.outdoors = createWebTown();
-    this.lifeView=new PlanetLifeView(options.life??options.firstAid.life);
+    this.lifeView=new TownLifeView(options.life??options.firstAid.life);
     this.outdoors.add(this.lifeView.group);
     this.assetLibrary.visible = false;
     this.scene.add(this.assetLibrary);
     this.setupCharacterCutaway(this.outdoors);
     this.scene.add(this.outdoors);
+    this.scene.add(this.ocean);
     this.buildCharacter();
     this.scene.add(this.character);
     this.master.group.visible = false;
@@ -110,7 +114,7 @@ export class ThreeRenderer {
     const { x, z } = options.world.position;
     this.target.set(x, 0, z);
     this.lastPosition.set(x, z);
-    this.cameraFrame.copy(planetFrame(options.world.interior?options.world.snapshot.outdoorReturn:options.world.position).rotation);
+
     this.resize();
     window.addEventListener('resize', this.resize);
     this.container.addEventListener('wheel', this.onWheel, { passive: false });
@@ -128,11 +132,12 @@ export class ThreeRenderer {
     this.disposeGroup(this.outdoors);
     this.assetLibrary.add(...assets.values());
     this.outdoors = createWebTown(assets);
-    this.lifeView=new PlanetLifeView(this.options.life??this.options.firstAid.life,take('hero'));
+    this.lifeView=new TownLifeView(this.options.life??this.options.firstAid.life,take('hero'));
     this.outdoors.add(this.lifeView.group);
     this.setupCharacterCutaway(this.outdoors);
     this.outdoors.visible = this.options.world.interior === null;
     this.scene.add(this.outdoors);
+    this.scene.add(this.ocean);
     this.disposeGroup(this.character);
     this.character.clear();
     const hero = take('hero');
@@ -178,7 +183,11 @@ export class ThreeRenderer {
       }
     });
     materials.forEach(material => {
-      material.onBeforeCompile = shader => {
+      if(material.userData.cutaway) return;
+      material.userData.cutaway=true;
+      const previous=material.onBeforeCompile;
+      material.onBeforeCompile = (shader,renderer) => {
+        previous.call(material,shader,renderer);
         shader.uniforms.sentinelPlayer = this.cutawayPosition;
         shader.uniforms.sentinelSight = this.sightDirection;
         shader.uniforms.sentinelUp = this.surfaceUp;
@@ -203,8 +212,9 @@ export class ThreeRenderer {
           }
         `);
       };
-      material.customProgramCacheKey = () => 'sentinel-character-cutaway-sphere';
+      material.customProgramCacheKey = () => 'sentinel-character-cutaway-flat';
     });
+    enhanceSurfaceMaterials(group);
   }
 
   private buildCharacter(): void {
@@ -243,6 +253,8 @@ export class ThreeRenderer {
   public render(deltaSeconds = 1 / 60): void {
     if (this.isDestroyed) return;
     const world = this.options.world;
+    this.shaderTime.value += Number.isFinite(deltaSeconds)?Math.max(0,Math.min(.05,deltaSeconds)):0;
+    this.ocean.visible = !world.interior;
     const nextRoomId = world.interior?.id ?? null;
     this.master.group.visible = nextRoomId === MASTER.buildingId;
     this.master.kit.visible = this.options.firstAid.snapshot.stage === 'meet-master';
@@ -270,10 +282,8 @@ export class ThreeRenderer {
     const dx = x - this.lastPosition.x;
     const dz = z - this.lastPosition.y;
     const moving = Math.hypot(dx, dz) > .0001;
-    if(world.interior){this.character.position.set(x,.08,z);this.character.rotation.set(0,world.heading,0);}
-    else placeOnPlanet(this.character,x,z,world.heading,walkingAltitude(world.position));
-    const localFrame=world.interior?new THREE.Quaternion():planetFrame(world.position).rotation;
-    this.surfaceUp.value.set(0,1,0).applyQuaternion(localFrame);
+    placeOnGround(this.character,x,z,world.heading,.065);
+    this.surfaceUp.value.set(0,1,0);
     this.cutawayPosition.value.copy(this.character.position).addScaledVector(this.surfaceUp.value,1.05);
     this.walkTime += moving ? deltaSeconds * 10 : 0;
     const stride = moving ? Math.sin(this.walkTime) * .55 : 0;
@@ -306,24 +316,24 @@ export class ThreeRenderer {
       this.target.lerp(center,1-Math.exp(-deltaSeconds*7));
       this.camera.position.copy(this.target).add(this.cameraOffset);
     } else {
-      const desired=localFrame.clone().multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),world.viewTurn));
-      // The radial camera follows all hemispheres, including longitude seams.
-      this.cameraFrame.slerp(desired,1-Math.exp(-deltaSeconds*12));
-      const overview=Math.max(0,Math.min(1,(this.options.zoom.span-22)/34));
-      this.target.copy(this.character.position).multiplyScalar(1-overview);
-      this.camera.up.set(0,1,0).applyQuaternion(this.cameraFrame);
-      const offset=this.cameraOffset.clone().multiplyScalar(1+overview).applyQuaternion(this.cameraFrame);
-      this.camera.position.copy(this.target).add(offset);
+      const overview=Math.max(0,Math.min(1,(this.options.zoom.span-22)/43));
+      const center=new THREE.Vector3(x,0,z).lerp(new THREE.Vector3(ISLAND_CENTER.x,0,ISLAND_CENTER.z),overview);
+      this.target.lerp(center,1-Math.exp(-deltaSeconds*7));
+      this.camera.up.set(0,1,0);
+      this.camera.position.copy(this.target).add(this.cameraOffset.clone().multiplyScalar(1+overview));
     }
     this.camera.lookAt(this.target);
     this.sightDirection.value.copy(this.camera.position).sub(this.target).normalize();
     this.sun.target.position.copy(this.target);
-    this.sun.position.copy(this.target).add(new THREE.Vector3(-25,55,10).applyQuaternion(world.interior?new THREE.Quaternion():this.cameraFrame));
+    this.sun.position.copy(this.target).add(new THREE.Vector3(-35,65,-25));
+    const shadowSpan=world.interior?15:Math.max(24,Math.min(90,this.options.zoom.span*1.5));
+    Object.assign(this.sun.shadow.camera,{left:-shadowSpan,right:shadowSpan,top:shadowSpan,bottom:-shadowSpan});
+    this.sun.shadow.camera.updateProjectionMatrix();
     const nearby = TOWN_BUILDINGS.find(building => building.id === this.options.firstAid.snapshot.targetBuildingId) ?? world.nearbyBuilding;
     this.doorMarker.visible = Boolean(nearby) && !world.interior;
     if (nearby) {
       const entry = buildingEntrance(nearby);
-      placeOnPlanet(this.doorMarker,entry.x,entry.z,0,.09);
+      placeOnGround(this.doorMarker,entry.x,entry.z,0,.09);
       this.doorMarker.rotateX(-Math.PI/2);
     }
     this.renderer.render(this.scene, this.camera);

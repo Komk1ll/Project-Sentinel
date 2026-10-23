@@ -1,5 +1,7 @@
 # Living spherical world
 
+> Historical milestone, superseded by [Coastal island](coastal-island.md) on 23 October 2026. The former exporter is available in commit 0330847.
+
 The user explicitly selected a real walkable sphere on 23 October 2026. This
 supersedes the flat district renderer. Ordinary development with checks continues.
 

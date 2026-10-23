@@ -6,33 +6,34 @@
 [![Vite](https://img.shields.io/badge/Vite-Bundler-646CFF.svg)](https://vitejs.dev/)
 [![Vitest](https://img.shields.io/badge/Vitest-TDD-green.svg)](https://vitest.dev/)
 
-**CyberShield / Project Sentinel** is a browser-based narrative exploration game about helping a small community. The current prototype places Zarechensk on a real walkable mini-planet with preserved indoor missions.
+**CyberShield / Project Sentinel** is a browser-based narrative exploration game about helping a small community. The current prototype places Zarechensk on a walkable coastal island with preserved indoor missions.
 
 ---
 
 ## Playable Town Prototype
 
-Explore a spherical world with 11 enterable buildings, gardens, two ponds, a
-windmill and a continuous 256 m equatorial promenade. Six rounded residents walk,
-pause and talk; a flower bed can be watered. Animated limbs, fountain droplets,
-butterflies and windmill sails add motion. Heroes retain metre scale and 1.70 m
-height. The camera follows the radial surface through longitude seams and poles.
+Explore a flat island with 11 enterable buildings, an eastern garden, two ponds,
+a windmill and a closed coastal walk. Six rounded residents walk, pause and talk;
+a flower bed can be watered. Animated limbs, fountain droplets, butterflies and
+mill sails add motion. The 1.70 m hero retains metre scale. Water has animated
+waves, shore foam and highlights; surfaces have procedural grain and micro-bump.
 
 Use **WASD / arrows** to walk and **E** or the action button for doors, people and
 notice boards. Quest actions take priority. The map offers **Nearby**, **District**
-and **Planet** modes; the last is a labelled surface atlas with connected edges.
-The **◎ camera button** frames the globe; mouse wheel and **+ / −** control zoom,
+and **Island** modes, with a visible coastline and no connected edges.
+The **◎ camera button** frames the island; mouse wheel and **+ / −** control zoom,
 and **Home / percentage button** returns to the normal view.
 
-Read [Living planet](docs/decisions/living-planet.md) for the coordinate, collision,
-interaction and verification contracts. Conversations and watering are temporary
-ambient activity; quest progress and player position persist.
+Read [Coastal island](docs/decisions/coastal-island.md) for the current design and
+verification boundaries. Conversations and watering are temporary ambient activity;
+quest progress and player position persist. Valid saves from the old globe are
+relocated onto land without resetting their mission stage.
 
 The complete first aid episode is playable: follow the golden minimap target to the Mayak workshop, enter and approach the master. Press **E** or click the contextual action to receive one aid kit. The mission panel shows the item and changes the objective to deliver it to the clinic, which becomes the map target. Repeated interaction gives a reminder without duplicating the kit. Approach the medic in the clinic and interact to hand over the kit and complete the first mission. Progress, inventory, room and position are saved automatically and restored after reload. The completed clinic state persists; repeated conversations do not issue or consume another item. The mission panel replaces the inactive zero-stat HUD.
 
 See [First aid episode](docs/architecture/first-aid-mission.md) for state contracts, verification and the manual acceptance route.
 
-See [Web asset pack](docs/architecture/web-asset-pack.md) for the active lightweight models, metric scale, remote Blender production and validation. The map labels Mayak and the clinic and guides the player around collisions. The initial GLB requests total 3,273,372 bytes (twelve existing GLBs; planet scenery is generated locally).
+See [Web asset pack](docs/architecture/web-asset-pack.md) for the active lightweight models, metric scale, remote Blender production and validation. The map labels Mayak and the clinic and guides the player around collisions. The initial GLB requests total 3,273,372 bytes (twelve existing GLBs; island scenery is generated locally).
 
 The active town renders through Three.js; Phaser is retained for the earlier 2D scenes. Read [Town architecture](docs/architecture/town-world.md) for the layout, simulation and integration contracts.
 

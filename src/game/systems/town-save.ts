@@ -1,10 +1,11 @@
-import { migrateTownWorldState, type TownWorldState } from '@game/systems/town-world';
+import { isTownWorldState, migrateTownWorldState, type TownWorldState } from '@game/systems/town-world';
 import { isFirstAidStage, type FirstAidStage } from '@game/systems/first-aid-mission';
 
 export const TOWN_SAVE_KEY = 'cybershield.town.v1';
 export const TOWN_BACKUP_KEY = 'cybershield.town.v1.backup';
 export interface TownSave {
   readonly schemaVersion: 1;
+  readonly layout?: 'coastal-island-v1';
   readonly buildId: 'cybershield-first-aid';
   readonly savedAt: number;
   readonly world: TownWorldState;
@@ -27,9 +28,11 @@ export function parseTownSave(raw: string | null): TownSave | null {
     if (save.schemaVersion !== 1 || save.buildId !== 'cybershield-first-aid'
       || typeof save.savedAt !== 'number' || !Number.isFinite(save.savedAt) || save.savedAt < 0
       || !isFirstAidStage(save.stage)) return null;
-    const world = migrateTownWorldState(save.world);
+    if(save.layout !== undefined && save.layout !== 'coastal-island-v1') return null;
+    const world = save.layout === 'coastal-island-v1'
+      ? (isTownWorldState(save.world)?save.world:null) : migrateTownWorldState(save.world);
     if (!world) return null;
-    return { schemaVersion: 1, buildId: 'cybershield-first-aid', savedAt: save.savedAt, world, stage: save.stage };
+    return { schemaVersion: 1, layout: 'coastal-island-v1', buildId: 'cybershield-first-aid', savedAt: save.savedAt, world, stage: save.stage };
   } catch { return null; }
 }
 
@@ -50,7 +53,7 @@ export class TownSaveStore {
   }
   save(data: TownSave): boolean {
     if (!this.storage) return false;
-    const serialized = JSON.stringify(data);
+    const serialized = JSON.stringify({...data,layout:'coastal-island-v1'});
     if (!parseTownSave(serialized)) return false;
     try {
       const previous = this.storage.getItem(TOWN_SAVE_KEY);

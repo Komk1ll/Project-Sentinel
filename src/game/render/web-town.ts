@@ -1,8 +1,9 @@
-import { createPlanetLandscape } from '@game/render/planet-landscape';
+import { createIslandLandscape } from '@game/render/island-landscape';
 import * as THREE from 'three';
-import { PLANET_RADIUS } from '@game/systems/planet';
-import { placeOnPlanet, surfaceStrip } from '@game/render/planet-surface';
-import { WILD_TREES, WILD_BENCHES } from '@content/planet-life';
+import { COAST_PATH } from '@content/island';
+import { createIslandTerrain } from '@game/render/island-terrain';
+import { placeOnGround, surfaceStrip, pathRibbon } from '@game/render/world-surface';
+import { WILD_TREES, WILD_BENCHES } from '@content/town-life';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { ROAD_CENTERS, TOWN_BUILDINGS, TOWN_OPEN_SPACES, type TownBuilding } from '@content/town';
 import { TOWN_CARS, TOWN_TREES, TOWN_BENCHES, TOWN_PLANTERS } from '@content/town-props';
@@ -11,7 +12,7 @@ import { TOWN_CARS, TOWN_TREES, TOWN_BENCHES, TOWN_PLANTERS } from '@content/tow
 export function createWebTown(assets?: ReadonlyMap<string, THREE.Group>): THREE.Group {
   const town = new THREE.Group();
   town.name = 'web-town';
-  town.add(createPlanetLandscape());
+  town.add(createIslandLandscape());
   const materials = new Map<number, THREE.MeshStandardMaterial>();
   const mat = (color: number): THREE.MeshStandardMaterial => {
     let material = materials.get(color);
@@ -41,9 +42,12 @@ export function createWebTown(assets?: ReadonlyMap<string, THREE.Group>): THREE.
     }
   }
   const ground = new THREE.Group(); ground.name = 'street-surfaces'; town.add(ground);
-  const globe=new THREE.Mesh(new THREE.SphereGeometry(PLANET_RADIUS-.025,128,64),mat(0x87a274));
-  globe.name='planet-ground';globe.receiveShadow=true;town.add(globe);
-  ground.add(surfaceStrip(160,32,192,3.4,0xd8c9ac,.16));
+  town.add(createIslandTerrain());
+  ground.add(pathRibbon(COAST_PATH,2.6,0xd8c9ac));
+  for(const road of ROAD_CENTERS){
+    ground.add(surfaceStrip(road,-3,2.6,6,0xd8c9ac,.045),surfaceStrip(road,67,2.6,6,0xd8c9ac,.045));
+    ground.add(surfaceStrip(-4,road,8,2.6,0xd8c9ac,.045),surfaceStrip(82,road,36,2.6,0xd8c9ac,.045));
+  }
   // Split horizontal strips at vertical roads: no coplanar intersection flicker.
   const segments = (half: number): [number, number][] => {
     const result: [number, number][] = []; let start = 0;
@@ -84,10 +88,10 @@ export function createWebTown(assets?: ReadonlyMap<string, THREE.Group>): THREE.
   }
   for(const mesh of [...ground.children]) {
     if(!(mesh instanceof THREE.Mesh)||mesh.geometry!==cube)continue;
-    const curved=surfaceStrip(mesh.position.x,mesh.position.z,mesh.scale.x,mesh.scale.z,
+    const strip=surfaceStrip(mesh.position.x,mesh.position.z,mesh.scale.x,mesh.scale.z,
       (mesh.material as THREE.MeshStandardMaterial).color.getHex(),mesh.position.y+mesh.scale.y/2+.035);
-    (curved.material as THREE.Material).dispose();curved.material=mesh.material;
-    curved.name=mesh.name;ground.remove(mesh);ground.add(curved);
+    (strip.material as THREE.Material).dispose();strip.material=mesh.material;
+    strip.name=mesh.name;ground.remove(mesh);ground.add(strip);
   }
   batch(ground);
 
@@ -148,7 +152,7 @@ export function createWebTown(assets?: ReadonlyMap<string, THREE.Group>): THREE.
     sign(group, building);
     const foundation=new THREE.Mesh(new THREE.BoxGeometry(building.width,.9,building.depth),mat(0x8e927c));
     foundation.position.y=-.45;foundation.receiveShadow=true;group.add(foundation);
-    placeOnPlanet(group,building.x,building.z);town.add(group);
+    placeOnGround(group,building.x,building.z);town.add(group);
   }
   function instances(name: string, locations: readonly { x: number; z: number; rotation: number; scale?: number }[]): void {
     const prototype=assets?.get(name); if (!prototype) return;
@@ -159,7 +163,7 @@ export function createWebTown(assets?: ReadonlyMap<string, THREE.Group>): THREE.
       const mesh=new THREE.InstancedMesh(object.geometry,object.material,locations.length);
       mesh.name=`${name}-instances`; mesh.castShadow=true; mesh.receiveShadow=true;
       locations.forEach((location,index)=>{
-        placeOnPlanet(placement,location.x,location.z,location.rotation);
+        placeOnGround(placement,location.x,location.z,location.rotation);
         placement.scale.setScalar(location.scale ?? 1); placement.updateMatrix();
         matrix.multiplyMatrices(placement.matrix,object.matrixWorld); mesh.setMatrixAt(index,matrix);
       });
@@ -180,10 +184,10 @@ export function createWebTown(assets?: ReadonlyMap<string, THREE.Group>): THREE.
     box(props,'planter',0x927961,planter.x,.25,planter.z,planter.width,.5,planter.depth);
     box(props,'planting',0x64825d,planter.x,.64,planter.z,planter.width-.15,.32,planter.depth-.15);
   }
-  // Keep props rigid in their local radial frame instead of bending their silhouettes.
+  // Keep props rigid at their original metric dimensions.
   for(const child of props.children) {
     const {x,y,z}=child.position;const yaw=child.rotation.y;
-    placeOnPlanet(child,x,z,yaw,y);
+    placeOnGround(child,x,z,yaw,y);
   }
   // Standalone prop boxes still reference the template; retain owned copies.
   props.traverse(object=>{if(object instanceof THREE.Mesh && object.geometry===cube)object.geometry=cube.clone();});

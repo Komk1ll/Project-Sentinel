@@ -1,9 +1,10 @@
-import { PLANET_RESIDENTS, PLANET_STOPS } from '@content/planet-life';
-import { planetDistance, longitudeDelta, latitudeScale } from '@game/systems/planet';
+import { TOWN_RESIDENTS, TOWN_STOPS } from '@content/town-life';
 import { isWalkableTownPosition, type TownPosition, type TownWorld } from '@game/systems/town-world';
 
+const groundDistance=(a:TownPosition,b:TownPosition):number=>Math.hypot(b.x-a.x,b.z-a.z);
+
 export class TownLife {
-  readonly residents=PLANET_RESIDENTS.map(data=>({data,position:{...data.route[0]!},heading:0,walking:false,index:1,pause:1}));
+  readonly residents=TOWN_RESIDENTS.map(data=>({data,position:{...data.route[0]!},heading:0,walking:false,index:1,pause:1}));
   private clock=0;
   private wateredUntil=0;
   private noticeUntil=0;
@@ -15,8 +16,8 @@ export class TownLife {
   get interaction():{id:string;label:string;text:string}|null {
     if(this.world.interior)return null;
     const candidates=[...this.residents.map(r=>({id:r.data.id,label:`${r.data.name} · поговорить`,text:r.data.dialogue,position:r.position})),
-      ...PLANET_STOPS.map(s=>({...s,position:s}))];
-    return candidates.map(item=>({...item,distance:planetDistance(this.world.position,item.position)})).filter(item=>item.distance<2.5).sort((a,b)=>a.distance-b.distance)[0]??null;
+      ...TOWN_STOPS.map(s=>({...s,position:s}))];
+    return candidates.map(item=>({...item,distance:groundDistance(this.world.position,item.position)})).filter(item=>item.distance<2.5).sort((a,b)=>a.distance-b.distance)[0]??null;
   }
   interact():boolean {
     const target=this.interaction;if(!target)return false;
@@ -32,10 +33,9 @@ export class TownLife {
       resident.walking=false;
       if(resident.pause>0){resident.pause-=dt;continue;}
       const goal=resident.data.route[resident.index]!;
-      const scale=latitudeScale(resident.position.z);
-      const dx=longitudeDelta(resident.position.x,goal.x)*scale,dz=goal.z-resident.position.z,length=Math.hypot(dx,dz);
+      const dx=goal.x-resident.position.x,dz=goal.z-resident.position.z,length=Math.hypot(dx,dz);
       if(length<.12){resident.index=(resident.index+1)%resident.data.route.length;resident.pause=2.5;continue;}
-      const next:TownPosition={x:resident.position.x+dx/length*dt*.85/scale,z:resident.position.z+dz/length*dt*.85};
+      const next:TownPosition={x:resident.position.x+dx/length*dt*.85,z:resident.position.z+dz/length*dt*.85};
       if(isWalkableTownPosition(next)){resident.position=next;resident.walking=true;resident.heading=Math.atan2(dx,dz);}
       else {resident.index=(resident.index+1)%resident.data.route.length;resident.pause=1;}
     }

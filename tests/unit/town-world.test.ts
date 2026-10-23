@@ -1,4 +1,3 @@
-import { latitudeScale } from '@game/systems/planet';
 import { walkTo } from '../fixtures/first-aid-route';
 import { describe, expect, it } from 'vitest';
 import { buildingEntrance, TOWN_BUILDINGS, TOWN_SIZE, TOWN_SPAWN } from '@content/town';
@@ -20,7 +19,7 @@ describe('Town world', () => {
     const world = new TownWorld(entrance);
     expect(world.nearbyBuilding).toEqual(building);
     world.move(1, 0, 0.02);
-    expect(world.position.x).toBeCloseTo(entrance.x + 0.1/latitudeScale(entrance.z));
+    expect(world.position.x).toBeCloseTo(entrance.x + 0.1);
     const returnPosition = world.position;
     expect(world.interact()).toBe(true);
     expect(world.interior).toEqual(building);
