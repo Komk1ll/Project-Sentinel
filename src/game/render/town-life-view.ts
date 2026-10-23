@@ -9,6 +9,7 @@ export class TownLifeView {
   private elapsed=0;
   private readonly actors:THREE.Group[]=[];
   private readonly butterflies:THREE.Group[]=[];
+  private readonly birds:THREE.Group[]=[];
   private readonly jets:THREE.Mesh[]=[];
   private readonly sails=new THREE.Group();
   private readonly flowers:THREE.Mesh[]=[];
@@ -70,16 +71,39 @@ export class TownLifeView {
       for(const side of [-1,1])mesh(butterfly,i%2?0xe6bb67:0x85bbbd,side*.09,0,0,.11,.02,.13,true);
       this.butterflies.push(butterfly);this.group.add(butterfly);
     }
+    const wingGeometry=new THREE.BufferGeometry();
+    wingGeometry.setAttribute('position',new THREE.Float32BufferAttribute([0,0,0,.42,.025,-.12,.23,0,.14],3));
+    wingGeometry.computeVertexNormals();
+    const wingMaterial=new THREE.MeshStandardMaterial({color:0xe5e9dd,roughness:.85,side:THREE.DoubleSide});
+    for(let i=0;i<4;i++){
+      const bird=new THREE.Group();bird.name=`coastal-bird-${i}`;
+      mesh(bird,0xe5e9dd,0,0,0,.065,.055,.18,true).castShadow=false;
+      for(const side of [-1,1]){
+        const wing=new THREE.Mesh(wingGeometry,wingMaterial);wing.name=side<0?'left-wing':'right-wing';
+        wing.scale.x=side;bird.add(wing);
+      }
+      this.birds.push(bird);this.group.add(bird);
+    }
     this.update(0);
   }
   update(delta:number):void{
-    this.elapsed+=Math.min(Math.max(delta,0),.05);
+    this.elapsed+=Number.isFinite(delta)?Math.min(Math.max(delta,0),.05):0;
     this.actors.forEach((actor,i)=>{
       const resident=this.life.residents[i]!;placeOnGround(actor,resident.position.x,resident.position.z,resident.heading,.065);
       const stride=resident.walking?Math.sin(this.elapsed*7+i)*.48:0;
-      for(const [name,angle] of [['left-leg',stride],['right-leg',-stride],['left-arm',-stride*.65],['right-arm',stride*.65]] as const){
+      const idle=resident.walking?0:Math.sin(this.elapsed*1.7+i)*.035;
+      for(const [name,angle] of [['left-leg',stride],['right-leg',-stride],['left-arm',-stride*.65+idle],['right-arm',stride*.65-idle]] as const){
         const limb=actor.getObjectByName(name);if(limb)limb.rotation.x=angle;
       }
+    });
+    this.birds.forEach((bird,i)=>{
+      const angle=this.elapsed*.16+i*.24;
+      bird.position.set(52+Math.cos(angle)*42,9+i*.3+Math.sin(this.elapsed*.8+i)*.25,30+Math.sin(angle)*37);
+      bird.rotation.y=-angle;
+      bird.rotation.z=Math.sin(this.elapsed*.35+i)*.10;
+      const flap=Math.sin(this.elapsed*4.2+i)*.48;
+      bird.getObjectByName('left-wing')!.rotation.z=-flap;
+      bird.getObjectByName('right-wing')!.rotation.z=flap;
     });
     this.sails.rotation.z=this.elapsed*.3;
     this.jets.forEach((jet,i)=>{const t=(this.elapsed*.7+i/12)%1,angle=i*Math.PI/6;jet.position.set(Math.cos(angle)*t*.65,.42+Math.sin(t*Math.PI)*.85,Math.sin(angle)*t*.65);});

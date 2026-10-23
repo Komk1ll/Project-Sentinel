@@ -1,3 +1,4 @@
+import { animateFoliage } from '@game/render/foliage-wind';
 import { createIslandLandscape } from '@game/render/island-landscape';
 import * as THREE from 'three';
 import { COAST_PATH } from '@content/island';
@@ -9,7 +10,7 @@ import { ROAD_CENTERS, TOWN_BUILDINGS, TOWN_OPEN_SPACES, type TownBuilding } fro
 import { TOWN_CARS, TOWN_TREES, TOWN_BENCHES, TOWN_PLANTERS } from '@content/town-props';
 
 /** Metre-scale scenery. Never stretch imported buildings to fit unrelated lots. */
-export function createWebTown(assets?: ReadonlyMap<string, THREE.Group>): THREE.Group {
+export function createWebTown(assets?: ReadonlyMap<string, THREE.Group>, time = {value:0}): THREE.Group {
   const town = new THREE.Group();
   town.name = 'web-town';
   town.add(createIslandLandscape());
@@ -149,28 +150,44 @@ export function createWebTown(assets?: ReadonlyMap<string, THREE.Group>): THREE.
     const group = name && assets?.has(name) ? assets.get(name)!.clone(true) : genericBuilding(building);
     group.name = `building-${building.id}`; group.position.set(building.x, 0, building.z);
     group.userData.footprint = { width: building.width, depth: building.depth };
+    const details = assets?.get('architecture-details')?.getObjectByName(`detail-${building.id}`);
+    if (details) group.add(details.clone(true));
     sign(group, building);
     const foundation=new THREE.Mesh(new THREE.BoxGeometry(building.width,.9,building.depth),mat(0x8e927c));
     foundation.position.y=-.45;foundation.receiveShadow=true;group.add(foundation);
     placeOnGround(group,building.x,building.z);town.add(group);
   }
-  function instances(name: string, locations: readonly { x: number; z: number; rotation: number; scale?: number }[]): void {
-    const prototype=assets?.get(name); if (!prototype) return;
+  function instances(
+    name: string,
+    locations: readonly { x: number; z: number; rotation: number; scale?: number }[],
+    prototype: THREE.Object3D | undefined = assets?.get(name),
+  ): void {
+    if (!prototype || !locations.length) return;
     prototype.updateWorldMatrix(true,true);
     const placement=new THREE.Object3D(), matrix=new THREE.Matrix4();
     prototype.traverse(object=>{
       if (!(object instanceof THREE.Mesh)) return;
-      const mesh=new THREE.InstancedMesh(object.geometry,object.material,locations.length);
+      // Bake prototype offsets once so wind height is measured from ground level.
+      const geometry=object.geometry.clone().applyMatrix4(object.matrixWorld);
+      const mesh=new THREE.InstancedMesh(geometry,object.material,locations.length);
       mesh.name=`${name}-instances`; mesh.castShadow=true; mesh.receiveShadow=true;
       locations.forEach((location,index)=>{
         placeOnGround(placement,location.x,location.z,location.rotation);
         placement.scale.setScalar(location.scale ?? 1); placement.updateMatrix();
-        matrix.multiplyMatrices(placement.matrix,object.matrixWorld); mesh.setMatrixAt(index,matrix);
+        matrix.copy(placement.matrix); mesh.setMatrixAt(index,matrix);
       });
-      mesh.computeBoundingSphere(); town.add(mesh);
+      mesh.computeBoundingSphere();
+      if (!Array.isArray(mesh.material) && mesh.material.name.endsWith('_foliage')) animateFoliage(mesh,time);
+      town.add(mesh);
     });
   }
-  instances('tree',[...TOWN_TREES,...WILD_TREES]); instances('bench',[...TOWN_BENCHES,...WILD_BENCHES]);
+  const trees=[...TOWN_TREES,...WILD_TREES];
+  const treePack=assets?.get('tree');
+  if (treePack?.getObjectByName('tree-oak')) {
+    ['oak','birch','pine'].forEach((species,index)=>instances(`tree-${species}`,
+      trees.filter((_,i)=>i%3===index),treePack.getObjectByName(`tree-${species}`)));
+  } else instances('tree',trees);
+  instances('bench',[...TOWN_BENCHES,...WILD_BENCHES]);
   const props = new THREE.Group(); props.name = 'collision-props'; town.add(props);
 
   for (const car of TOWN_CARS) {

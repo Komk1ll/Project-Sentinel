@@ -86,7 +86,7 @@ export class ThreeRenderer {
     this.scene.add(sun, sun.target);
     const fill = new THREE.DirectionalLight(0xd0e7e2, .35);
     fill.position.set(40, 25, 60); this.scene.add(fill);
-    this.outdoors = createWebTown();
+    this.outdoors = createWebTown(undefined,this.shaderTime);
     this.lifeView=new TownLifeView(options.life??options.firstAid.life);
     this.outdoors.add(this.lifeView.group);
     this.assetLibrary.visible = false;
@@ -131,7 +131,7 @@ export class ThreeRenderer {
     this.scene.remove(this.outdoors);
     this.disposeGroup(this.outdoors);
     this.assetLibrary.add(...assets.values());
-    this.outdoors = createWebTown(assets);
+    this.outdoors = createWebTown(assets,this.shaderTime);
     this.lifeView=new TownLifeView(this.options.life??this.options.firstAid.life,take('hero'));
     this.outdoors.add(this.lifeView.group);
     this.setupCharacterCutaway(this.outdoors);
@@ -186,6 +186,7 @@ export class ThreeRenderer {
       if(material.userData.cutaway) return;
       material.userData.cutaway=true;
       const previous=material.onBeforeCompile;
+      const previousKey=material.customProgramCacheKey.bind(material);
       material.onBeforeCompile = (shader,renderer) => {
         previous.call(material,shader,renderer);
         shader.uniforms.sentinelPlayer = this.cutawayPosition;
@@ -212,7 +213,7 @@ export class ThreeRenderer {
           }
         `);
       };
-      material.customProgramCacheKey = () => 'sentinel-character-cutaway-flat';
+      material.customProgramCacheKey = () => `${previousKey()}-sentinel-character-cutaway-flat`;
     });
     enhanceSurfaceMaterials(group);
   }

@@ -2,6 +2,8 @@
 
 The v3 production record below is retained as history. The current integration uses
 rounded v4 actors and the polished workshop; see [open district](open-district.md).
+The current exterior also uses the [living island detail kit](../decisions/living-island-detail.md)
+with three instanced tree species and animated foliage.
 
 The approved simplified art direction uses original, procedural Blender models with
 flat PBR materials and no textures. Assets are authored and rendered on the user's

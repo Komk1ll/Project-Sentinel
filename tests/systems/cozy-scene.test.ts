@@ -59,7 +59,7 @@ it('loads the shipped GLBs, delivers the parcel, reuses rooms and releases their
     // Models can finish loading after the player has already entered a fallback room.
     approachMaster(firstAid); renderer.render();
     await renderer.loadVisuals(); renderer.render();
-    expect(requested).toHaveLength(12);
+    expect(requested).toHaveLength(13);
     const workshop = renderer.scene.getObjectByName('cozy-interior-station')!;
     const town = renderer.scene.getObjectByName('web-town')!;
     const hero = renderer.scene.getObjectByName('web-hero')!;
@@ -89,7 +89,7 @@ it('loads the shipped GLBs, delivers the parcel, reuses rooms and releases their
     expect(requested).not.toContain('town.glb');
     expect(requested).not.toContain('interior-home-7.glb');
     expect(town.getObjectByName('building-home-6')).toBeUndefined();
-    expect(town.getObjectByName('tree-instances')).toBeDefined();
+    expect(town.getObjectByName('tree-oak-instances')).toBeDefined();
     expect(town.getObjectByName('bench-instances')).toBeDefined();
     const master = renderer.scene.getObjectByName(MASTER.id)!;
     expect(master.getObjectByName('aid-kit-parcel')!.visible).toBe(true);
@@ -141,6 +141,17 @@ it('loads the shipped GLBs, delivers the parcel, reuses rooms and releases their
     expect(shader.fragmentShader).toContain('islandGrain');
     expect(shader.fragmentShader).toContain('sentinelPlayer');
     expect(shader.vertexShader).toContain('instanceMatrix * sentinelWorld');
+    // The cutaway hook must not reuse a static tree program for animated leaves.
+    let leafMaterial: MeshStandardMaterial | undefined;
+    town.traverse(object=>{if(object instanceof Mesh && object.userData.animatedFoliage)leafMaterial=object.material as MeshStandardMaterial;});
+    expect(leafMaterial).toBeDefined();
+    const leafShader={...ShaderLib.standard,uniforms:{...ShaderLib.standard.uniforms}};
+    leafMaterial!.onBeforeCompile(leafShader as Parameters<MeshStandardMaterial['onBeforeCompile']>[0],renderer.renderer);
+    expect(leafShader.vertexShader).toContain('foliageTime');
+    expect(leafShader.fragmentShader).toContain('sentinelPlayer');
+    expect(leafMaterial!.customProgramCacheKey()).not.toBe(material.customProgramCacheKey());
+    const wind=leafShader.uniforms.foliageTime!;
+    const previousWind=wind.value as number;renderer.render(.05);expect(wind.value).toBeGreaterThan(previousWind);
     const waterDisposed=vi.spyOn(water,'dispose');
     const sails=renderer.scene.getObjectByName('windmill-sails')!,rotation=sails.rotation.z;
     const walker=renderer.scene.getObjectByName('resident-walker')!,beforeWalker=walker.position.clone();
