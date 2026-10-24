@@ -1,3 +1,5 @@
+import { COASTAL_TREES } from '@content/harbor';
+import { createHarbor } from '@game/render/harbor-view';
 import { createStreetDressing } from '@game/render/street-dressing';
 import { animateFoliage } from '@game/render/foliage-wind';
 import { createIslandLandscape } from '@game/render/island-landscape';
@@ -182,7 +184,7 @@ export function createWebTown(assets?: ReadonlyMap<string, THREE.Group>, time = 
       town.add(mesh);
     });
   }
-  const trees=[...TOWN_TREES,...WILD_TREES];
+  const trees=[...TOWN_TREES,...WILD_TREES,...COASTAL_TREES];
   const treePack=assets?.get('tree');
   if (treePack?.getObjectByName('tree-oak')) {
     ['oak','birch','pine'].forEach((species,index)=>instances(`tree-${species}`,
@@ -193,6 +195,8 @@ export function createWebTown(assets?: ReadonlyMap<string, THREE.Group>, time = 
 
   const streetKit=assets?.get('street-kit');
   if(streetKit)town.add(createStreetDressing(streetKit,time));
+  const harborKit=assets?.get('harbor-kit');
+  if(harborKit)town.add(createHarbor(harborKit,time));
   for (const car of streetKit?[]:TOWN_CARS) {
     const group = new THREE.Group(); group.position.set(car.x, 0, car.z); group.rotation.y = car.rotation;
     box(group, 'car', car.color, 0, .5, 0, 1.3, .55, 2.7);

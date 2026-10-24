@@ -8,20 +8,16 @@ import {WebGLProgram} from 'three/src/renderers/webgl/WebGLProgram.js';
 const server=await createServer({server:{middlewareMode:true}});
 try {
   const {createOcean}=await server.ssrLoadModule('/src/game/render/island-terrain.ts');
-  const {ThreeRenderer}=await server.ssrLoadModule('/src/game/render/ThreeRenderer.ts');
+  const {enhanceSurfaceMaterials}=await server.ssrLoadModule('/src/game/render/surface-materials.ts');
   const root=new THREE.Group(),material=new THREE.MeshStandardMaterial();
   root.add(new THREE.Mesh(new THREE.BoxGeometry(),material));
-  ThreeRenderer.prototype.setupCharacterCutaway.call({
-    cutawayPosition:{value:new THREE.Vector3()},sightDirection:{value:new THREE.Vector3(28,34,28).normalize()},surfaceUp:{value:new THREE.Vector3(0,1,0)},
-  },root);
+  enhanceSurfaceMaterials(root);
   const pbr={...THREE.ShaderLib.standard,uniforms:{...THREE.ShaderLib.standard.uniforms}};
   material.onBeforeCompile(pbr,{});
   const {animateFoliage}=await server.ssrLoadModule('/src/game/render/foliage-wind.ts');
   const leaves=new THREE.InstancedMesh(new THREE.BoxGeometry(),new THREE.MeshStandardMaterial(),1);
   leaves.setMatrixAt(0,new THREE.Matrix4());animateFoliage(leaves,{value:1});
-  ThreeRenderer.prototype.setupCharacterCutaway.call({
-    cutawayPosition:{value:new THREE.Vector3()},sightDirection:{value:new THREE.Vector3(28,34,28).normalize()},surfaceUp:{value:new THREE.Vector3(0,1,0)},
-  },leaves);
+  enhanceSurfaceMaterials(leaves);
   const foliage={...THREE.ShaderLib.standard,uniforms:{...THREE.ShaderLib.standard.uniforms}};
   leaves.material.onBeforeCompile(foliage,{});
   const depth={...THREE.ShaderLib.depth,uniforms:{...THREE.ShaderLib.depth.uniforms}};
@@ -30,6 +26,7 @@ try {
   const programs=[];
   for(const [name,source,extra] of [
     ['water',ocean.material,{}],
+    ['hero-silhouette',THREE.ShaderLib.basic,{useFog:false,fog:false,shadowMapEnabled:false,toneMapping:THREE.NoToneMapping}],
     ['terrain',pbr,{vertexColors:true}],
     ['instanced-props',pbr,{instancing:true}],
     ['birch-bark',pbr,{instancing:true,vertexColors:true}],

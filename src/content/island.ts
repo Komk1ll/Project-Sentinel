@@ -1,6 +1,6 @@
 import type { TownPosition } from '@game/systems/town-world';
 export const ISLAND_CENTER={x:46,z:32};
-export const ISLAND_BOUNDS={minX:-20,maxX:112,minZ:-18,maxZ:82};
+export const ISLAND_BOUNDS={minX:-20,maxX:112,minZ:-18,maxZ:94};
 export const SEA_LEVEL=-.65;
 
 /** Shared irregular superellipse, keeping every existing town lot safely inland. */

@@ -17,7 +17,7 @@ it('releases every successful partial asset if one requested GLB fails',async()=
     return {...decoded,scene,scenes:[scene]};
   });
   await expect(loadTownAssets()).rejects.toThrow('could not be loaded');
-  expect(geometries).toHaveLength(13);
+  expect(geometries).toHaveLength(14);
   expect(geometries.every(geometry=>vi.mocked(geometry.dispose).mock.calls.length===1)).toBe(true);
   expect(materialDisposals.every(spy=>spy.mock.calls.length===1)).toBe(true);
 });

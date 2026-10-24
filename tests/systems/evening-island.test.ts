@@ -19,7 +19,7 @@ function save(point:{x:number;z:number},layout='coastal-island-v1'){
 it('relocates a valid earlier save out of a new shrub without losing completion',()=>{
   const point={x:51,z:25};expect(isWalkableTownPosition(point)).toBe(false);
   const restored=parseTownSave(save(point));
-  expect(restored?.stage).toBe('completed');expect(restored?.layout).toBe('coastal-island-v2');
+  expect(restored?.stage).toBe('completed');expect(restored?.layout).toBe('coastal-island-v3');
   expect(isTownWorldState(restored?.world)).toBe(true);
   expect(Math.hypot(restored!.world.position.x-point.x,restored!.world.position.z-point.z)).toBeLessThanOrEqual(4);
   expect(parseTownSave(save(point,'coastal-island-v2'))).toBeNull();

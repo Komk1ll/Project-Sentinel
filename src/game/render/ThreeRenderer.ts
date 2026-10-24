@@ -1,3 +1,5 @@
+import { updateHarbor } from '@game/render/harbor-view';
+import { addHeroSilhouette } from '@game/render/hero-silhouette';
 import { EVENING_LIGHT } from '@content/evening-light';
 import { ActorAnimation } from '@game/render/actor-animation';
 import * as THREE from 'three';
@@ -31,11 +33,11 @@ export class ThreeRenderer {
   public readonly camera: THREE.OrthographicCamera;
   public readonly renderer: THREE.WebGLRenderer;
   private lifeView: TownLifeView;
+  private harbor:THREE.Object3D|null=null;
   private heroAnimation:ActorAnimation|null=null;
   private readonly sun = new THREE.DirectionalLight(EVENING_LIGHT.sun,EVENING_LIGHT.sunIntensity);
   private readonly shaderTime = {value:0};
   private readonly ocean = createOcean(this.shaderTime);
-  private readonly sightDirection = { value: new THREE.Vector3(28,34,28).normalize() };
   private readonly surfaceUp = { value: new THREE.Vector3(0,1,0) };
   private readonly container: HTMLElement;
   private outdoors: THREE.Group;
@@ -59,7 +61,6 @@ export class ThreeRenderer {
   private walkTime = 0;
   private lastPosition = new THREE.Vector2();
   private isDestroyed = false;
-  private readonly cutawayPosition = { value: new THREE.Vector3() };
 
   constructor(private readonly options: ThreeRendererOptions) {
     const container = document.getElementById(options.containerId);
@@ -94,7 +95,7 @@ export class ThreeRenderer {
     this.outdoors.add(this.lifeView.group);
     this.assetLibrary.visible = false;
     this.scene.add(this.assetLibrary);
-    this.setupCharacterCutaway(this.outdoors);
+    enhanceSurfaceMaterials(this.outdoors);
     this.scene.add(this.outdoors);
     this.scene.add(this.ocean);
     this.buildCharacter();
@@ -136,9 +137,10 @@ export class ThreeRenderer {
     this.disposeGroup(this.outdoors);
     this.assetLibrary.add(...assets.values());
     this.outdoors = createWebTown(assets,this.shaderTime);
+    this.harbor=this.outdoors.getObjectByName('island-harbor')??null;
     this.lifeView=new TownLifeView(this.options.life??this.options.firstAid.life,take('hero'));
     this.outdoors.add(this.lifeView.group);
-    this.setupCharacterCutaway(this.outdoors);
+    enhanceSurfaceMaterials(this.outdoors);
     this.outdoors.visible = this.options.world.interior === null;
     this.scene.add(this.outdoors);
     this.scene.add(this.ocean);
@@ -155,6 +157,7 @@ export class ThreeRenderer {
       socket.add(kit); return kit;
     };
     this.heroKit = attachKit(hero);
+    addHeroSilhouette(hero);
     this.leftLeg = hero.getObjectByName('left-leg') ?? new THREE.Object3D();
     this.rightLeg = hero.getObjectByName('right-leg') ?? new THREE.Object3D();
     this.leftArm = hero.getObjectByName('left-arm') ?? new THREE.Object3D();
@@ -172,56 +175,11 @@ export class ThreeRenderer {
     seatedResident.scale.setScalar(.70);
     this.resident.add(seatedResident);
     for (const [name, model] of assets) if (name.startsWith('interior-')) {
-      this.setupCharacterCutaway(model);
+      enhanceSurfaceMaterials(model);
       this.interiorAssets.set(name.slice('interior-'.length), model);
     }
     if (this.room) { this.scene.remove(this.room); this.disposeGroup(this.room); }
     this.room = null; this.roomId = null;
-  }
-
-  /** Dither a narrow sight line through foreground facades so the player stays visible. */
-  private setupCharacterCutaway(group: THREE.Object3D): void {
-    const materials = new Set<THREE.MeshStandardMaterial>();
-    group.traverse(object => {
-      if (!(object instanceof THREE.Mesh)) return;
-      for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
-        if (material instanceof THREE.MeshStandardMaterial) materials.add(material);
-      }
-    });
-    materials.forEach(material => {
-      if(material.userData.cutaway) return;
-      material.userData.cutaway=true;
-      const previous=material.onBeforeCompile;
-      const previousKey=material.customProgramCacheKey.bind(material);
-      material.onBeforeCompile = (shader,renderer) => {
-        previous.call(material,shader,renderer);
-        shader.uniforms.sentinelPlayer = this.cutawayPosition;
-        shader.uniforms.sentinelSight = this.sightDirection;
-        shader.uniforms.sentinelUp = this.surfaceUp;
-        shader.vertexShader = 'varying vec3 sentinelWorldPosition;\n' + shader.vertexShader;
-        shader.vertexShader = shader.vertexShader.replace('#include <project_vertex>', `
-          #include <project_vertex>
-          vec4 sentinelWorld = vec4(transformed, 1.0);
-          #ifdef USE_INSTANCING
-            sentinelWorld = instanceMatrix * sentinelWorld;
-          #endif
-          sentinelWorldPosition = (modelMatrix * sentinelWorld).xyz;
-        `);
-        shader.fragmentShader = 'varying vec3 sentinelWorldPosition;\nuniform vec3 sentinelPlayer;\nuniform vec3 sentinelSight;\nuniform vec3 sentinelUp;\n' + shader.fragmentShader;
-        shader.fragmentShader = shader.fragmentShader.replace('#include <clipping_planes_fragment>', `
-          #include <clipping_planes_fragment>
-          vec3 sentinelDelta = sentinelWorldPosition - sentinelPlayer;
-          vec3 sentinelDirection = sentinelSight;
-          float sentinelDepth = dot(sentinelDelta, sentinelDirection);
-          float sentinelDistance = length(sentinelDelta - sentinelDirection * sentinelDepth);
-          if (sentinelDepth > 1.1 && dot(sentinelDelta,sentinelUp) > 0.2 && sentinelDistance < 1.15) {
-            if (mod(floor(gl_FragCoord.x) + floor(gl_FragCoord.y), 3.0) < 2.0) discard;
-          }
-        `);
-      };
-      material.customProgramCacheKey = () => `${previousKey()}-sentinel-character-cutaway-flat`;
-    });
-    enhanceSurfaceMaterials(group);
   }
 
   private buildCharacter(): void {
@@ -253,6 +211,7 @@ export class ThreeRenderer {
       mesh(new THREE.SphereGeometry(.085, 8, 6), skin, limb, side * .02, -.51, 0);
       this.character.add(limb);
     }
+    addHeroSilhouette(this.character);
     const ring = new THREE.Mesh(new THREE.RingGeometry(.3, .35, 40), new THREE.MeshBasicMaterial({ color: 0x7accca, transparent: true, opacity: .6, depthWrite: false }));
     ring.rotation.x = -Math.PI / 2; ring.position.y = .04; this.character.add(ring);
   }
@@ -276,7 +235,7 @@ export class ThreeRenderer {
       }
       this.room = world.interior ? this.interiorAssets.get(world.interior.id) ?? createInteriorMeshes(world.interior) : null;
       if (this.room) {
-        this.setupCharacterCutaway(this.room);
+        enhanceSurfaceMaterials(this.room);
         this.scene.add(this.room);
       }
       this.outdoors.visible = !world.interior;
@@ -286,12 +245,12 @@ export class ThreeRenderer {
     }
     const { x, z } = world.position;
     this.lifeView.update(deltaSeconds);
+    updateHarbor(this.harbor,this.shaderTime.value);
     const dx = x - this.lastPosition.x;
     const dz = z - this.lastPosition.y;
     const moving = Math.hypot(dx, dz) > .0001;
     placeOnGround(this.character,x,z,world.heading,.065);
     this.surfaceUp.value.set(0,1,0);
-    this.cutawayPosition.value.copy(this.character.position).addScaledVector(this.surfaceUp.value,1.05);
     this.walkTime += moving ? deltaSeconds * 10 : 0;
     const stride = moving ? Math.sin(this.walkTime) * .55 : 0;
     if(this.heroAnimation?.available)this.heroAnimation.update(deltaSeconds,moving);
@@ -333,7 +292,6 @@ export class ThreeRenderer {
       this.camera.position.copy(this.target).add(this.cameraOffset.clone().multiplyScalar(1+overview));
     }
     this.camera.lookAt(this.target);
-    this.sightDirection.value.copy(this.camera.position).sub(this.target).normalize();
     this.sun.intensity=world.interior?EVENING_LIGHT.interiorIntensity:EVENING_LIGHT.sunIntensity;
     this.sun.target.position.copy(this.target);
     this.sun.position.copy(this.target).add(new THREE.Vector3(...EVENING_LIGHT.sunOffset));

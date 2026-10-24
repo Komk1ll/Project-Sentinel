@@ -28,7 +28,12 @@ waves, shore foam and highlights; surfaces have procedural grain and micro-bump.
 Evening streets include two compact car models, 25 shrubs, 13 planted beds,
 32 lanterns, six bins and selectively illuminated windows. Blender-authored Idle,
 Walk and Greet clips animate the hero and residents; foliage moves in the wind.
-See [Evening streets](docs/decisions/evening-island.md) for assets, budgets and checks.
+The southwest shore has a lighthouse with a rotating beacon; the south pier is
+walkable and has two gently moving boats. Coastal rocks, dune grass and additional
+trees connect the harbor to the promenade. Both landmarks have information boards
+and map labels. Hidden hero fragments use a depth-tested silhouette without cutting
+holes in scenery. See [Harbor and visibility](docs/decisions/island-harbor.md) and
+[Evening streets](docs/decisions/evening-island.md) for assets and checks.
 
 Use **WASD / arrows** to walk and **E** or the action button for doors, people and
 notice boards. Quest actions take priority. The map offers **Nearby**, **District**
@@ -45,7 +50,7 @@ The complete first aid episode is playable: follow the golden minimap target to 
 
 See [First aid episode](docs/architecture/first-aid-mission.md) for state contracts, verification and the manual acceptance route.
 
-See [Web asset pack](docs/architecture/web-asset-pack.md) for the active lightweight models, metric scale, remote Blender production and validation. The map labels Mayak and the clinic and guides the player around collisions. The current fourteen GLB requests total 4,519,260 bytes; repeated scenery uses instancing.
+See [Web asset pack](docs/architecture/web-asset-pack.md) for the active lightweight models, metric scale, remote Blender production and validation. The map labels Mayak and the clinic and guides the player around collisions. The current fifteen GLB requests total 4,751,884 bytes; repeated scenery uses instancing.
 
 The active town renders through Three.js; Phaser is retained for the earlier 2D scenes. Read [Town architecture](docs/architecture/town-world.md) for the layout, simulation and integration contracts.
 

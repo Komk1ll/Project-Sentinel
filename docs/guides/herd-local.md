@@ -55,3 +55,12 @@ direct loopback connection. It was not started automatically. The same PHP build
 entry was run synchronously through CLI, producing a current `dist` and cache;
 all 14 copied model hashes were checked. This does not constitute a new HTTP or
 browser check. Start Herd normally and open the existing domain to play.
+
+## Harbor update on 24 October 2026
+
+Herd was running for this update. The current 15-model manifest is
+`art/island-harbor/asset-verification.json`; the HTTP verification tool now writes
+`art/island-harbor/herd/verification.json`. It confirms on-request rebuilds,
+same-length edits, cache reuse and 18 exact HTTP file hashes, with no Vite service
+or login agent. This supersedes the earlier stopped-Herd limitation for file
+serving, but does not establish browser rendering or FPS.

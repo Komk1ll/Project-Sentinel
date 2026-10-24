@@ -32,7 +32,7 @@ function gridFor(interior: TownBuilding | null, local:boolean): Grid {
   const key = interior?.id ?? (local?'town':'island');
   const cached = grids.get(key); if (cached) return cached;
   const step = interior ? .5 : 1, minX = interior ? -4.5 : local?0:-18, minZ = interior ? -3.5 : local?0:-16;
-  const width = interior ? 19 : local?65:129, height = interior ? 15 : local?65:97;
+  const width = interior ? 19 : local?65:129, height = interior ? 15 : local?65:111;
   const points = Array.from({length:width*height}, (_,i) => ({x:minX+i%width*step,z:minZ+Math.floor(i/width)*step}));
   const free = points.map(point => isWalkableTownPosition(point, interior));
   const adjacent = points.map((point,i) => {

@@ -1,3 +1,4 @@
+import { LIGHTHOUSE,PIER_DECKS,COASTAL_TREES } from '@content/harbor';
 import { ISLAND_BOUNDS, COAST_PATH, coastOutline, MILL } from '@content/island';
 import { TOWN_STOPS, WILD_TREES, ISLAND_PONDS } from '@content/town-life';
 import { TOWN_OPEN_SPACES, ROAD_CENTERS, TOWN_BUILDINGS, TOWN_SIZE } from '@content/town';
@@ -86,7 +87,7 @@ export function drawMinimap(canvas: HTMLCanvasElement, world: TownWorld, mission
     ctx.fillStyle='#a5b4b2';
     for(const road of ROAD_CENTERS){rect(road,32,4.1,64);rect(32,road,64,4.1);}
     ctx.fillStyle='#88a175';
-    for(const tree of [...TOWN_TREES,...WILD_TREES]){ctx.beginPath();ctx.arc(p.x(tree.x),p.z(tree.z),Math.max(1.8,tree.scale*.65*p.scale),0,Math.PI*2);ctx.fill();}
+    for(const tree of [...TOWN_TREES,...WILD_TREES,...COASTAL_TREES]){ctx.beginPath();ctx.arc(p.x(tree.x),p.z(tree.z),Math.max(1.8,tree.scale*.65*p.scale),0,Math.PI*2);ctx.fill();}
     for(const b of TOWN_BUILDINGS){
       ctx.fillStyle=b.id==='station'?'#427d7a':b.id==='clinic'?'#7197a0':'#c4bbaa';rect(b.x,b.z,b.width,b.depth);
       ctx.strokeStyle='#fdf9ef';ctx.lineWidth=1;ctx.strokeRect(p.x(b.x-b.width/2),p.z(b.z-b.depth/2),b.width*p.scale,b.depth*p.scale);
@@ -97,7 +98,9 @@ export function drawMinimap(canvas: HTMLCanvasElement, world: TownWorld, mission
     ctx.fillStyle='#69aeb8';for(const pond of ISLAND_PONDS){ctx.beginPath();ctx.ellipse(p.x(pond.x),p.z(pond.z),pond.width*p.scale/2,pond.depth*p.scale/2,0,0,Math.PI*2);ctx.fill();}
     for(const stop of TOWN_STOPS){ctx.fillStyle='#6c9a81';rect(stop.x,stop.z,1.8,1.8);}
     for(const resident of mission.life.residents){ctx.fillStyle='#8e6182';ctx.beginPath();ctx.arc(p.x(resident.position.x),p.z(resident.position.z),2.4,0,Math.PI*2);ctx.fill();}
-    if(mode==='island'){text('Зареченск',32,-10);text('Мельница',MILL.x,MILL.z-3);text('Береговая тропа',46,73);}
+    ctx.fillStyle='#a78962';for(const deck of PIER_DECKS)rect(deck.x,deck.z,deck.width,deck.depth);
+    ctx.fillStyle='#ad6651';rect(LIGHTHOUSE.x,LIGHTHOUSE.z,4,4);
+    if(mode==='island'){text('Морской маяк',0,58);text('Причал',58,85);text('Зареченск',32,-10);text('Мельница',MILL.x,MILL.z-3);text('Береговая тропа',46,73);}
     ctx.fillStyle='#b3a686';rect(MILL.x,MILL.z,3.8,3.8);
     if(mode!=='island'||size>360)for(const b of TOWN_BUILDINGS){
       if(b.id==='station'||b.id==='clinic')text(b.id==='station'?'Маяк':'Клиника',b.x,b.z);

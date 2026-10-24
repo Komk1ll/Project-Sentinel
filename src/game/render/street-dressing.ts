@@ -47,9 +47,9 @@ export function createStreetDressing(kit:THREE.Group,time:{value:number}):THREE.
   if(windows){windows.name='illuminated-windows';group.add(windows);}
 
   // Warm vertex-faded pools simulate spill light with one cheap draw, no point-light shadows.
-  const positions=[0,.045,0],colors=[1,.55,.19],indices:number[]=[];
+  const positions=[0,.075,0],colors=[1,.55,.19],indices:number[]=[];
   for(let i=0;i<=24;i++){
-    const a=i/24*Math.PI*2;positions.push(Math.cos(a)*1.7,.045,Math.sin(a)*1.7);colors.push(0,0,0);
+    const a=i/24*Math.PI*2;positions.push(Math.cos(a)*1.7,.075,Math.sin(a)*1.7);colors.push(0,0,0);
     if(i<24)indices.push(0,i+1,i+2);
   }
   const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));

@@ -59,7 +59,7 @@ it('loads the shipped GLBs, delivers the parcel, reuses rooms and releases their
     // Models can finish loading after the player has already entered a fallback room.
     approachMaster(firstAid); renderer.render();
     await renderer.loadVisuals(); renderer.render();
-    expect(requested).toHaveLength(14);
+    expect(requested).toHaveLength(15);
     const workshop = renderer.scene.getObjectByName('cozy-interior-station')!;
     const town = renderer.scene.getObjectByName('web-town')!;
     const hero = renderer.scene.getObjectByName('web-hero')!;
@@ -139,16 +139,16 @@ it('loads the shipped GLBs, delivers the parcel, reuses rooms and releases their
     const shader={...ShaderLib.standard,uniforms:{...ShaderLib.standard.uniforms}};
     material.onBeforeCompile(shader as unknown as Parameters<typeof material.onBeforeCompile>[0],renderer.renderer);
     expect(shader.fragmentShader).toContain('islandGrain');
-    expect(shader.fragmentShader).toContain('sentinelPlayer');
-    expect(shader.vertexShader).toContain('instanceMatrix * sentinelWorld');
-    // The cutaway hook must not reuse a static tree program for animated leaves.
+    expect(shader.fragmentShader).not.toContain('sentinelPlayer');
+    expect(shader.vertexShader).toContain('instanceMatrix*islandDetailWorld');
+    // Surface grain must preserve the animated foliage shader.
     let leafMaterial: MeshStandardMaterial | undefined;
     town.traverse(object=>{if(object instanceof Mesh && object.userData.animatedFoliage)leafMaterial=object.material as MeshStandardMaterial;});
     expect(leafMaterial).toBeDefined();
     const leafShader={...ShaderLib.standard,uniforms:{...ShaderLib.standard.uniforms}};
     leafMaterial!.onBeforeCompile(leafShader as Parameters<MeshStandardMaterial['onBeforeCompile']>[0],renderer.renderer);
     expect(leafShader.vertexShader).toContain('foliageTime');
-    expect(leafShader.fragmentShader).toContain('sentinelPlayer');
+    expect(leafShader.fragmentShader).not.toContain('sentinelPlayer');
     expect(leafMaterial!.customProgramCacheKey()).not.toBe(material.customProgramCacheKey());
     const wind=leafShader.uniforms.foliageTime!;
     const previousWind=wind.value as number;renderer.render(.05);expect(wind.value).toBeGreaterThan(previousWind);
