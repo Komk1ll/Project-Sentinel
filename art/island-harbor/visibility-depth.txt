@@ -1,0 +1,370 @@
+tools/check-hero-visibility.swift:7:7: warning: 'CGLChoosePixelFormat' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+ 5 | var format:CGLPixelFormatObj?,context:CGLContextObj?,count:GLint=0
+ 6 | let attributes=[kCGLPFAOpenGLProfile,CGLPixelFormatAttribute(kCGLOGLPVersion_3_2_Core.rawValue),CGLPixelFormatAttribute(0)]
+ 7 | guard CGLChoosePixelFormat(attributes,&format,&count)==kCGLNoError,let f=format else{fatalError("format")}
+   |       `- warning: 'CGLChoosePixelFormat' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+ 8 | guard CGLCreateContext(f,nil,&context)==kCGLNoError,let c=context else{fatalError("context")}
+ 9 | CGLSetCurrentContext(c)
+
+tools/check-hero-visibility.swift:8:7: warning: 'CGLCreateContext' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+ 6 | let attributes=[kCGLPFAOpenGLProfile,CGLPixelFormatAttribute(kCGLOGLPVersion_3_2_Core.rawValue),CGLPixelFormatAttribute(0)]
+ 7 | guard CGLChoosePixelFormat(attributes,&format,&count)==kCGLNoError,let f=format else{fatalError("format")}
+ 8 | guard CGLCreateContext(f,nil,&context)==kCGLNoError,let c=context else{fatalError("context")}
+   |       `- warning: 'CGLCreateContext' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+ 9 | CGLSetCurrentContext(c)
+10 | defer{CGLSetCurrentContext(nil);CGLDestroyContext(c);CGLDestroyPixelFormat(f)}
+
+tools/check-hero-visibility.swift:10:33: warning: 'CGLDestroyContext' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+ 8 | guard CGLCreateContext(f,nil,&context)==kCGLNoError,let c=context else{fatalError("context")}
+ 9 | CGLSetCurrentContext(c)
+10 | defer{CGLSetCurrentContext(nil);CGLDestroyContext(c);CGLDestroyPixelFormat(f)}
+   |                                 `- warning: 'CGLDestroyContext' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+11 | let program=glCreateProgram()
+12 | for (kind,source) in [(GLenum(GL_VERTEX_SHADER),"#version 150\nin vec3 position; void main(){gl_Position=vec4(position,1.0);}"),(GLenum(GL_FRAGMENT_SHADER),"#version 150\nuniform vec3 tint; out vec4 color; void main(){color=vec4(tint,1.0);}")]{
+
+tools/check-hero-visibility.swift:10:54: warning: 'CGLDestroyPixelFormat' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+ 8 | guard CGLCreateContext(f,nil,&context)==kCGLNoError,let c=context else{fatalError("context")}
+ 9 | CGLSetCurrentContext(c)
+10 | defer{CGLSetCurrentContext(nil);CGLDestroyContext(c);CGLDestroyPixelFormat(f)}
+   |                                                      `- warning: 'CGLDestroyPixelFormat' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+11 | let program=glCreateProgram()
+12 | for (kind,source) in [(GLenum(GL_VERTEX_SHADER),"#version 150\nin vec3 position; void main(){gl_Position=vec4(position,1.0);}"),(GLenum(GL_FRAGMENT_SHADER),"#version 150\nuniform vec3 tint; out vec4 color; void main(){color=vec4(tint,1.0);}")]{
+
+tools/check-hero-visibility.swift:11:13: warning: 'glCreateProgram()' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+ 9 | CGLSetCurrentContext(c)
+10 | defer{CGLSetCurrentContext(nil);CGLDestroyContext(c);CGLDestroyPixelFormat(f)}
+11 | let program=glCreateProgram()
+   |             `- warning: 'glCreateProgram()' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+12 | for (kind,source) in [(GLenum(GL_VERTEX_SHADER),"#version 150\nin vec3 position; void main(){gl_Position=vec4(position,1.0);}"),(GLenum(GL_FRAGMENT_SHADER),"#version 150\nuniform vec3 tint; out vec4 color; void main(){color=vec4(tint,1.0);}")]{
+13 |  let shader=glCreateShader(kind);source.withCString{p in var ptr:UnsafePointer<GLchar>?=p;glShaderSource(shader,1,&ptr,nil)};glCompileShader(shader)
+
+tools/check-hero-visibility.swift:13:13: warning: 'glCreateShader' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+11 | let program=glCreateProgram()
+12 | for (kind,source) in [(GLenum(GL_VERTEX_SHADER),"#version 150\nin vec3 position; void main(){gl_Position=vec4(position,1.0);}"),(GLenum(GL_FRAGMENT_SHADER),"#version 150\nuniform vec3 tint; out vec4 color; void main(){color=vec4(tint,1.0);}")]{
+13 |  let shader=glCreateShader(kind);source.withCString{p in var ptr:UnsafePointer<GLchar>?=p;glShaderSource(shader,1,&ptr,nil)};glCompileShader(shader)
+   |             `- warning: 'glCreateShader' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+14 |  var ok:GLint=0;glGetShaderiv(shader,GLenum(GL_COMPILE_STATUS),&ok);precondition(ok==1);glAttachShader(program,shader)
+15 | }
+
+tools/check-hero-visibility.swift:13:91: warning: 'glShaderSource' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+11 | let program=glCreateProgram()
+12 | for (kind,source) in [(GLenum(GL_VERTEX_SHADER),"#version 150\nin vec3 position; void main(){gl_Position=vec4(position,1.0);}"),(GLenum(GL_FRAGMENT_SHADER),"#version 150\nuniform vec3 tint; out vec4 color; void main(){color=vec4(tint,1.0);}")]{
+13 |  let shader=glCreateShader(kind);source.withCString{p in var ptr:UnsafePointer<GLchar>?=p;glShaderSource(shader,1,&ptr,nil)};glCompileShader(shader)
+   |                                                                                           `- warning: 'glShaderSource' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+14 |  var ok:GLint=0;glGetShaderiv(shader,GLenum(GL_COMPILE_STATUS),&ok);precondition(ok==1);glAttachShader(program,shader)
+15 | }
+
+tools/check-hero-visibility.swift:13:126: warning: 'glCompileShader' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+11 | let program=glCreateProgram()
+12 | for (kind,source) in [(GLenum(GL_VERTEX_SHADER),"#version 150\nin vec3 position; void main(){gl_Position=vec4(position,1.0);}"),(GLenum(GL_FRAGMENT_SHADER),"#version 150\nuniform vec3 tint; out vec4 color; void main(){color=vec4(tint,1.0);}")]{
+13 |  let shader=glCreateShader(kind);source.withCString{p in var ptr:UnsafePointer<GLchar>?=p;glShaderSource(shader,1,&ptr,nil)};glCompileShader(shader)
+   |                                                                                                                              `- warning: 'glCompileShader' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+14 |  var ok:GLint=0;glGetShaderiv(shader,GLenum(GL_COMPILE_STATUS),&ok);precondition(ok==1);glAttachShader(program,shader)
+15 | }
+
+tools/check-hero-visibility.swift:14:17: warning: 'glGetShaderiv' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+12 | for (kind,source) in [(GLenum(GL_VERTEX_SHADER),"#version 150\nin vec3 position; void main(){gl_Position=vec4(position,1.0);}"),(GLenum(GL_FRAGMENT_SHADER),"#version 150\nuniform vec3 tint; out vec4 color; void main(){color=vec4(tint,1.0);}")]{
+13 |  let shader=glCreateShader(kind);source.withCString{p in var ptr:UnsafePointer<GLchar>?=p;glShaderSource(shader,1,&ptr,nil)};glCompileShader(shader)
+14 |  var ok:GLint=0;glGetShaderiv(shader,GLenum(GL_COMPILE_STATUS),&ok);precondition(ok==1);glAttachShader(program,shader)
+   |                 `- warning: 'glGetShaderiv' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+15 | }
+16 | glBindAttribLocation(program,0,"position");glLinkProgram(program);glUseProgram(program)
+
+tools/check-hero-visibility.swift:14:89: warning: 'glAttachShader' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+12 | for (kind,source) in [(GLenum(GL_VERTEX_SHADER),"#version 150\nin vec3 position; void main(){gl_Position=vec4(position,1.0);}"),(GLenum(GL_FRAGMENT_SHADER),"#version 150\nuniform vec3 tint; out vec4 color; void main(){color=vec4(tint,1.0);}")]{
+13 |  let shader=glCreateShader(kind);source.withCString{p in var ptr:UnsafePointer<GLchar>?=p;glShaderSource(shader,1,&ptr,nil)};glCompileShader(shader)
+14 |  var ok:GLint=0;glGetShaderiv(shader,GLenum(GL_COMPILE_STATUS),&ok);precondition(ok==1);glAttachShader(program,shader)
+   |                                                                                         `- warning: 'glAttachShader' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+15 | }
+16 | glBindAttribLocation(program,0,"position");glLinkProgram(program);glUseProgram(program)
+
+tools/check-hero-visibility.swift:16:1: warning: 'glBindAttribLocation' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+14 |  var ok:GLint=0;glGetShaderiv(shader,GLenum(GL_COMPILE_STATUS),&ok);precondition(ok==1);glAttachShader(program,shader)
+15 | }
+16 | glBindAttribLocation(program,0,"position");glLinkProgram(program);glUseProgram(program)
+   | `- warning: 'glBindAttribLocation' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+17 | var vao:GLuint=0,vbo:GLuint=0,frame:GLuint=0,color:GLuint=0,depth:GLuint=0
+18 | glGenVertexArrays(1,&vao);glBindVertexArray(vao);glGenBuffers(1,&vbo);glBindBuffer(GLenum(GL_ARRAY_BUFFER),vbo)
+
+tools/check-hero-visibility.swift:16:44: warning: 'glLinkProgram' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+14 |  var ok:GLint=0;glGetShaderiv(shader,GLenum(GL_COMPILE_STATUS),&ok);precondition(ok==1);glAttachShader(program,shader)
+15 | }
+16 | glBindAttribLocation(program,0,"position");glLinkProgram(program);glUseProgram(program)
+   |                                            `- warning: 'glLinkProgram' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+17 | var vao:GLuint=0,vbo:GLuint=0,frame:GLuint=0,color:GLuint=0,depth:GLuint=0
+18 | glGenVertexArrays(1,&vao);glBindVertexArray(vao);glGenBuffers(1,&vbo);glBindBuffer(GLenum(GL_ARRAY_BUFFER),vbo)
+
+tools/check-hero-visibility.swift:16:67: warning: 'glUseProgram' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+14 |  var ok:GLint=0;glGetShaderiv(shader,GLenum(GL_COMPILE_STATUS),&ok);precondition(ok==1);glAttachShader(program,shader)
+15 | }
+16 | glBindAttribLocation(program,0,"position");glLinkProgram(program);glUseProgram(program)
+   |                                                                   `- warning: 'glUseProgram' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+17 | var vao:GLuint=0,vbo:GLuint=0,frame:GLuint=0,color:GLuint=0,depth:GLuint=0
+18 | glGenVertexArrays(1,&vao);glBindVertexArray(vao);glGenBuffers(1,&vbo);glBindBuffer(GLenum(GL_ARRAY_BUFFER),vbo)
+
+tools/check-hero-visibility.swift:18:1: warning: 'glGenVertexArrays' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+16 | glBindAttribLocation(program,0,"position");glLinkProgram(program);glUseProgram(program)
+17 | var vao:GLuint=0,vbo:GLuint=0,frame:GLuint=0,color:GLuint=0,depth:GLuint=0
+18 | glGenVertexArrays(1,&vao);glBindVertexArray(vao);glGenBuffers(1,&vbo);glBindBuffer(GLenum(GL_ARRAY_BUFFER),vbo)
+   | `- warning: 'glGenVertexArrays' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+19 | glEnableVertexAttribArray(0);glVertexAttribPointer(0,3,GLenum(GL_FLOAT),GLboolean(GL_FALSE),0,nil)
+20 | glGenFramebuffers(1,&frame);glBindFramebuffer(GLenum(GL_FRAMEBUFFER),frame)
+
+tools/check-hero-visibility.swift:18:27: warning: 'glBindVertexArray' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+16 | glBindAttribLocation(program,0,"position");glLinkProgram(program);glUseProgram(program)
+17 | var vao:GLuint=0,vbo:GLuint=0,frame:GLuint=0,color:GLuint=0,depth:GLuint=0
+18 | glGenVertexArrays(1,&vao);glBindVertexArray(vao);glGenBuffers(1,&vbo);glBindBuffer(GLenum(GL_ARRAY_BUFFER),vbo)
+   |                           `- warning: 'glBindVertexArray' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+19 | glEnableVertexAttribArray(0);glVertexAttribPointer(0,3,GLenum(GL_FLOAT),GLboolean(GL_FALSE),0,nil)
+20 | glGenFramebuffers(1,&frame);glBindFramebuffer(GLenum(GL_FRAMEBUFFER),frame)
+
+tools/check-hero-visibility.swift:18:50: warning: 'glGenBuffers' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+16 | glBindAttribLocation(program,0,"position");glLinkProgram(program);glUseProgram(program)
+17 | var vao:GLuint=0,vbo:GLuint=0,frame:GLuint=0,color:GLuint=0,depth:GLuint=0
+18 | glGenVertexArrays(1,&vao);glBindVertexArray(vao);glGenBuffers(1,&vbo);glBindBuffer(GLenum(GL_ARRAY_BUFFER),vbo)
+   |                                                  `- warning: 'glGenBuffers' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+19 | glEnableVertexAttribArray(0);glVertexAttribPointer(0,3,GLenum(GL_FLOAT),GLboolean(GL_FALSE),0,nil)
+20 | glGenFramebuffers(1,&frame);glBindFramebuffer(GLenum(GL_FRAMEBUFFER),frame)
+
+tools/check-hero-visibility.swift:18:71: warning: 'glBindBuffer' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+16 | glBindAttribLocation(program,0,"position");glLinkProgram(program);glUseProgram(program)
+17 | var vao:GLuint=0,vbo:GLuint=0,frame:GLuint=0,color:GLuint=0,depth:GLuint=0
+18 | glGenVertexArrays(1,&vao);glBindVertexArray(vao);glGenBuffers(1,&vbo);glBindBuffer(GLenum(GL_ARRAY_BUFFER),vbo)
+   |                                                                       `- warning: 'glBindBuffer' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+19 | glEnableVertexAttribArray(0);glVertexAttribPointer(0,3,GLenum(GL_FLOAT),GLboolean(GL_FALSE),0,nil)
+20 | glGenFramebuffers(1,&frame);glBindFramebuffer(GLenum(GL_FRAMEBUFFER),frame)
+
+tools/check-hero-visibility.swift:19:1: warning: 'glEnableVertexAttribArray' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+17 | var vao:GLuint=0,vbo:GLuint=0,frame:GLuint=0,color:GLuint=0,depth:GLuint=0
+18 | glGenVertexArrays(1,&vao);glBindVertexArray(vao);glGenBuffers(1,&vbo);glBindBuffer(GLenum(GL_ARRAY_BUFFER),vbo)
+19 | glEnableVertexAttribArray(0);glVertexAttribPointer(0,3,GLenum(GL_FLOAT),GLboolean(GL_FALSE),0,nil)
+   | `- warning: 'glEnableVertexAttribArray' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+20 | glGenFramebuffers(1,&frame);glBindFramebuffer(GLenum(GL_FRAMEBUFFER),frame)
+21 | glGenRenderbuffers(1,&color);glBindRenderbuffer(GLenum(GL_RENDERBUFFER),color);glRenderbufferStorage(GLenum(GL_RENDERBUFFER),GLenum(GL_RGBA8),288,96)
+
+tools/check-hero-visibility.swift:19:30: warning: 'glVertexAttribPointer' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+17 | var vao:GLuint=0,vbo:GLuint=0,frame:GLuint=0,color:GLuint=0,depth:GLuint=0
+18 | glGenVertexArrays(1,&vao);glBindVertexArray(vao);glGenBuffers(1,&vbo);glBindBuffer(GLenum(GL_ARRAY_BUFFER),vbo)
+19 | glEnableVertexAttribArray(0);glVertexAttribPointer(0,3,GLenum(GL_FLOAT),GLboolean(GL_FALSE),0,nil)
+   |                              `- warning: 'glVertexAttribPointer' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+20 | glGenFramebuffers(1,&frame);glBindFramebuffer(GLenum(GL_FRAMEBUFFER),frame)
+21 | glGenRenderbuffers(1,&color);glBindRenderbuffer(GLenum(GL_RENDERBUFFER),color);glRenderbufferStorage(GLenum(GL_RENDERBUFFER),GLenum(GL_RGBA8),288,96)
+
+tools/check-hero-visibility.swift:20:1: warning: 'glGenFramebuffers' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+18 | glGenVertexArrays(1,&vao);glBindVertexArray(vao);glGenBuffers(1,&vbo);glBindBuffer(GLenum(GL_ARRAY_BUFFER),vbo)
+19 | glEnableVertexAttribArray(0);glVertexAttribPointer(0,3,GLenum(GL_FLOAT),GLboolean(GL_FALSE),0,nil)
+20 | glGenFramebuffers(1,&frame);glBindFramebuffer(GLenum(GL_FRAMEBUFFER),frame)
+   | `- warning: 'glGenFramebuffers' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+21 | glGenRenderbuffers(1,&color);glBindRenderbuffer(GLenum(GL_RENDERBUFFER),color);glRenderbufferStorage(GLenum(GL_RENDERBUFFER),GLenum(GL_RGBA8),288,96)
+22 | glFramebufferRenderbuffer(GLenum(GL_FRAMEBUFFER),GLenum(GL_COLOR_ATTACHMENT0),GLenum(GL_RENDERBUFFER),color)
+
+tools/check-hero-visibility.swift:20:29: warning: 'glBindFramebuffer' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+18 | glGenVertexArrays(1,&vao);glBindVertexArray(vao);glGenBuffers(1,&vbo);glBindBuffer(GLenum(GL_ARRAY_BUFFER),vbo)
+19 | glEnableVertexAttribArray(0);glVertexAttribPointer(0,3,GLenum(GL_FLOAT),GLboolean(GL_FALSE),0,nil)
+20 | glGenFramebuffers(1,&frame);glBindFramebuffer(GLenum(GL_FRAMEBUFFER),frame)
+   |                             `- warning: 'glBindFramebuffer' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+21 | glGenRenderbuffers(1,&color);glBindRenderbuffer(GLenum(GL_RENDERBUFFER),color);glRenderbufferStorage(GLenum(GL_RENDERBUFFER),GLenum(GL_RGBA8),288,96)
+22 | glFramebufferRenderbuffer(GLenum(GL_FRAMEBUFFER),GLenum(GL_COLOR_ATTACHMENT0),GLenum(GL_RENDERBUFFER),color)
+
+tools/check-hero-visibility.swift:21:1: warning: 'glGenRenderbuffers' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+19 | glEnableVertexAttribArray(0);glVertexAttribPointer(0,3,GLenum(GL_FLOAT),GLboolean(GL_FALSE),0,nil)
+20 | glGenFramebuffers(1,&frame);glBindFramebuffer(GLenum(GL_FRAMEBUFFER),frame)
+21 | glGenRenderbuffers(1,&color);glBindRenderbuffer(GLenum(GL_RENDERBUFFER),color);glRenderbufferStorage(GLenum(GL_RENDERBUFFER),GLenum(GL_RGBA8),288,96)
+   | `- warning: 'glGenRenderbuffers' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+22 | glFramebufferRenderbuffer(GLenum(GL_FRAMEBUFFER),GLenum(GL_COLOR_ATTACHMENT0),GLenum(GL_RENDERBUFFER),color)
+23 | glGenRenderbuffers(1,&depth);glBindRenderbuffer(GLenum(GL_RENDERBUFFER),depth);glRenderbufferStorage(GLenum(GL_RENDERBUFFER),GLenum(GL_DEPTH_COMPONENT24),288,96)
+
+tools/check-hero-visibility.swift:21:30: warning: 'glBindRenderbuffer' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+19 | glEnableVertexAttribArray(0);glVertexAttribPointer(0,3,GLenum(GL_FLOAT),GLboolean(GL_FALSE),0,nil)
+20 | glGenFramebuffers(1,&frame);glBindFramebuffer(GLenum(GL_FRAMEBUFFER),frame)
+21 | glGenRenderbuffers(1,&color);glBindRenderbuffer(GLenum(GL_RENDERBUFFER),color);glRenderbufferStorage(GLenum(GL_RENDERBUFFER),GLenum(GL_RGBA8),288,96)
+   |                              `- warning: 'glBindRenderbuffer' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+22 | glFramebufferRenderbuffer(GLenum(GL_FRAMEBUFFER),GLenum(GL_COLOR_ATTACHMENT0),GLenum(GL_RENDERBUFFER),color)
+23 | glGenRenderbuffers(1,&depth);glBindRenderbuffer(GLenum(GL_RENDERBUFFER),depth);glRenderbufferStorage(GLenum(GL_RENDERBUFFER),GLenum(GL_DEPTH_COMPONENT24),288,96)
+
+tools/check-hero-visibility.swift:21:80: warning: 'glRenderbufferStorage' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+19 | glEnableVertexAttribArray(0);glVertexAttribPointer(0,3,GLenum(GL_FLOAT),GLboolean(GL_FALSE),0,nil)
+20 | glGenFramebuffers(1,&frame);glBindFramebuffer(GLenum(GL_FRAMEBUFFER),frame)
+21 | glGenRenderbuffers(1,&color);glBindRenderbuffer(GLenum(GL_RENDERBUFFER),color);glRenderbufferStorage(GLenum(GL_RENDERBUFFER),GLenum(GL_RGBA8),288,96)
+   |                                                                                `- warning: 'glRenderbufferStorage' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+22 | glFramebufferRenderbuffer(GLenum(GL_FRAMEBUFFER),GLenum(GL_COLOR_ATTACHMENT0),GLenum(GL_RENDERBUFFER),color)
+23 | glGenRenderbuffers(1,&depth);glBindRenderbuffer(GLenum(GL_RENDERBUFFER),depth);glRenderbufferStorage(GLenum(GL_RENDERBUFFER),GLenum(GL_DEPTH_COMPONENT24),288,96)
+
+tools/check-hero-visibility.swift:22:1: warning: 'glFramebufferRenderbuffer' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+20 | glGenFramebuffers(1,&frame);glBindFramebuffer(GLenum(GL_FRAMEBUFFER),frame)
+21 | glGenRenderbuffers(1,&color);glBindRenderbuffer(GLenum(GL_RENDERBUFFER),color);glRenderbufferStorage(GLenum(GL_RENDERBUFFER),GLenum(GL_RGBA8),288,96)
+22 | glFramebufferRenderbuffer(GLenum(GL_FRAMEBUFFER),GLenum(GL_COLOR_ATTACHMENT0),GLenum(GL_RENDERBUFFER),color)
+   | `- warning: 'glFramebufferRenderbuffer' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+23 | glGenRenderbuffers(1,&depth);glBindRenderbuffer(GLenum(GL_RENDERBUFFER),depth);glRenderbufferStorage(GLenum(GL_RENDERBUFFER),GLenum(GL_DEPTH_COMPONENT24),288,96)
+24 | glFramebufferRenderbuffer(GLenum(GL_FRAMEBUFFER),GLenum(GL_DEPTH_ATTACHMENT),GLenum(GL_RENDERBUFFER),depth)
+
+tools/check-hero-visibility.swift:23:1: warning: 'glGenRenderbuffers' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+21 | glGenRenderbuffers(1,&color);glBindRenderbuffer(GLenum(GL_RENDERBUFFER),color);glRenderbufferStorage(GLenum(GL_RENDERBUFFER),GLenum(GL_RGBA8),288,96)
+22 | glFramebufferRenderbuffer(GLenum(GL_FRAMEBUFFER),GLenum(GL_COLOR_ATTACHMENT0),GLenum(GL_RENDERBUFFER),color)
+23 | glGenRenderbuffers(1,&depth);glBindRenderbuffer(GLenum(GL_RENDERBUFFER),depth);glRenderbufferStorage(GLenum(GL_RENDERBUFFER),GLenum(GL_DEPTH_COMPONENT24),288,96)
+   | `- warning: 'glGenRenderbuffers' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+24 | glFramebufferRenderbuffer(GLenum(GL_FRAMEBUFFER),GLenum(GL_DEPTH_ATTACHMENT),GLenum(GL_RENDERBUFFER),depth)
+25 | precondition(glCheckFramebufferStatus(GLenum(GL_FRAMEBUFFER))==GLenum(GL_FRAMEBUFFER_COMPLETE))
+
+tools/check-hero-visibility.swift:23:30: warning: 'glBindRenderbuffer' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+21 | glGenRenderbuffers(1,&color);glBindRenderbuffer(GLenum(GL_RENDERBUFFER),color);glRenderbufferStorage(GLenum(GL_RENDERBUFFER),GLenum(GL_RGBA8),288,96)
+22 | glFramebufferRenderbuffer(GLenum(GL_FRAMEBUFFER),GLenum(GL_COLOR_ATTACHMENT0),GLenum(GL_RENDERBUFFER),color)
+23 | glGenRenderbuffers(1,&depth);glBindRenderbuffer(GLenum(GL_RENDERBUFFER),depth);glRenderbufferStorage(GLenum(GL_RENDERBUFFER),GLenum(GL_DEPTH_COMPONENT24),288,96)
+   |                              `- warning: 'glBindRenderbuffer' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+24 | glFramebufferRenderbuffer(GLenum(GL_FRAMEBUFFER),GLenum(GL_DEPTH_ATTACHMENT),GLenum(GL_RENDERBUFFER),depth)
+25 | precondition(glCheckFramebufferStatus(GLenum(GL_FRAMEBUFFER))==GLenum(GL_FRAMEBUFFER_COMPLETE))
+
+tools/check-hero-visibility.swift:23:80: warning: 'glRenderbufferStorage' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+21 | glGenRenderbuffers(1,&color);glBindRenderbuffer(GLenum(GL_RENDERBUFFER),color);glRenderbufferStorage(GLenum(GL_RENDERBUFFER),GLenum(GL_RGBA8),288,96)
+22 | glFramebufferRenderbuffer(GLenum(GL_FRAMEBUFFER),GLenum(GL_COLOR_ATTACHMENT0),GLenum(GL_RENDERBUFFER),color)
+23 | glGenRenderbuffers(1,&depth);glBindRenderbuffer(GLenum(GL_RENDERBUFFER),depth);glRenderbufferStorage(GLenum(GL_RENDERBUFFER),GLenum(GL_DEPTH_COMPONENT24),288,96)
+   |                                                                                `- warning: 'glRenderbufferStorage' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+24 | glFramebufferRenderbuffer(GLenum(GL_FRAMEBUFFER),GLenum(GL_DEPTH_ATTACHMENT),GLenum(GL_RENDERBUFFER),depth)
+25 | precondition(glCheckFramebufferStatus(GLenum(GL_FRAMEBUFFER))==GLenum(GL_FRAMEBUFFER_COMPLETE))
+
+tools/check-hero-visibility.swift:24:1: warning: 'glFramebufferRenderbuffer' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+22 | glFramebufferRenderbuffer(GLenum(GL_FRAMEBUFFER),GLenum(GL_COLOR_ATTACHMENT0),GLenum(GL_RENDERBUFFER),color)
+23 | glGenRenderbuffers(1,&depth);glBindRenderbuffer(GLenum(GL_RENDERBUFFER),depth);glRenderbufferStorage(GLenum(GL_RENDERBUFFER),GLenum(GL_DEPTH_COMPONENT24),288,96)
+24 | glFramebufferRenderbuffer(GLenum(GL_FRAMEBUFFER),GLenum(GL_DEPTH_ATTACHMENT),GLenum(GL_RENDERBUFFER),depth)
+   | `- warning: 'glFramebufferRenderbuffer' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+25 | precondition(glCheckFramebufferStatus(GLenum(GL_FRAMEBUFFER))==GLenum(GL_FRAMEBUFFER_COMPLETE))
+26 | glEnable(GLenum(GL_DEPTH_TEST));glDisable(GLenum(GL_BLEND));glClearColor(0.16,0.16,0.16,1);glClear(GLbitfield(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT))
+
+tools/check-hero-visibility.swift:25:14: warning: 'glCheckFramebufferStatus' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+23 | glGenRenderbuffers(1,&depth);glBindRenderbuffer(GLenum(GL_RENDERBUFFER),depth);glRenderbufferStorage(GLenum(GL_RENDERBUFFER),GLenum(GL_DEPTH_COMPONENT24),288,96)
+24 | glFramebufferRenderbuffer(GLenum(GL_FRAMEBUFFER),GLenum(GL_DEPTH_ATTACHMENT),GLenum(GL_RENDERBUFFER),depth)
+25 | precondition(glCheckFramebufferStatus(GLenum(GL_FRAMEBUFFER))==GLenum(GL_FRAMEBUFFER_COMPLETE))
+   |              `- warning: 'glCheckFramebufferStatus' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+26 | glEnable(GLenum(GL_DEPTH_TEST));glDisable(GLenum(GL_BLEND));glClearColor(0.16,0.16,0.16,1);glClear(GLbitfield(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT))
+27 | func quad(_ left:Float,_ right:Float,_ z:Float,_ rgb:(Float,Float,Float)){
+
+tools/check-hero-visibility.swift:26:1: warning: 'glEnable' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+24 | glFramebufferRenderbuffer(GLenum(GL_FRAMEBUFFER),GLenum(GL_DEPTH_ATTACHMENT),GLenum(GL_RENDERBUFFER),depth)
+25 | precondition(glCheckFramebufferStatus(GLenum(GL_FRAMEBUFFER))==GLenum(GL_FRAMEBUFFER_COMPLETE))
+26 | glEnable(GLenum(GL_DEPTH_TEST));glDisable(GLenum(GL_BLEND));glClearColor(0.16,0.16,0.16,1);glClear(GLbitfield(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT))
+   | `- warning: 'glEnable' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+27 | func quad(_ left:Float,_ right:Float,_ z:Float,_ rgb:(Float,Float,Float)){
+28 |  let points:[Float]=[left,-0.7,z,right,-0.7,z,left,0.7,z,left,0.7,z,right,-0.7,z,right,0.7,z]
+
+tools/check-hero-visibility.swift:26:33: warning: 'glDisable' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+24 | glFramebufferRenderbuffer(GLenum(GL_FRAMEBUFFER),GLenum(GL_DEPTH_ATTACHMENT),GLenum(GL_RENDERBUFFER),depth)
+25 | precondition(glCheckFramebufferStatus(GLenum(GL_FRAMEBUFFER))==GLenum(GL_FRAMEBUFFER_COMPLETE))
+26 | glEnable(GLenum(GL_DEPTH_TEST));glDisable(GLenum(GL_BLEND));glClearColor(0.16,0.16,0.16,1);glClear(GLbitfield(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT))
+   |                                 `- warning: 'glDisable' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+27 | func quad(_ left:Float,_ right:Float,_ z:Float,_ rgb:(Float,Float,Float)){
+28 |  let points:[Float]=[left,-0.7,z,right,-0.7,z,left,0.7,z,left,0.7,z,right,-0.7,z,right,0.7,z]
+
+tools/check-hero-visibility.swift:26:61: warning: 'glClearColor' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+24 | glFramebufferRenderbuffer(GLenum(GL_FRAMEBUFFER),GLenum(GL_DEPTH_ATTACHMENT),GLenum(GL_RENDERBUFFER),depth)
+25 | precondition(glCheckFramebufferStatus(GLenum(GL_FRAMEBUFFER))==GLenum(GL_FRAMEBUFFER_COMPLETE))
+26 | glEnable(GLenum(GL_DEPTH_TEST));glDisable(GLenum(GL_BLEND));glClearColor(0.16,0.16,0.16,1);glClear(GLbitfield(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT))
+   |                                                             `- warning: 'glClearColor' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+27 | func quad(_ left:Float,_ right:Float,_ z:Float,_ rgb:(Float,Float,Float)){
+28 |  let points:[Float]=[left,-0.7,z,right,-0.7,z,left,0.7,z,left,0.7,z,right,-0.7,z,right,0.7,z]
+
+tools/check-hero-visibility.swift:26:92: warning: 'glClear' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+24 | glFramebufferRenderbuffer(GLenum(GL_FRAMEBUFFER),GLenum(GL_DEPTH_ATTACHMENT),GLenum(GL_RENDERBUFFER),depth)
+25 | precondition(glCheckFramebufferStatus(GLenum(GL_FRAMEBUFFER))==GLenum(GL_FRAMEBUFFER_COMPLETE))
+26 | glEnable(GLenum(GL_DEPTH_TEST));glDisable(GLenum(GL_BLEND));glClearColor(0.16,0.16,0.16,1);glClear(GLbitfield(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT))
+   |                                                                                            `- warning: 'glClear' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+27 | func quad(_ left:Float,_ right:Float,_ z:Float,_ rgb:(Float,Float,Float)){
+28 |  let points:[Float]=[left,-0.7,z,right,-0.7,z,left,0.7,z,left,0.7,z,right,-0.7,z,right,0.7,z]
+
+tools/check-hero-visibility.swift:32:2: warning: 'glViewport' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+30 | }
+31 | for i in 0..<3{
+32 |  glViewport(GLint(i*96),0,96,96);glDepthMask(GLboolean(GL_TRUE));glDepthFunc(GLenum(GL_LEQUAL))
+   |  `- warning: 'glViewport' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+33 |  if i>0{quad(-0.9,i==1 ? 0:0.9,0,(0.35,0.32,0.27))}
+34 |  glDepthMask(GLboolean(GL_FALSE));glDepthFunc(GLenum(GL_GREATER));quad(-0.6,0.6,0.6,(150/255,201/255,189/255))
+
+tools/check-hero-visibility.swift:32:34: warning: 'glDepthMask' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+30 | }
+31 | for i in 0..<3{
+32 |  glViewport(GLint(i*96),0,96,96);glDepthMask(GLboolean(GL_TRUE));glDepthFunc(GLenum(GL_LEQUAL))
+   |                                  `- warning: 'glDepthMask' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+33 |  if i>0{quad(-0.9,i==1 ? 0:0.9,0,(0.35,0.32,0.27))}
+34 |  glDepthMask(GLboolean(GL_FALSE));glDepthFunc(GLenum(GL_GREATER));quad(-0.6,0.6,0.6,(150/255,201/255,189/255))
+
+tools/check-hero-visibility.swift:32:66: warning: 'glDepthFunc' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+30 | }
+31 | for i in 0..<3{
+32 |  glViewport(GLint(i*96),0,96,96);glDepthMask(GLboolean(GL_TRUE));glDepthFunc(GLenum(GL_LEQUAL))
+   |                                                                  `- warning: 'glDepthFunc' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+33 |  if i>0{quad(-0.9,i==1 ? 0:0.9,0,(0.35,0.32,0.27))}
+34 |  glDepthMask(GLboolean(GL_FALSE));glDepthFunc(GLenum(GL_GREATER));quad(-0.6,0.6,0.6,(150/255,201/255,189/255))
+
+tools/check-hero-visibility.swift:34:2: warning: 'glDepthMask' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+32 |  glViewport(GLint(i*96),0,96,96);glDepthMask(GLboolean(GL_TRUE));glDepthFunc(GLenum(GL_LEQUAL))
+33 |  if i>0{quad(-0.9,i==1 ? 0:0.9,0,(0.35,0.32,0.27))}
+34 |  glDepthMask(GLboolean(GL_FALSE));glDepthFunc(GLenum(GL_GREATER));quad(-0.6,0.6,0.6,(150/255,201/255,189/255))
+   |  `- warning: 'glDepthMask' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+35 |  glDepthMask(GLboolean(GL_TRUE));glDepthFunc(GLenum(GL_LEQUAL));quad(-0.6,0.6,0.6,(32/255,80/255,120/255))
+36 | }
+
+tools/check-hero-visibility.swift:34:35: warning: 'glDepthFunc' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+32 |  glViewport(GLint(i*96),0,96,96);glDepthMask(GLboolean(GL_TRUE));glDepthFunc(GLenum(GL_LEQUAL))
+33 |  if i>0{quad(-0.9,i==1 ? 0:0.9,0,(0.35,0.32,0.27))}
+34 |  glDepthMask(GLboolean(GL_FALSE));glDepthFunc(GLenum(GL_GREATER));quad(-0.6,0.6,0.6,(150/255,201/255,189/255))
+   |                                   `- warning: 'glDepthFunc' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+35 |  glDepthMask(GLboolean(GL_TRUE));glDepthFunc(GLenum(GL_LEQUAL));quad(-0.6,0.6,0.6,(32/255,80/255,120/255))
+36 | }
+
+tools/check-hero-visibility.swift:35:2: warning: 'glDepthMask' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+33 |  if i>0{quad(-0.9,i==1 ? 0:0.9,0,(0.35,0.32,0.27))}
+34 |  glDepthMask(GLboolean(GL_FALSE));glDepthFunc(GLenum(GL_GREATER));quad(-0.6,0.6,0.6,(150/255,201/255,189/255))
+35 |  glDepthMask(GLboolean(GL_TRUE));glDepthFunc(GLenum(GL_LEQUAL));quad(-0.6,0.6,0.6,(32/255,80/255,120/255))
+   |  `- warning: 'glDepthMask' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+36 | }
+37 | var pixels=[UInt8](repeating:0,count:288*96*4);glReadPixels(0,0,288,96,GLenum(GL_RGBA),GLenum(GL_UNSIGNED_BYTE),&pixels)
+
+tools/check-hero-visibility.swift:35:34: warning: 'glDepthFunc' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+33 |  if i>0{quad(-0.9,i==1 ? 0:0.9,0,(0.35,0.32,0.27))}
+34 |  glDepthMask(GLboolean(GL_FALSE));glDepthFunc(GLenum(GL_GREATER));quad(-0.6,0.6,0.6,(150/255,201/255,189/255))
+35 |  glDepthMask(GLboolean(GL_TRUE));glDepthFunc(GLenum(GL_LEQUAL));quad(-0.6,0.6,0.6,(32/255,80/255,120/255))
+   |                                  `- warning: 'glDepthFunc' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+36 | }
+37 | var pixels=[UInt8](repeating:0,count:288*96*4);glReadPixels(0,0,288,96,GLenum(GL_RGBA),GLenum(GL_UNSIGNED_BYTE),&pixels)
+
+tools/check-hero-visibility.swift:37:48: warning: 'glReadPixels' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+35 |  glDepthMask(GLboolean(GL_TRUE));glDepthFunc(GLenum(GL_LEQUAL));quad(-0.6,0.6,0.6,(32/255,80/255,120/255))
+36 | }
+37 | var pixels=[UInt8](repeating:0,count:288*96*4);glReadPixels(0,0,288,96,GLenum(GL_RGBA),GLenum(GL_UNSIGNED_BYTE),&pixels)
+   |                                                `- warning: 'glReadPixels' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+38 | func pixel(_ x:Int)->[UInt8]{Array(pixels[(48*288+x)*4..<(48*288+x)*4+3])}
+39 | precondition(pixel(32)==[32,80,120] && pixel(64)==[32,80,120],"Visible hero must not have a highlight")
+
+tools/check-hero-visibility.swift:29:2: warning: 'glBufferData' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+27 | func quad(_ left:Float,_ right:Float,_ z:Float,_ rgb:(Float,Float,Float)){
+28 |  let points:[Float]=[left,-0.7,z,right,-0.7,z,left,0.7,z,left,0.7,z,right,-0.7,z,right,0.7,z]
+29 |  glBufferData(GLenum(GL_ARRAY_BUFFER),points.count*MemoryLayout<Float>.size,points,GLenum(GL_STREAM_DRAW));glUniform3f(glGetUniformLocation(program,"tint"),rgb.0,rgb.1,rgb.2);glDrawArrays(GLenum(GL_TRIANGLES),0,6)
+   |  `- warning: 'glBufferData' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+30 | }
+31 | for i in 0..<3{
+
+tools/check-hero-visibility.swift:29:108: warning: 'glUniform3f' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+27 | func quad(_ left:Float,_ right:Float,_ z:Float,_ rgb:(Float,Float,Float)){
+28 |  let points:[Float]=[left,-0.7,z,right,-0.7,z,left,0.7,z,left,0.7,z,right,-0.7,z,right,0.7,z]
+29 |  glBufferData(GLenum(GL_ARRAY_BUFFER),points.count*MemoryLayout<Float>.size,points,GLenum(GL_STREAM_DRAW));glUniform3f(glGetUniformLocation(program,"tint"),rgb.0,rgb.1,rgb.2);glDrawArrays(GLenum(GL_TRIANGLES),0,6)
+   |                                                                                                            `- warning: 'glUniform3f' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+30 | }
+31 | for i in 0..<3{
+
+tools/check-hero-visibility.swift:29:120: warning: 'glGetUniformLocation' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+27 | func quad(_ left:Float,_ right:Float,_ z:Float,_ rgb:(Float,Float,Float)){
+28 |  let points:[Float]=[left,-0.7,z,right,-0.7,z,left,0.7,z,left,0.7,z,right,-0.7,z,right,0.7,z]
+29 |  glBufferData(GLenum(GL_ARRAY_BUFFER),points.count*MemoryLayout<Float>.size,points,GLenum(GL_STREAM_DRAW));glUniform3f(glGetUniformLocation(program,"tint"),rgb.0,rgb.1,rgb.2);glDrawArrays(GLenum(GL_TRIANGLES),0,6)
+   |                                                                                                                        `- warning: 'glGetUniformLocation' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+30 | }
+31 | for i in 0..<3{
+
+tools/check-hero-visibility.swift:29:176: warning: 'glDrawArrays' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+27 | func quad(_ left:Float,_ right:Float,_ z:Float,_ rgb:(Float,Float,Float)){
+28 |  let points:[Float]=[left,-0.7,z,right,-0.7,z,left,0.7,z,left,0.7,z,right,-0.7,z,right,0.7,z]
+29 |  glBufferData(GLenum(GL_ARRAY_BUFFER),points.count*MemoryLayout<Float>.size,points,GLenum(GL_STREAM_DRAW));glUniform3f(glGetUniformLocation(program,"tint"),rgb.0,rgb.1,rgb.2);glDrawArrays(GLenum(GL_TRIANGLES),0,6)
+   |                                                                                                                                                                                `- warning: 'glDrawArrays' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+30 | }
+31 | for i in 0..<3{
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+PASS: visible, partly occluded and fully occluded hero pixels; native OpenGL depth passes, not browser WebGL
