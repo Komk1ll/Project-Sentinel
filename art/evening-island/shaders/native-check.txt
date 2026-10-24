@@ -1,0 +1,136 @@
+tools/check-island-shaders.swift:11:14: warning: 'CGLChoosePixelFormat' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+ 9 | var count: GLint = 0
+10 | let attributes = [kCGLPFAOpenGLProfile, CGLPixelFormatAttribute(kCGLOGLPVersion_3_2_Core.rawValue), CGLPixelFormatAttribute(0)]
+11 | let choice = CGLChoosePixelFormat(attributes, &pixelFormat, &count)
+   |              `- warning: 'CGLChoosePixelFormat' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+12 | guard choice == kCGLNoError, let format=pixelFormat else { fatalError("Cannot choose OpenGL format") }
+13 | guard CGLCreateContext(format,nil,&context) == kCGLNoError, let active=context else { fatalError("Cannot create OpenGL context") }
+
+tools/check-island-shaders.swift:13:7: warning: 'CGLCreateContext' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+11 | let choice = CGLChoosePixelFormat(attributes, &pixelFormat, &count)
+12 | guard choice == kCGLNoError, let format=pixelFormat else { fatalError("Cannot choose OpenGL format") }
+13 | guard CGLCreateContext(format,nil,&context) == kCGLNoError, let active=context else { fatalError("Cannot create OpenGL context") }
+   |       `- warning: 'CGLCreateContext' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+14 | CGLSetCurrentContext(active)
+15 | defer { CGLSetCurrentContext(nil); CGLDestroyContext(active); CGLDestroyPixelFormat(format) }
+
+tools/check-island-shaders.swift:15:36: warning: 'CGLDestroyContext' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+13 | guard CGLCreateContext(format,nil,&context) == kCGLNoError, let active=context else { fatalError("Cannot create OpenGL context") }
+14 | CGLSetCurrentContext(active)
+15 | defer { CGLSetCurrentContext(nil); CGLDestroyContext(active); CGLDestroyPixelFormat(format) }
+   |                                    `- warning: 'CGLDestroyContext' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+16 | let programs=try JSONDecoder().decode([Program].self,from:Data(contentsOf:URL(fileURLWithPath:CommandLine.arguments[1])))
+17 | for program in programs {
+
+tools/check-island-shaders.swift:15:63: warning: 'CGLDestroyPixelFormat' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+13 | guard CGLCreateContext(format,nil,&context) == kCGLNoError, let active=context else { fatalError("Cannot create OpenGL context") }
+14 | CGLSetCurrentContext(active)
+15 | defer { CGLSetCurrentContext(nil); CGLDestroyContext(active); CGLDestroyPixelFormat(format) }
+   |                                                               `- warning: 'CGLDestroyPixelFormat' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+16 | let programs=try JSONDecoder().decode([Program].self,from:Data(contentsOf:URL(fileURLWithPath:CommandLine.arguments[1])))
+17 | for program in programs {
+
+tools/check-island-shaders.swift:18:16: warning: 'glCreateProgram()' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+16 | let programs=try JSONDecoder().decode([Program].self,from:Data(contentsOf:URL(fileURLWithPath:CommandLine.arguments[1])))
+17 | for program in programs {
+18 |     let handle=glCreateProgram()
+   |                `- warning: 'glCreateProgram()' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+19 |     var shaders:[GLuint]=[]
+20 |     for shader in program.shaders {
+
+tools/check-island-shaders.swift:21:16: warning: 'glCreateShader' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+19 |     var shaders:[GLuint]=[]
+20 |     for shader in program.shaders {
+21 |         let id=glCreateShader(shader.type);shaders.append(id)
+   |                `- warning: 'glCreateShader' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+22 |         let source=shader.source.replacingOccurrences(of:"#version 300 es",with:"#version 410 core")
+23 |         source.withCString { pointer in
+
+tools/check-island-shaders.swift:25:13: warning: 'glShaderSource' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+23 |         source.withCString { pointer in
+24 |             var p:UnsafePointer<GLchar>?=pointer
+25 |             glShaderSource(id,1,&p,nil)
+   |             `- warning: 'glShaderSource' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+26 |         }
+27 |         glCompileShader(id)
+
+tools/check-island-shaders.swift:27:9: warning: 'glCompileShader' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+25 |             glShaderSource(id,1,&p,nil)
+26 |         }
+27 |         glCompileShader(id)
+   |         `- warning: 'glCompileShader' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+28 |         var status:GLint=0;glGetShaderiv(id,GLenum(GL_COMPILE_STATUS),&status)
+29 |         if status == 0 {
+
+tools/check-island-shaders.swift:28:28: warning: 'glGetShaderiv' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+26 |         }
+27 |         glCompileShader(id)
+28 |         var status:GLint=0;glGetShaderiv(id,GLenum(GL_COMPILE_STATUS),&status)
+   |                            `- warning: 'glGetShaderiv' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+29 |         if status == 0 {
+30 |             var log=[GLchar](repeating:0,count:16384);glGetShaderInfoLog(id,16384,nil,&log)
+
+tools/check-island-shaders.swift:30:55: warning: 'glGetShaderInfoLog' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+28 |         var status:GLint=0;glGetShaderiv(id,GLenum(GL_COMPILE_STATUS),&status)
+29 |         if status == 0 {
+30 |             var log=[GLchar](repeating:0,count:16384);glGetShaderInfoLog(id,16384,nil,&log)
+   |                                                       `- warning: 'glGetShaderInfoLog' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+31 |             fputs(program.name+" compilation failed: "+String(cString:log)+"\n",stderr);exit(1)
+32 |         }
+
+tools/check-island-shaders.swift:33:9: warning: 'glAttachShader' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+31 |             fputs(program.name+" compilation failed: "+String(cString:log)+"\n",stderr);exit(1)
+32 |         }
+33 |         glAttachShader(handle,id)
+   |         `- warning: 'glAttachShader' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+34 |     }
+35 |     glLinkProgram(handle)
+
+tools/check-island-shaders.swift:35:5: warning: 'glLinkProgram' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+33 |         glAttachShader(handle,id)
+34 |     }
+35 |     glLinkProgram(handle)
+   |     `- warning: 'glLinkProgram' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+36 |     var linked:GLint=0;glGetProgramiv(handle,GLenum(GL_LINK_STATUS),&linked)
+37 |     if linked == 0 {
+
+tools/check-island-shaders.swift:36:24: warning: 'glGetProgramiv' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+34 |     }
+35 |     glLinkProgram(handle)
+36 |     var linked:GLint=0;glGetProgramiv(handle,GLenum(GL_LINK_STATUS),&linked)
+   |                        `- warning: 'glGetProgramiv' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+37 |     if linked == 0 {
+38 |         var log=[GLchar](repeating:0,count:16384);glGetProgramInfoLog(handle,16384,nil,&log)
+
+tools/check-island-shaders.swift:38:51: warning: 'glGetProgramInfoLog' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+36 |     var linked:GLint=0;glGetProgramiv(handle,GLenum(GL_LINK_STATUS),&linked)
+37 |     if linked == 0 {
+38 |         var log=[GLchar](repeating:0,count:16384);glGetProgramInfoLog(handle,16384,nil,&log)
+   |                                                   `- warning: 'glGetProgramInfoLog' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+39 |         fputs(program.name+" linking failed: "+String(cString:log)+"\n",stderr);exit(1)
+40 |     }
+
+tools/check-island-shaders.swift:42:21: warning: 'glDeleteShader' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+40 |     }
+41 |     print("PASS: "+program.name+" compiled and linked (native OpenGL, not WebGL)")
+42 |     shaders.forEach{glDeleteShader($0)};glDeleteProgram(handle)
+   |                     `- warning: 'glDeleteShader' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+43 | }
+44 | 
+
+tools/check-island-shaders.swift:42:41: warning: 'glDeleteProgram' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+40 |     }
+41 |     print("PASS: "+program.name+" compiled and linked (native OpenGL, not WebGL)")
+42 |     shaders.forEach{glDeleteShader($0)};glDeleteProgram(handle)
+   |                                         `- warning: 'glDeleteProgram' was deprecated in macOS 10.14: OpenGL API deprecated. (Define GL_SILENCE_DEPRECATION to silence these warnings) [#DeprecatedDeclaration]
+43 | }
+44 | 
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+PASS: water compiled and linked (native OpenGL, not WebGL)
+PASS: terrain compiled and linked (native OpenGL, not WebGL)
+PASS: instanced-props compiled and linked (native OpenGL, not WebGL)
+PASS: birch-bark compiled and linked (native OpenGL, not WebGL)
+PASS: buildings compiled and linked (native OpenGL, not WebGL)
+PASS: foliage compiled and linked (native OpenGL, not WebGL)
+PASS: foliage-shadow compiled and linked (native OpenGL, not WebGL)

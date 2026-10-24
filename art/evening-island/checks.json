@@ -1,0 +1,18 @@
+{
+  "tests": {
+    "passed": 290,
+    "files": 19,
+    "command": "npm test"
+  },
+  "typescript": "passed",
+  "geometry": "asset-verification.json",
+  "shaders": {
+    "passed": 7,
+    "evidence": "shaders/native-check.txt",
+    "api": "native OpenGL, not browser WebGL"
+  },
+  "production_build": "herd/build.txt",
+  "http": "not verified; Herd stopped",
+  "browser_pixels": false,
+  "browser_fps": false
+}

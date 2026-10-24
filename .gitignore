@@ -34,3 +34,11 @@ coverage/
 # Temporary / Lock files
 *.tmp
 ~$*.docx
+
+# Transport archive; verified source and previews are retained separately.
+art/living-planet/render/remote-pack.zip
+
+art/coastal-island/render/remote-pack.zip
+
+# Synchronous Herd build cache and diagnostics.
+.herd-local/

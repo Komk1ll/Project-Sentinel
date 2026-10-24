@@ -1,0 +1,22 @@
+{
+  "job_id": "c821216560d3437eab78880677de9868",
+  "archive_sha256": "4dd3a3b8bc072ff29594149c04a13ab46e74646573cd489378b9c81af6fc3681",
+  "transfer_verified": true,
+  "driver_sha256": "49512ae018d020718629d56d1de8c2fac76252303dbf506a1aa1718efda02d04",
+  "inputs": {
+    "build_evening_assets.py": "880c16d77b9748a2004aed34bccbcc352718dfcd0e0869369c243bbe5f700950",
+    "build_web_asset_pack.py": "1d10f4de6683a3bbf70df965d560f1731dc6f2ad149d876841a95d880a48224a",
+    "lots.json": "110552711fbe1a5942f84577b46762d491d70838cbe5ce63a234be8966a949c9",
+    "hero.glb": "dadb62df8088627b56402ddc0b5b13ee45e2b7014c351fa52830313c71713462"
+  },
+  "outputs": {
+    "manifest.json": "add21d09f7cbe306b805eeab0d547a39c14a5071eb4b2254302cbf947545f908",
+    "blender-run.json": "c9a1802b1fb2c3c825ae9ed539e438e696b7ad9ec2fb247282663069e2e39731",
+    "source/hero-animated.blend": "ba8f3c11dfb25b833fed03bafdf008f2a2aa31d98d92b2f504bd6b40af936dc5",
+    "source/street-kit.blend": "73d13ee69afc67136ad42ad18e3b683abb6229e4c4ed9b5e07d93a272423837d",
+    "models/hero.glb": "94e3eafe38e5feb0cd41c1e9bb08ff4a69db07c783d0abdd957e5c039dbd8ce8",
+    "models/street-kit.glb": "f2bd86cbd8f033195fb2e53c6e5dce0590bf9f47664ff568b58f286262a07ab8",
+    "previews/hero.png": "123ae261b8fdeffd0a097555bcd662a3ea8f9094a6efbda93b2a55aed37f1a53",
+    "previews/street-kit.png": "0c81ec5c3b7153694ea76ecdd509f54bbf8db557fac42fe4c96bb32b8e1520f6"
+  }
+}

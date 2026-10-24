@@ -1,0 +1,47 @@
+{
+  "status": "PASS",
+  "independentLoader": "Three.js GLTFLoader",
+  "assets": [
+    {
+      "name": "hero",
+      "triangles": 4562,
+      "meshes": 16,
+      "materials": 6,
+      "size": [
+        0.696,
+        1.7,
+        0.4805
+      ],
+      "bytes": 190140
+    },
+    {
+      "name": "master",
+      "triangles": 4630,
+      "meshes": 16,
+      "materials": 6,
+      "size": [
+        0.696,
+        1.7,
+        0.325
+      ],
+      "bytes": 202288
+    },
+    {
+      "name": "medic",
+      "triangles": 4322,
+      "meshes": 15,
+      "materials": 5,
+      "size": [
+        0.696,
+        1.7,
+        0.388
+      ],
+      "bytes": 176740
+    }
+  ],
+  "totalBytes": 569168,
+  "totalTriangles": 13514,
+  "limitations": [
+    "Offline validation; no browser GPU performance measurement or gameplay integration."
+  ]
+}

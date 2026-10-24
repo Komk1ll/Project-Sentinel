@@ -1,0 +1,35 @@
+{
+  "tests": {
+    "files": 17,
+    "passed": 210,
+    "failed": 0,
+    "after_final_map_label_adjustment": "4 minimap integration tests passed again"
+  },
+  "typecheck": "passed; repeated by final tsc production build",
+  "build": "passed",
+  "javascript": "index-DpYxztnm.js",
+  "javascript_bytes": 678276,
+  "native_shader_programs_compiled_and_linked": [
+    "water",
+    "terrain",
+    "instanced-props",
+    "buildings"
+  ],
+  "native_shader_limit": "GLSL 300 es adapted to 410 core, native macOS OpenGL; no WebGL draw",
+  "blender_gpu": "NVIDIA GeForce RTX 4070 Ti SUPER / OptiX",
+  "geometry_views_inspected": [
+    "overview",
+    "street",
+    "garden"
+  ],
+  "minimap_previews_inspected": [
+    "map-island",
+    "map-small"
+  ],
+  "http_files_verified": 15,
+  "runtime_glb_count": 12,
+  "runtime_glb_bytes": 3273372,
+  "browser_pixels_verified": false,
+  "browser_fps_verified": false,
+  "publication": "local branch and local production preview only"
+}

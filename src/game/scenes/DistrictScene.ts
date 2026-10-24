@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { gridToIso } from '../../utils/isometric';
+import { gridToIso } from '@utils/isometric';
+import { clampDistrictPosition, DISTRICT_SIZE } from '@game/systems/district';
 
 export class DistrictScene extends Phaser.Scene {
   private player!: Phaser.GameObjects.Sprite;
@@ -12,6 +13,7 @@ export class DistrictScene extends Phaser.Scene {
   };
   private playerGridPos = { x: 4, y: 4 };
   private playerSpeed = 0.08; // Grid units per frame
+  private readonly mapOrigin = { x: 0, y: 0 };
 
   constructor() {
     super({ key: 'DistrictScene' });
@@ -19,16 +21,15 @@ export class DistrictScene extends Phaser.Scene {
 
   public create(): void {
     // 1. Render Isometric Ground Grid (District Area)
-    const gridSize = 12;
-    const originX = this.cameras.main.width / 2;
-    const originY = 160;
+    const gridSize = DISTRICT_SIZE;
+    const { x: originX, y: originY } = this.mapOrigin;
 
     for (let x = 0; x < gridSize; x++) {
       for (let y = 0; y < gridSize; y++) {
         const iso = gridToIso(x, y);
         const tile = this.add.image(originX + iso.x, originY + iso.y, 'iso_tile_default');
         tile.setOrigin(0.5, 0.5);
-        tile.setDepth((x + y) * 10);
+        tile.setDepth(-1);
       }
     }
 
@@ -76,11 +77,12 @@ export class DistrictScene extends Phaser.Scene {
       const moveX = (dx / length) * this.playerSpeed;
       const moveY = (dy / length) * this.playerSpeed;
 
-      this.playerGridPos.x = Phaser.Math.Clamp(this.playerGridPos.x + moveX, 0, 11);
-      this.playerGridPos.y = Phaser.Math.Clamp(this.playerGridPos.y + moveY, 0, 11);
+      this.playerGridPos = clampDistrictPosition({
+        x: this.playerGridPos.x + moveX,
+        y: this.playerGridPos.y + moveY,
+      });
 
-      const originX = 640;
-      const originY = 160;
+      const { x: originX, y: originY } = this.mapOrigin;
       const iso = gridToIso(this.playerGridPos.x, this.playerGridPos.y);
 
       this.player.setPosition(originX + iso.x, originY + iso.y - 16);
