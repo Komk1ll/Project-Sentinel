@@ -1,3 +1,4 @@
+const reportRoot=process.argv[2]??'art/island-harbor';
 /** Measure shipped assets with the real GLTFLoader; this is not an FPS test. */
 import assert from 'node:assert/strict';
 import {readFile,writeFile} from 'node:fs/promises';
@@ -61,9 +62,9 @@ try{
   assert.deepEqual(hero.animations.map(clip=>clip.name).sort(),['Greet','Idle','Walk']);
   const clips=hero.animations.map(clip=>({name:clip.name,duration:clip.duration,tracks:clip.tracks.map(track=>track.name)}));
   for(const clip of hero.animations)for(const track of clip.tracks){assert.ok(/^(left|right)-(arm|leg)\.quaternion$/.test(track.name));assert.ok([...track.values].every(Number.isFinite));}
-  const scene=JSON.parse(await readFile('art/island-harbor/geometry.json','utf8'));
+  const scene=JSON.parse(await readFile(`${reportRoot}/geometry.json`,'utf8'));
   assert.ok(scene.triangles<=240_000,`${scene.triangles} triangles`);assert.ok(scene.meshes<=550);
   const report={payload,requests:files.length,files,groups:metrics,clips,scene,checks:['real GLTFLoader decode','verified source hashes','finite geometry and unit normals','nondegenerate triangles','car collision bounds','hero metre scale','authored limb-only animation clips','warm emissive panes','payload and scene budgets'],browserVerified:false};
-  await writeFile('art/island-harbor/asset-verification.json',JSON.stringify(report,null,2));
+  await writeFile(`${reportRoot}/asset-verification.json`,JSON.stringify(report,null,2));
   console.log({payload,requests:files.length,meshes:scene.meshes,triangles:scene.triangles});assets.forEach(disposeObject);
 }finally{GLTFLoader.prototype.loadAsync=original;await server.close();}

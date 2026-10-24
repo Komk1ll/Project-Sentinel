@@ -17,12 +17,12 @@ function save(point:{x:number;z:number},layout='coastal-island-v1'){
   return JSON.stringify({schemaVersion:1,layout,buildId:'cybershield-first-aid',savedAt:123,stage:'completed',world:{interiorId:null,position:point,outdoorReturn:point}});
 }
 it('relocates a valid earlier save out of a new shrub without losing completion',()=>{
-  const point={x:51,z:25};expect(isWalkableTownPosition(point)).toBe(false);
+  const point={x:52.1,z:26};expect(isWalkableTownPosition(point)).toBe(false);
   const restored=parseTownSave(save(point));
-  expect(restored?.stage).toBe('completed');expect(restored?.layout).toBe('coastal-island-v3');
+  expect(restored?.stage).toBe('completed');expect(restored?.layout).toBe('coastal-island-v4');
   expect(isTownWorldState(restored?.world)).toBe(true);
   expect(Math.hypot(restored!.world.position.x-point.x,restored!.world.position.z-point.z)).toBeLessThanOrEqual(4);
-  expect(parseTownSave(save(point,'coastal-island-v2'))).toBeNull();
+  expect(parseTownSave(save({x:51,z:25},'coastal-island-v2'))).toBeNull();
   expect(parseTownSave(save({x:40,z:40}))).toBeNull();
   expect(parseTownSave(save({x:88,z:58}))).toBeNull();
 });

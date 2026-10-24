@@ -1,3 +1,4 @@
+import { V2_OUTDOOR,V3_HARBOR } from '@content/legacy-coastal-props';
 import { HARBOR_OBSTACLES,isPierPosition } from '@content/harbor';
 import { isIslandLand, ISLAND_BOUNDS, MILL } from '@content/island';
 import { WILD_TREES, WILD_BENCHES, ISLAND_PONDS } from '@content/town-life';
@@ -23,8 +24,9 @@ const INTERACTION_DISTANCE = 2.4;
 const INTERIOR_EXIT: TownPosition = { x: 0, z: 3 };
 const SHARED_COLLIDERS = [...TOWN_BUILDINGS, ...WILD_TREES.map(t=>({...t,width:.4*t.scale,depth:.4*t.scale})),
   ...WILD_BENCHES.map(b=>({...b,width:1.6,depth:.55})), {...MILL,width:3.8,depth:3.8}];
-const EVENING_COLLIDERS=[...SHARED_COLLIDERS,...OUTDOOR_OBSTACLES];
-const TOWN_COLLIDERS=[...EVENING_COLLIDERS,...HARBOR_OBSTACLES];
+const EVENING_COLLIDERS=[...SHARED_COLLIDERS,...V2_OUTDOOR];
+const HARBOR_V3_COLLIDERS=[...EVENING_COLLIDERS,...V3_HARBOR];
+const TOWN_COLLIDERS=[...SHARED_COLLIDERS,...OUTDOOR_OBSTACLES,...HARBOR_OBSTACLES];
 const PRE_EVENING_COLLIDERS=[...SHARED_COLLIDERS,...PRE_EVENING_OUTDOOR_OBSTACLES];
 
 function clamp(value: number, min: number, max: number): number {
@@ -43,8 +45,8 @@ function validPosition(value: unknown, interior: TownBuilding | null, outdoor: r
     || !Number.isFinite(value.x) || !Number.isFinite(value.z)) return false;
   if (interior) {
     if(value.x < -4.5 || value.x > 4.5 || value.z < -3.5 || value.z > 3.5) return false;
-  } else if(outdoor===TOWN_COLLIDERS || outdoor===PRE_EVENING_COLLIDERS || outdoor===EVENING_COLLIDERS) {
-    if((!isIslandLand({x:value.x,z:value.z}) && !(outdoor===TOWN_COLLIDERS && isPierPosition({x:value.x,z:value.z}))) || ISLAND_PONDS.some(p=>
+  } else if(outdoor===TOWN_COLLIDERS || outdoor===HARBOR_V3_COLLIDERS || outdoor===PRE_EVENING_COLLIDERS || outdoor===EVENING_COLLIDERS) {
+    if((!isIslandLand({x:value.x,z:value.z}) && !((outdoor===TOWN_COLLIDERS || outdoor===HARBOR_V3_COLLIDERS) && isPierPosition({x:value.x,z:value.z}))) || ISLAND_PONDS.some(p=>
       ((value.x as number)-p.x)**2/(p.width/2+PLAYER_RADIUS)**2+((value.z as number)-p.z)**2/(p.depth/2+PLAYER_RADIUS)**2<1)) return false;
   } else if(value.x<.5 || value.x>63.5 || value.z<.5 || value.z>63.5) return false;
   const obstacles = interior ? getInteriorLayout(interior).obstacles : outdoor;
@@ -72,7 +74,7 @@ function safeNear(point: TownPosition, maxDistance = 4): TownPosition | null {
 
 /** Only validated earlier coastal saves may relocate around newly placed scenery. */
 export function migrateCoastalWorldState(value: unknown, layout='coastal-island-v1'): TownWorldState | null {
-  const oldColliders=layout==='coastal-island-v2'?EVENING_COLLIDERS:PRE_EVENING_COLLIDERS;
+  const oldColliders=layout==='coastal-island-v3'?HARBOR_V3_COLLIDERS:layout==='coastal-island-v2'?EVENING_COLLIDERS:PRE_EVENING_COLLIDERS;
   if (!record(value)) return null;
   const room=value.interiorId===null?null:TOWN_BUILDINGS.find(b=>b.id===value.interiorId);
   if(room===undefined || !validPosition(value.position,room,oldColliders)

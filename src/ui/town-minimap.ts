@@ -1,4 +1,4 @@
-import { LIGHTHOUSE,PIER_DECKS,COASTAL_TREES } from '@content/harbor';
+import { LIGHTHOUSE,PIER_DECKS,COASTAL_TREES,HARBOR_PATHS,BREAKWATERS } from '@content/harbor';
 import { ISLAND_BOUNDS, COAST_PATH, coastOutline, MILL } from '@content/island';
 import { TOWN_STOPS, WILD_TREES, ISLAND_PONDS } from '@content/town-life';
 import { TOWN_OPEN_SPACES, ROAD_CENTERS, TOWN_BUILDINGS, TOWN_SIZE } from '@content/town';
@@ -98,9 +98,12 @@ export function drawMinimap(canvas: HTMLCanvasElement, world: TownWorld, mission
     ctx.fillStyle='#69aeb8';for(const pond of ISLAND_PONDS){ctx.beginPath();ctx.ellipse(p.x(pond.x),p.z(pond.z),pond.width*p.scale/2,pond.depth*p.scale/2,0,0,Math.PI*2);ctx.fill();}
     for(const stop of TOWN_STOPS){ctx.fillStyle='#6c9a81';rect(stop.x,stop.z,1.8,1.8);}
     for(const resident of mission.life.residents){ctx.fillStyle='#8e6182';ctx.beginPath();ctx.arc(p.x(resident.position.x),p.z(resident.position.z),2.4,0,Math.PI*2);ctx.fill();}
+    ctx.fillStyle='#f2e6c9';for(const path of HARBOR_PATHS)rect(path.x,path.z,path.width,path.depth);
+    ctx.strokeStyle='#92998c';ctx.lineWidth=2.3*p.scale;ctx.lineJoin='round';
+    for(const arm of BREAKWATERS){ctx.beginPath();arm.forEach((point,i)=>i?ctx.lineTo(p.x(point.x),p.z(point.z)):ctx.moveTo(p.x(point.x),p.z(point.z)));ctx.stroke();}
     ctx.fillStyle='#a78962';for(const deck of PIER_DECKS)rect(deck.x,deck.z,deck.width,deck.depth);
     ctx.fillStyle='#ad6651';rect(LIGHTHOUSE.x,LIGHTHOUSE.z,4,4);
-    if(mode==='island'){text('Морской маяк',0,58);text('Причал',58,85);text('Зареченск',32,-10);text('Мельница',MILL.x,MILL.z-3);text('Береговая тропа',46,73);}
+    if(mode==='island'){text('Морской маяк',LIGHTHOUSE.x+7,LIGHTHOUSE.z-2);text('Причал',58,85);text('Зареченск',32,-10);text('Мельница',MILL.x,MILL.z-3);text('Береговая тропа',25,73);}
     ctx.fillStyle='#b3a686';rect(MILL.x,MILL.z,3.8,3.8);
     if(mode!=='island'||size>360)for(const b of TOWN_BUILDINGS){
       if(b.id==='station'||b.id==='clinic')text(b.id==='station'?'Маяк':'Клиника',b.x,b.z);

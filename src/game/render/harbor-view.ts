@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { LIGHTHOUSE,PIER_ORIGIN,HARBOR_BOATS } from '@content/harbor';
+import { LIGHTHOUSE,PIER_ORIGIN,HARBOR_BOATS,HARBOR_PATHS,BREAKWATER_ROCKS } from '@content/harbor';
 import { coastRadius,ISLAND_CENTER,SEA_LEVEL } from '@content/island';
 import { placeOnGround,surfaceStrip } from '@game/render/world-surface';
 import { animateFoliage } from '@game/render/foliage-wind';
@@ -37,8 +37,20 @@ export function createHarbor(kit:THREE.Group,time:{value:number}):THREE.Group {
       group.add(mesh);
     });
   }
-  group.add(surfaceStrip(0,67.2,1.7,4,0xc9b998,.055),surfaceStrip(2,68.5,6,1.7,0xc9b998,.055));
-  group.add(surfaceStrip(58,66,3.6,5,0xc9b998,.055));
+  for(const p of HARBOR_PATHS)group.add(surfaceStrip(p.x,p.z,p.width,p.depth,0xc9b998,.055));
+  const rocks=kit.getObjectByName('coast-rock');
+  rocks?.updateWorldMatrix(true,true);
+  rocks?.traverse(object=>{
+    if(!(object instanceof THREE.Mesh))return;
+    const geometry=object.geometry.clone().applyMatrix4(object.matrixWorld);
+    const mesh=new THREE.InstancedMesh(geometry,object.material,BREAKWATER_ROCKS.length);
+    mesh.name='harbor-breakwaters';mesh.castShadow=true;mesh.receiveShadow=true;
+    BREAKWATER_ROCKS.forEach((p,i)=>{
+      placeOnGround(placement,p.x,p.z,p.rotation,p.y);placement.scale.set(p.scale,p.scale*.85,p.scale);
+      placement.updateMatrix();mesh.setMatrixAt(i,placement.matrix);
+    });
+    mesh.computeBoundingSphere();group.add(mesh);
+  });
   // A single additive volume suggests the beacon; no dynamic shadow light or bloom.
   const rotor=new THREE.Group();rotor.name='lighthouse-beacon';rotor.position.set(LIGHTHOUSE.x,9.25,LIGHTHOUSE.z);
   const beamGeometry=new THREE.ConeGeometry(2.1,22,12,1,true);beamGeometry.translate(0,-11,0);beamGeometry.rotateZ(Math.PI/2);
