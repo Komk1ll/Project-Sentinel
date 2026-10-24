@@ -39,3 +39,6 @@ coverage/
 art/living-planet/render/remote-pack.zip
 
 art/coastal-island/render/remote-pack.zip
+
+# Synchronous Herd build cache and diagnostics.
+.herd-local/

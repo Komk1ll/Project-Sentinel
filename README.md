@@ -10,6 +10,13 @@
 
 ---
 
+## Local Herd launch
+
+Open [cybershield.test](http://cybershield.test/) with Herd running. Refresh after
+changes: the site rebuilds on request when source files change, then serves the
+production game. No background Node server or login agent is required.
+See [Herd setup and verification](docs/guides/herd-local.md).
+
 ## Playable Town Prototype
 
 Explore a flat island with 11 enterable buildings, an eastern garden, two ponds,

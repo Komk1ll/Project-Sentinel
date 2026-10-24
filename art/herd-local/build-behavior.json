@@ -1,0 +1,6 @@
+{
+  "failed_typecheck_returns_503": true,
+  "concurrent_requests_build_once": true,
+  "recovery_after_fix": true,
+  "temporary_source_removed": true
+}
