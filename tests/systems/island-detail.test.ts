@@ -47,7 +47,7 @@ it('loads every authored lot and instances every tree with matching wind shadows
     expect(color.vertexShader.match(/vec3 windOrigin[\s\S]*?transformed.z[^;]+;/)?.[0])
       .toBe(depth.vertexShader.match(/vec3 windOrigin[\s\S]*?transformed.z[^;]+;/)?.[0]);
     expect(color.fragmentShader).toContain('islandGrain');
-    expect(material.customProgramCacheKey()).toContain('foliage-wind-v1');
+    expect(material.customProgramCacheKey()).toContain('foliage-wind-v2');
     const expanded=mesh.boundingSphere!.radius;mesh.computeBoundingSphere();
     expect(expanded-mesh.boundingSphere!.radius).toBeCloseTo(.2);
     depthDisposals.push(vi.spyOn(mesh.customDepthMaterial!,'dispose'));

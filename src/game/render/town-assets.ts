@@ -27,11 +27,12 @@ export async function loadTownAssets(): Promise<Map<string, THREE.Group>> {
   const loader = new GLTFLoader();
   const web = ['hero', 'master', 'medic', 'workshop', 'clinic', 'house-base', 'tree', 'bench', 'aid-kit'];
   const polished = ['hero', 'master', 'medic', 'workshop'];
-  const names = [...web, 'architecture-details', 'resident', 'interior-station', 'interior-clinic'];
+  const names = [...web, 'architecture-details', 'street-kit', 'resident', 'interior-station', 'interior-clinic'];
   const results = await Promise.allSettled(names.map(async name => {
-    const folder = ['tree', 'architecture-details'].includes(name) ? 'island-detail' : polished.includes(name) ? 'polish-v4' : web.includes(name) ? 'web-mvp' : 'cozy';
+    const folder = ['hero','street-kit'].includes(name) ? 'evening' : ['tree', 'architecture-details'].includes(name) ? 'island-detail' : polished.includes(name) ? 'polish-v4' : web.includes(name) ? 'web-mvp' : 'cozy';
     const url = new URL(`${import.meta.env.BASE_URL}assets/models/${folder}/${name}.glb`, document.baseURI).href;
     const gltf = await loader.loadAsync(url);
+    gltf.scene.animations = gltf.animations;
     gltf.scene.name = `${web.includes(name) ? 'web' : 'cozy'}-${name}`;
     gltf.scene.traverse(object => {
       if (object instanceof THREE.Mesh) { object.castShadow = true; object.receiveShadow = true; }

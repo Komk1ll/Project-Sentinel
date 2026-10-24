@@ -7,33 +7,34 @@ const WIND_DISPLACEMENT = `
     windOrigin = instanceMatrix[3].xyz;
   #endif
   float windPhase = dot(windOrigin.xz, vec2(0.37, 0.23));
-  float windWeight = smoothstep(1.6, 4.5, transformed.y);
+  float windWeight = smoothstep(foliageBend.x, foliageBend.y, transformed.y) * foliageBend.z;
   float gust = sin(foliageTime * 1.25 + windPhase) * 0.085
              + sin(foliageTime * 2.2 + windPhase + position.x * 2.0) * 0.025;
   transformed.x += gust * windWeight;
   transformed.z += sin(foliageTime * 1.1 + windPhase + 0.7) * 0.055 * windWeight;
 `;
 
-function addWind(material: THREE.Material, time: {value:number}): void {
+function addWind(material: THREE.Material, time: {value:number}, bend:THREE.Vector3): void {
   const previous = material.onBeforeCompile;
   const previousKey = material.customProgramCacheKey.bind(material);
   material.onBeforeCompile = (shader, renderer) => {
     previous.call(material, shader, renderer);
     shader.uniforms.foliageTime = time;
-    shader.vertexShader = `uniform float foliageTime;\n${shader.vertexShader}`
+    shader.uniforms.foliageBend = {value:bend};
+    shader.vertexShader = `uniform float foliageTime; uniform vec3 foliageBend;\n${shader.vertexShader}`
       .replace('#include <begin_vertex>', `#include <begin_vertex>\n${WIND_DISPLACEMENT}`);
   };
-  material.customProgramCacheKey = () => `${previousKey()}-foliage-wind-v1`;
+  material.customProgramCacheKey = () => `${previousKey()}-foliage-wind-v2`;
   material.needsUpdate = true;
 }
 
 /** Does not modify the library material or animate instances on the CPU. */
-export function animateFoliage(mesh: THREE.InstancedMesh, time: {value:number}): void {
+export function animateFoliage(mesh: THREE.InstancedMesh, time: {value:number}, bend=new THREE.Vector3(1.6,4.5,1)): void {
   if (Array.isArray(mesh.material)) throw new Error('Foliage must be batched by material');
   mesh.material = mesh.material.clone();
-  addWind(mesh.material, time);
+  addWind(mesh.material, time, bend);
   const depth = new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking});
-  addWind(depth, time);
+  addWind(depth, time, bend);
   mesh.customDepthMaterial = depth;
   mesh.computeBoundingSphere();
   mesh.computeBoundingBox();

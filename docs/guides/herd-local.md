@@ -29,7 +29,7 @@ Future work in this checkout should retain this driver and request the Herd URL
 once after changes to verify that the local build is current. Do not install a
 persistent server, watcher or launch agent: the user explicitly rejected them.
 
-## Verified on 24 October 2026
+## Initial setup verification on 24 October 2026
 
 Herd resolves the domain to loopback and selects `LocalValetDriver`. PHP syntax,
 TypeScript and production build checks pass. HTTP verification matches HTML, JS,
@@ -44,3 +44,14 @@ no listener. No browser rendering or FPS check was performed.
 
 Evidence is in `art/herd-local/`. Repeat the HTTP/cache/no-service check with
 `python3 tools/verify-herd.py`; it uses a temporary public file and cleans it up.
+
+## Evening graphics update on 24 October 2026
+
+The current model manifest has 14 GLBs (17 HTTP files including HTML, JS and CSS).
+`tools/verify-herd.py` now reads `art/evening-island/asset-verification.json` and
+writes new evidence to `art/evening-island/herd/`, preserving the earlier report.
+Herd was stopped during this update: DNS resolution failed and port 80 refused a
+direct loopback connection. It was not started automatically. The same PHP build
+entry was run synchronously through CLI, producing a current `dist` and cache;
+all 14 copied model hashes were checked. This does not constitute a new HTTP or
+browser check. Start Herd normally and open the existing domain to play.

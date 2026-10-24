@@ -1,3 +1,4 @@
+import { CAR_SIZE, STREET_OBSTACLES } from '@content/street-details';
 export const TOWN_CARS = [
   { x: 17.25, z: 7.5, color: 0x967b57, rotation: 0 },
   { x: 46.75, z: 23, color: 0x536f72, rotation: Math.PI },
@@ -45,11 +46,20 @@ export const TOWN_PLANTERS = [
 ];
 
 /** Only the trunk blocks walking; the canopy remains an overhead visual. */
-export const OUTDOOR_OBSTACLES: readonly TownObstacle[] = [
+export const PRE_EVENING_OUTDOOR_OBSTACLES: readonly TownObstacle[] = [
   ...LEGACY_OUTDOOR_OBSTACLES,
   ...TOWN_TREES.map(tree => ({ x: tree.x, z: tree.z, width: .4*tree.scale, depth: .4*tree.scale })),
   ...TOWN_BENCHES.map(bench => ({ x: bench.x, z: bench.z,
     width: Math.abs(Math.sin(bench.rotation)) > .5 ? .55 : 1.6,
     depth: Math.abs(Math.sin(bench.rotation)) > .5 ? 1.6 : .55 })),
   ...TOWN_PLANTERS,
+];
+
+/** Current scenery keeps the historical footprint list frozen for save migration. */
+export const OUTDOOR_OBSTACLES: readonly TownObstacle[] = [
+  ...PRE_EVENING_OUTDOOR_OBSTACLES.slice(TOWN_CARS.length),
+  ...TOWN_CARS.map(car=>({x:car.x,z:car.z,
+    width:Math.abs(Math.sin(car.rotation))>.5?CAR_SIZE.depth:CAR_SIZE.width,
+    depth:Math.abs(Math.sin(car.rotation))>.5?CAR_SIZE.width:CAR_SIZE.depth})),
+  ...STREET_OBSTACLES,
 ];

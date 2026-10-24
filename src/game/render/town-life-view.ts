@@ -1,4 +1,5 @@
-import { MILL,COAST_PATH } from '@content/island';
+import { ActorAnimation } from '@game/render/actor-animation';
+import { MILL } from '@content/island';
 import * as THREE from 'three';
 import { TOWN_STOPS } from '@content/town-life';
 import { placeOnGround } from '@game/render/world-surface';
@@ -8,6 +9,7 @@ export class TownLifeView {
   readonly group=new THREE.Group();
   private elapsed=0;
   private readonly actors:THREE.Group[]=[];
+  private readonly animations:ActorAnimation[]=[];
   private readonly butterflies:THREE.Group[]=[];
   private readonly birds:THREE.Group[]=[];
   private readonly jets:THREE.Mesh[]=[];
@@ -34,7 +36,7 @@ export class TownLifeView {
           copied.set(source,material);return material;
         };object.material=Array.isArray(object.material)?object.material.map(recolour):recolour(object.material);
       });}else {mesh(actor,resident.data.color,0,1,0,.24,.5,.19,true);mesh(actor,0xc29b7a,0,1.55,0,.18,.21,.18,true);}
-      this.actors.push(actor);this.group.add(actor);
+      this.actors.push(actor);this.animations.push(new ActorAnimation(actor,prototype?.animations??[]));this.group.add(actor);
     }
     for(const stop of TOWN_STOPS){
       const group=new THREE.Group();group.name=`stop-${stop.id}`;placeOnGround(group,stop.x,stop.z);this.group.add(group);
@@ -62,10 +64,6 @@ export class TownLifeView {
     mesh(mill,0x4b6668,-.55,2.7,.92,.35,.55,.08);mesh(mill,0x4b6668,.55,2.7,.92,.35,.55,.08);
     this.sails.name='windmill-sails';this.sails.position.set(0,3.5,1.28);mill.add(this.sails);
     for(let i=0;i<4;i++){const blade=new THREE.Group();blade.rotation.z=i*Math.PI/2;this.sails.add(blade);mesh(blade,0xf4e2be,.14,1.1,0,.3,1.8,.08);}
-    for(let i=0;i<20;i++){
-      const lamp=new THREE.Group();lamp.name='promenade-lamp';const point=COAST_PATH[Math.floor(i*COAST_PATH.length/20)]!;placeOnGround(lamp,point.x,point.z);this.group.add(lamp);
-      mesh(lamp,0x485f59,0,1.15,0,.07,2.3,.07);mesh(lamp,0xf9d99d,0,2.4,0,.18,.20,.18,true);
-    }
     for(let i=0;i<12;i++){
       const butterfly=new THREE.Group();butterfly.name='butterfly';
       for(const side of [-1,1])mesh(butterfly,i%2?0xe6bb67:0x85bbbd,side*.09,0,0,.11,.02,.13,true);
@@ -86,10 +84,13 @@ export class TownLifeView {
     }
     this.update(0);
   }
+  dispose():void{this.animations.forEach(animation=>animation.dispose());}
   update(delta:number):void{
     this.elapsed+=Number.isFinite(delta)?Math.min(Math.max(delta,0),.05):0;
     this.actors.forEach((actor,i)=>{
       const resident=this.life.residents[i]!;placeOnGround(actor,resident.position.x,resident.position.z,resident.heading,.065);
+      const animation=this.animations[i]!;
+      if(animation.available){animation.update(delta,resident.walking,this.life.message===resident.data.dialogue);return;}
       const stride=resident.walking?Math.sin(this.elapsed*7+i)*.48:0;
       const idle=resident.walking?0:Math.sin(this.elapsed*1.7+i)*.035;
       for(const [name,angle] of [['left-leg',stride],['right-leg',-stride],['left-arm',-stride*.65+idle],['right-arm',stride*.65-idle]] as const){

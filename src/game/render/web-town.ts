@@ -1,3 +1,4 @@
+import { createStreetDressing } from '@game/render/street-dressing';
 import { animateFoliage } from '@game/render/foliage-wind';
 import { createIslandLandscape } from '@game/render/island-landscape';
 import * as THREE from 'three';
@@ -190,14 +191,16 @@ export function createWebTown(assets?: ReadonlyMap<string, THREE.Group>, time = 
   instances('bench',[...TOWN_BENCHES,...WILD_BENCHES]);
   const props = new THREE.Group(); props.name = 'collision-props'; town.add(props);
 
-  for (const car of TOWN_CARS) {
+  const streetKit=assets?.get('street-kit');
+  if(streetKit)town.add(createStreetDressing(streetKit,time));
+  for (const car of streetKit?[]:TOWN_CARS) {
     const group = new THREE.Group(); group.position.set(car.x, 0, car.z); group.rotation.y = car.rotation;
     box(group, 'car', car.color, 0, .5, 0, 1.3, .55, 2.7);
     box(group, 'car-roof', 0x3e4c4c, 0, .98, -.1, 1.1, .42, 1.35);
     for (const x of [-.52,.52]) for (const z of [-.8,.8]) box(group, 'wheel', 0x3e4c4c, x, .20, z, .25, .4, .45);
     batch(group); props.add(group);
   }
-  for (const planter of TOWN_PLANTERS) {
+  for (const planter of streetKit?[]:TOWN_PLANTERS) {
     box(props,'planter',0x927961,planter.x,.25,planter.z,planter.width,.5,planter.depth);
     box(props,'planting',0x64825d,planter.x,.64,planter.z,planter.width-.15,.32,planter.depth-.15);
   }

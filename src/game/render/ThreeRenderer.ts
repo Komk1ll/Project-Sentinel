@@ -1,3 +1,5 @@
+import { EVENING_LIGHT } from '@content/evening-light';
+import { ActorAnimation } from '@game/render/actor-animation';
 import * as THREE from 'three';
 import { ISLAND_CENTER } from '@content/island';
 import { createOcean } from '@game/render/island-terrain';
@@ -29,7 +31,8 @@ export class ThreeRenderer {
   public readonly camera: THREE.OrthographicCamera;
   public readonly renderer: THREE.WebGLRenderer;
   private lifeView: TownLifeView;
-  private readonly sun = new THREE.DirectionalLight(0xffe2b3,2.8);
+  private heroAnimation:ActorAnimation|null=null;
+  private readonly sun = new THREE.DirectionalLight(EVENING_LIGHT.sun,EVENING_LIGHT.sunIntensity);
   private readonly shaderTime = {value:0};
   private readonly ocean = createOcean(this.shaderTime);
   private readonly sightDirection = { value: new THREE.Vector3(28,34,28).normalize() };
@@ -67,13 +70,13 @@ export class ThreeRenderer {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.12;
+    this.renderer.toneMappingExposure = EVENING_LIGHT.exposure;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
-    this.renderer.setClearColor(0xbdd9df);
+    this.renderer.setClearColor(EVENING_LIGHT.sky);
     this.container.appendChild(this.renderer.domElement);
     this.camera = new THREE.OrthographicCamera(-20, 20, 14, -14, .1, 500);
-    this.scene.fog = new THREE.Fog(0xbdd9df, 180, 380);
-    this.scene.add(new THREE.HemisphereLight(0xe8f3ef, 0x8b9b76, 1.05));
+    this.scene.fog = new THREE.Fog(EVENING_LIGHT.sky, 180, 380);
+    this.scene.add(new THREE.HemisphereLight(EVENING_LIGHT.ambientSky, EVENING_LIGHT.ambientGround, EVENING_LIGHT.ambientIntensity));
     const sun = this.sun;
     sun.position.set(-25, 45, -5);
     sun.target.position.set(32, 0, 32);
@@ -84,7 +87,7 @@ export class ThreeRenderer {
     sun.shadow.normalBias = .025;
     sun.shadow.radius = 4;
     this.scene.add(sun, sun.target);
-    const fill = new THREE.DirectionalLight(0xd0e7e2, .35);
+    const fill = new THREE.DirectionalLight(EVENING_LIGHT.fill, EVENING_LIGHT.fillIntensity);
     fill.position.set(40, 25, 60); this.scene.add(fill);
     this.outdoors = createWebTown(undefined,this.shaderTime);
     this.lifeView=new TownLifeView(options.life??options.firstAid.life);
@@ -128,6 +131,7 @@ export class ThreeRenderer {
       if (!asset) throw new Error(`Missing bundled visual asset: ${name}`);
       return asset;
     };
+    this.lifeView.dispose();
     this.scene.remove(this.outdoors);
     this.disposeGroup(this.outdoors);
     this.assetLibrary.add(...assets.values());
@@ -141,6 +145,8 @@ export class ThreeRenderer {
     this.disposeGroup(this.character);
     this.character.clear();
     const hero = take('hero');
+    this.heroAnimation?.dispose();
+    this.heroAnimation=new ActorAnimation(hero,hero.animations);
     this.character.add(hero);
     const attachKit = (model: THREE.Group): THREE.Group => {
       const socket = model.getObjectByName('aid-kit-socket');
@@ -288,8 +294,11 @@ export class ThreeRenderer {
     this.cutawayPosition.value.copy(this.character.position).addScaledVector(this.surfaceUp.value,1.05);
     this.walkTime += moving ? deltaSeconds * 10 : 0;
     const stride = moving ? Math.sin(this.walkTime) * .55 : 0;
+    if(this.heroAnimation?.available)this.heroAnimation.update(deltaSeconds,moving);
+    else {
     this.leftLeg.rotation.x = (this.limbRest[0] ?? 0) + stride; this.rightLeg.rotation.x = (this.limbRest[1] ?? 0) - stride;
     this.leftArm.rotation.x = (this.limbRest[2] ?? 0) - stride * .7; this.rightArm.rotation.x = (this.limbRest[3] ?? 0) + stride * .7;
+    }
     if (this.heroKit?.visible) {
       this.leftArm.rotation.x = -.75; this.rightArm.rotation.x = -.75;
       this.leftArm.rotation.z = -.28; this.rightArm.rotation.z = .28;
@@ -325,8 +334,9 @@ export class ThreeRenderer {
     }
     this.camera.lookAt(this.target);
     this.sightDirection.value.copy(this.camera.position).sub(this.target).normalize();
+    this.sun.intensity=world.interior?EVENING_LIGHT.interiorIntensity:EVENING_LIGHT.sunIntensity;
     this.sun.target.position.copy(this.target);
-    this.sun.position.copy(this.target).add(new THREE.Vector3(-35,65,-25));
+    this.sun.position.copy(this.target).add(new THREE.Vector3(...EVENING_LIGHT.sunOffset));
     const shadowSpan=world.interior?15:Math.max(24,Math.min(90,this.options.zoom.span*1.5));
     Object.assign(this.sun.shadow.camera,{left:-shadowSpan,right:shadowSpan,top:shadowSpan,bottom:-shadowSpan});
     this.sun.shadow.camera.updateProjectionMatrix();
@@ -358,6 +368,7 @@ export class ThreeRenderer {
   public destroy(): void {
     if (this.isDestroyed) return;
     this.isDestroyed = true;
+    this.heroAnimation?.dispose();this.lifeView.dispose();
     window.removeEventListener('resize', this.resize);
     this.container.removeEventListener('wheel', this.onWheel);
     for (const room of this.interiorAssets.values()) if (room !== this.room) this.scene.add(room);

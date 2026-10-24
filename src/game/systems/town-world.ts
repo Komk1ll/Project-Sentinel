@@ -2,7 +2,7 @@ import { isIslandLand, ISLAND_BOUNDS, MILL } from '@content/island';
 import { WILD_TREES, WILD_BENCHES, ISLAND_PONDS } from '@content/town-life';
 import { isPreviousPlanetState } from '@game/systems/legacy-planet-state';
 import { buildingEntrance, LEGACY_TOWN_BUILDINGS, TOWN_BUILDINGS, TOWN_SPAWN, type TownBuilding } from '@content/town';
-import { OUTDOOR_OBSTACLES, LEGACY_OUTDOOR_OBSTACLES, type TownObstacle } from '@content/town-props';
+import { OUTDOOR_OBSTACLES, PRE_EVENING_OUTDOOR_OBSTACLES, LEGACY_OUTDOOR_OBSTACLES, type TownObstacle } from '@content/town-props';
 import { getInteriorLayout } from '@content/interiors';
 
 export interface TownPosition {
@@ -20,8 +20,10 @@ const PLAYER_RADIUS = 0.3;
 const MOVEMENT_SPEED = 5;
 const INTERACTION_DISTANCE = 2.4;
 const INTERIOR_EXIT: TownPosition = { x: 0, z: 3 };
-const TOWN_COLLIDERS = [...TOWN_BUILDINGS, ...OUTDOOR_OBSTACLES, ...WILD_TREES.map(t=>({...t,width:.4*t.scale,depth:.4*t.scale})),
+const SHARED_COLLIDERS = [...TOWN_BUILDINGS, ...WILD_TREES.map(t=>({...t,width:.4*t.scale,depth:.4*t.scale})),
   ...WILD_BENCHES.map(b=>({...b,width:1.6,depth:.55})), {...MILL,width:3.8,depth:3.8}];
+const TOWN_COLLIDERS=[...SHARED_COLLIDERS,...OUTDOOR_OBSTACLES];
+const PRE_EVENING_COLLIDERS=[...SHARED_COLLIDERS,...PRE_EVENING_OUTDOOR_OBSTACLES];
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
@@ -39,7 +41,7 @@ function validPosition(value: unknown, interior: TownBuilding | null, outdoor: r
     || !Number.isFinite(value.x) || !Number.isFinite(value.z)) return false;
   if (interior) {
     if(value.x < -4.5 || value.x > 4.5 || value.z < -3.5 || value.z > 3.5) return false;
-  } else if(outdoor===TOWN_COLLIDERS) {
+  } else if(outdoor===TOWN_COLLIDERS || outdoor===PRE_EVENING_COLLIDERS) {
     if(!isIslandLand({x:value.x,z:value.z}) || ISLAND_PONDS.some(p=>
       ((value.x as number)-p.x)**2/(p.width/2+PLAYER_RADIUS)**2+((value.z as number)-p.z)**2/(p.depth/2+PLAYER_RADIUS)**2<1)) return false;
   } else if(value.x<.5 || value.x>63.5 || value.z<.5 || value.z>63.5) return false;
@@ -57,9 +59,33 @@ export function isTownWorldState(value: unknown): value is TownWorldState {
   return !interior || distance(value.outdoorReturn, buildingEntrance(interior)) <= INTERACTION_DISTANCE + 1e-7;
 }
 
+function safeNear(point: TownPosition, maxDistance = 4): TownPosition | null {
+    if (isWalkableTownPosition(point)) return point;
+    for (let radius = .5; radius <= maxDistance; radius += .5) for (let i=0; i<16; i++) {
+      const candidate = {x: point.x+Math.sin(i*Math.PI/8)*radius, z: point.z+Math.cos(i*Math.PI/8)*radius};
+      if (isWalkableTownPosition(candidate)) return candidate;
+    }
+    return null;
+  }
+
+/** Only valid pre-evening saves may relocate around newly placed scenery. */
+export function migrateCoastalWorldState(value: unknown): TownWorldState | null {
+  if (!record(value)) return null;
+  const room=value.interiorId===null?null:TOWN_BUILDINGS.find(b=>b.id===value.interiorId);
+  if(room===undefined || !validPosition(value.position,room,PRE_EVENING_COLLIDERS)
+    || !validPosition(value.outdoorReturn,null,PRE_EVENING_COLLIDERS))return null;
+  if(room && distance(value.outdoorReturn,buildingEntrance(room))>INTERACTION_DISTANCE+1e-7)return null;
+  if(isTownWorldState(value))return value;
+  const position=room?value.position:safeNear(value.position)??{...TOWN_SPAWN};
+  const outdoorReturn=safeNear(value.outdoorReturn,room?1:4)??(room?buildingEntrance(room):position);
+  const state={interiorId:room?.id??null,position,outdoorReturn};
+  return isTownWorldState(state)?state:null;
+}
+
 /** Accept a previous-layout save only after full validation against its old geometry. */
 export function migrateTownWorldState(value: unknown): TownWorldState | null {
-  if (isTownWorldState(value)) return value;
+  const coastal=migrateCoastalWorldState(value);
+  if(coastal)return coastal;
   if (!record(value)) return null;
   const previousPlanet = isPreviousPlanetState(value);
   const oldRoom = value.interiorId === null ? null : LEGACY_TOWN_BUILDINGS.find(b => b.id === value.interiorId);
@@ -69,14 +95,7 @@ export function migrateTownWorldState(value: unknown): TownWorldState | null {
   const state = value as unknown as TownWorldState;
   if (oldRoom && distance(state.outdoorReturn, buildingEntrance(oldRoom)) > INTERACTION_DISTANCE+1e-7) return null;
   const currentRoom = oldRoom ? TOWN_BUILDINGS.find(b => b.id === oldRoom.id) : null;
-  const safeNear = (point: TownPosition, maxDistance = 4): TownPosition | null => {
-    if (isWalkableTownPosition(point)) return point;
-    for (let radius = .5; radius <= maxDistance; radius += .5) for (let i=0; i<16; i++) {
-      const candidate = {x: point.x+Math.sin(i*Math.PI/8)*radius, z: point.z+Math.cos(i*Math.PI/8)*radius};
-      if (isWalkableTownPosition(candidate)) return candidate;
-    }
-    return null;
-  };
+
   if (currentRoom) {
     const entry = buildingEntrance(currentRoom);
     const outdoorReturn = safeNear(state.outdoorReturn, 1) ?? entry;

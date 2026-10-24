@@ -59,7 +59,7 @@ it('loads the shipped GLBs, delivers the parcel, reuses rooms and releases their
     // Models can finish loading after the player has already entered a fallback room.
     approachMaster(firstAid); renderer.render();
     await renderer.loadVisuals(); renderer.render();
-    expect(requested).toHaveLength(13);
+    expect(requested).toHaveLength(14);
     const workshop = renderer.scene.getObjectByName('cozy-interior-station')!;
     const town = renderer.scene.getObjectByName('web-town')!;
     const hero = renderer.scene.getObjectByName('web-hero')!;
