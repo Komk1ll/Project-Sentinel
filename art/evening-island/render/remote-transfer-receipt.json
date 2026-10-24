@@ -1,0 +1,24 @@
+{
+  "job_id": "655ed7843e854304aa8940644e432b90",
+  "archive_sha256": "78e1a73e25fed39bdcf58adf933dd1ab80b4d52e71156535b02b8ac0df79b85c",
+  "transfer_verified": true,
+  "driver_sha256": "49512ae018d020718629d56d1de8c2fac76252303dbf506a1aa1718efda02d04",
+  "inputs": {
+    "render_island_review.py": "6c411eaa5ef825923566b80eb5eda72e7b6b3eb7aeca1a02ff025d2fd5a03f42",
+    "build_web_asset_pack.py": "1d10f4de6683a3bbf70df965d560f1731dc6f2ad149d876841a95d880a48224a",
+    "island-review.glb": "9c08d45bccd28093f40ed5135b054798ab6d45adc3b6f7b0219fad71c5d09d46",
+    "views.json": "b4729722730c896712f3761ef6c6eddd2091254f72aef70914b1530859b67277",
+    "lighting.json": "a8ecad94065913ec5b359285540515ab2a09ca8156530bf8a7a02d4b08942081",
+    "actor-poses.glb": "53fc6825061966514b94caa44b75c9bea1dddf882896064f1051ef90260366d6"
+  },
+  "outputs": {
+    "facades.png": "381f0e53b56db5fa9e0615127a562d68f6a2bf091d3ee693c1c478f235b56bbe",
+    "street.png": "f6df973446489f3a3624f1b4cda762fa681167b20ebe717dba8a3856fbc2282f",
+    "overview.png": "0a826b10ce5f115bf80084c2dfca4cd77ab189cc999e6e638860df2457dab2f0",
+    "garden.png": "bf629aaeb2644c27ef144555b6e2cfc386eb6a59104b74b1bc26c158d1b7fff0",
+    "actor-poses.png": "810c2d678f4fabc74ccd62feaf28984646584770451e2fab5d7ed38dea2b03a9",
+    "render-verification.json": "5f3e30bfbf8aa39f618ae748088de6208ec0a165b0799a6971a4676afa8e741c",
+    "island-review.blend": "3d5ce1e2d2cc1586e663bd9a8b47e937ec0df0294de64663f30a87377447fadc",
+    "blender-run.json": "62f4c302c9361519f00680b570ff599b71ea3d1e7b38000fc46fa756cbd80d06"
+  }
+}

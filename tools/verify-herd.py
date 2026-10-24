@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import re
 import subprocess
+import socket
 import time
 import urllib.request
 import uuid
@@ -19,6 +20,12 @@ def get(path=''):
         assert response.status == 200
         return response.read(), dict(response.headers)
 
+
+try:
+    with socket.create_connection(('127.0.0.1', 80), timeout=2):
+        pass
+except OSError:
+    raise SystemExit('Herd is not listening on local port 80. Start Herd normally before running this HTTP check.')
 
 probe = ROOT / 'public' / ('herd-check-' + uuid.uuid4().hex + '.txt')
 try:
@@ -37,10 +44,10 @@ finally:
 html, headers = get()
 assert headers.get('X-CyberShield-Build') == 'current'
 assert b'/@vite/client' not in html
-assets = json.loads((ROOT / 'art/living-island-detail/asset-verification.json').read_text())['files']
+assets = json.loads((ROOT / 'art/evening-island/asset-verification.json').read_text())['files']
 paths = [''] + [p.removeprefix('./').lstrip('/') for p in re.findall(r'(?:src|href)="([^" ]+\.(?:js|css))"', html.decode())]
 paths += [a['path'].lstrip('/') for a in assets]
-assert len(paths) == 16
+assert len(paths) == len(assets) + 3
 verified = []
 for path in paths:
     data, response_headers = get(path)
@@ -55,8 +62,8 @@ assert state.returncode != 0
 for port in [5187]:
     listener = subprocess.run(['lsof', '-nP', f'-iTCP:{port}', '-sTCP:LISTEN'], capture_output=True)
     assert listener.returncode == 1, listener.stdout.decode()
-output = ROOT / 'art/herd-local'
-output.mkdir(exist_ok=True)
+output = ROOT / 'art/evening-island/herd'
+output.mkdir(parents=True, exist_ok=True)
 (output / 'verification.json').write_text(json.dumps({
     'checked_at': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
     'url': BASE, 'serving': 'production files through LocalValetDriver',
@@ -65,4 +72,4 @@ output.mkdir(exist_ok=True)
     'launch_agent_absent': True, 'vite_listener_absent': True,
     'files': verified, 'browser_render_checked': False,
 }, indent=2))
-print('PASS: on-request rebuilding, cache reuse, 16 HTTP file hashes, no Vite service or login agent')
+print(f'PASS: on-request rebuilding, cache reuse, {len(paths)} HTTP file hashes, no Vite service or login agent')
