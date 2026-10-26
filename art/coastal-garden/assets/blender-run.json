@@ -1,0 +1,13 @@
+{
+  "blender": "5.2.3 LTS",
+  "render_events": [
+    {
+      "engine": "CYCLES",
+      "cycles_device": "GPU",
+      "optix_devices": [
+        "NVIDIA GeForce RTX 4070 Ti SUPER"
+      ],
+      "filepath": "C:\\Users\\danii\\Documents\\CyberShieldRemote\\plugin-jobs\\341e3d256787499c831157a822c250d2\\output\\previews\\coastal-garden-kit.png"
+    }
+  ]
+}

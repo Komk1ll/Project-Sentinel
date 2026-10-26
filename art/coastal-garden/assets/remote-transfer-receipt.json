@@ -1,0 +1,17 @@
+{
+  "job_id": "341e3d256787499c831157a822c250d2",
+  "archive_sha256": "59b74feabe09498a4d50bda6aebd5042734d8bfb8c57206688127aa071b3e24f",
+  "transfer_verified": true,
+  "driver_sha256": "49512ae018d020718629d56d1de8c2fac76252303dbf506a1aa1718efda02d04",
+  "inputs": {
+    "build_coastal_garden_assets.py": "db2fdcda988008dace679daaf053861759fad8965f7f236817db5d5b740b23e6",
+    "build_web_asset_pack.py": "1d10f4de6683a3bbf70df965d560f1731dc6f2ad149d876841a95d880a48224a"
+  },
+  "outputs": {
+    "manifest.json": "2514d4a374c5655481e2a3b0585d1bd2c52c39f9885e8ff1ea4d9a1ce7a0def3",
+    "blender-run.json": "7f5d496a26ed72a22f04b12181a4feb7b85e6c8e64bff35ee8919a69000a9b49",
+    "source/coastal-garden-kit.blend": "f601159a76857a4a0369a85c241685779e0512a911f7de09a0d4fe1cc1943bbe",
+    "models/coastal-garden-kit.glb": "f1e4842decc556c489021926b0895cb8769e15b519200465e5a90d1933cbbdaa",
+    "previews/coastal-garden-kit.png": "5945d0449f12372196d1b112bb1e77d473f6681b42eca4d0b38a9a4e713c2026"
+  }
+}

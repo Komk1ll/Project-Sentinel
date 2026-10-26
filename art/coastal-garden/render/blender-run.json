@@ -1,0 +1,77 @@
+{
+  "blender": "5.2.3 LTS",
+  "render_events": [
+    {
+      "engine": "CYCLES",
+      "cycles_device": "GPU",
+      "optix_devices": [
+        "NVIDIA GeForce RTX 4070 Ti SUPER"
+      ],
+      "filepath": "C:\\Users\\danii\\Documents\\CyberShieldRemote\\plugin-jobs\\faad305a47b748e19dc6341a7fdaf0a5\\output\\overview.png"
+    },
+    {
+      "engine": "CYCLES",
+      "cycles_device": "GPU",
+      "optix_devices": [
+        "NVIDIA GeForce RTX 4070 Ti SUPER"
+      ],
+      "filepath": "C:\\Users\\danii\\Documents\\CyberShieldRemote\\plugin-jobs\\faad305a47b748e19dc6341a7fdaf0a5\\output\\street.png"
+    },
+    {
+      "engine": "CYCLES",
+      "cycles_device": "GPU",
+      "optix_devices": [
+        "NVIDIA GeForce RTX 4070 Ti SUPER"
+      ],
+      "filepath": "C:\\Users\\danii\\Documents\\CyberShieldRemote\\plugin-jobs\\faad305a47b748e19dc6341a7fdaf0a5\\output\\garden.png"
+    },
+    {
+      "engine": "CYCLES",
+      "cycles_device": "GPU",
+      "optix_devices": [
+        "NVIDIA GeForce RTX 4070 Ti SUPER"
+      ],
+      "filepath": "C:\\Users\\danii\\Documents\\CyberShieldRemote\\plugin-jobs\\faad305a47b748e19dc6341a7fdaf0a5\\output\\pond-bridge.png"
+    },
+    {
+      "engine": "CYCLES",
+      "cycles_device": "GPU",
+      "optix_devices": [
+        "NVIDIA GeForce RTX 4070 Ti SUPER"
+      ],
+      "filepath": "C:\\Users\\danii\\Documents\\CyberShieldRemote\\plugin-jobs\\faad305a47b748e19dc6341a7fdaf0a5\\output\\facades.png"
+    },
+    {
+      "engine": "CYCLES",
+      "cycles_device": "GPU",
+      "optix_devices": [
+        "NVIDIA GeForce RTX 4070 Ti SUPER"
+      ],
+      "filepath": "C:\\Users\\danii\\Documents\\CyberShieldRemote\\plugin-jobs\\faad305a47b748e19dc6341a7fdaf0a5\\output\\harbor.png"
+    },
+    {
+      "engine": "CYCLES",
+      "cycles_device": "GPU",
+      "optix_devices": [
+        "NVIDIA GeForce RTX 4070 Ti SUPER"
+      ],
+      "filepath": "C:\\Users\\danii\\Documents\\CyberShieldRemote\\plugin-jobs\\faad305a47b748e19dc6341a7fdaf0a5\\output\\lighthouse-view.png"
+    },
+    {
+      "engine": "CYCLES",
+      "cycles_device": "GPU",
+      "optix_devices": [
+        "NVIDIA GeForce RTX 4070 Ti SUPER"
+      ],
+      "filepath": "C:\\Users\\danii\\Documents\\CyberShieldRemote\\plugin-jobs\\faad305a47b748e19dc6341a7fdaf0a5\\output\\orchard.png"
+    },
+    {
+      "engine": "CYCLES",
+      "cycles_device": "GPU",
+      "optix_devices": [
+        "NVIDIA GeForce RTX 4070 Ti SUPER"
+      ],
+      "filepath": "C:\\Users\\danii\\Documents\\CyberShieldRemote\\plugin-jobs\\faad305a47b748e19dc6341a7fdaf0a5\\output\\actor-poses.png"
+    }
+  ]
+}

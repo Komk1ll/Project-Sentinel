@@ -1,0 +1,42 @@
+
+> project-sentinel@0.1.0 test
+> vitest run
+
+
+ RUN  v2.1.9 /Users/merunex/Documents/ChatGPT/Project Sentinel/development/cybershield
+
+ ✓ tests/unit/camera-zoom.test.ts (8 tests) 3ms
+ ✓ tests/systems/first-aid-mission.test.ts (8 tests) 18ms
+ ✓ tests/systems/evening-island.test.ts (4 tests) 25ms
+ ✓ tests/systems/first-aid-save.test.ts (14 tests) 33ms
+ ✓ tests/unit/player-progress.test.ts (7 tests) 5ms
+ ✓ tests/unit/town-world.test.ts (185 tests) 246ms
+ ✓ tests/unit/storage.test.ts (3 tests) 1ms
+ ✓ tests/unit/player-hud.test.ts (3 tests) 2ms
+ ✓ tests/unit/district.test.ts (9 tests) 3ms
+ ✓ tests/unit/isometric.test.ts (4 tests) 1ms
+ ✓ tests/unit/open-district.test.ts (12 tests) 845ms
+   ✓ Open district and existing progress > replaces eight repeated lots with connected public spaces, retaining mission entrances 842ms
+ ✓ tests/unit/town-navigation.test.ts (5 tests) 837ms
+   ✓ Mission map navigation > guides spawn to Mayak and Mayak to the clinic around building footprints 828ms
+ ✓ tests/systems/first-aid-ui.test.ts (7 tests) 85ms
+ ✓ tests/systems/cozy-scene.test.ts (1 test) 249ms
+ ✓ tests/systems/island-detail.test.ts (2 tests) 80ms
+ ✓ tests/systems/town-assets.test.ts (1 test) 13ms
+ ✓ tests/systems/first-aid-scene.test.ts (1 test) 103ms
+ ✓ tests/systems/island-harbor.test.ts (47 tests) 1965ms
+   ✓ routes from town to the landmark at 58,89 1927ms
+ ✓ tests/systems/coastal-garden.test.ts (58 tests) 1986ms
+   ✓ routes to garden destination 88,58 1908ms
+ ✓ tests/unit/coastal-island.test.ts (12 tests) 2391ms
+   ✓ Coastal island and life > routes from the garden to the clinic around ponds and buildings 2275ms
+ ✓ tests/systems/island-landscape.test.ts (75 tests) 2211ms
+   ✓ keeps harbor approaches walkable and the boat channel clear 2198ms
+ ✓ tests/systems/town-minimap.test.ts (4 tests) 2221ms
+   ✓ labels mission places and follows pickup, room exit, delivery and restoration 1846ms
+
+ Test Files  22 passed (22)
+      Tests  470 passed (470)
+   Start at  08:40:36
+   Duration  3.60s (transform 632ms, setup 0ms, collect 1.91s, tests 13.32s, environment 1.43s, prepare 982ms)
+

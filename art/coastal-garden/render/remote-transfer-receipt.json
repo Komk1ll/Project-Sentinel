@@ -1,0 +1,28 @@
+{
+  "job_id": "faad305a47b748e19dc6341a7fdaf0a5",
+  "archive_sha256": "f4fc2a1cef3b2c290e4f35b82573f7b08bc0e8fdd4dfc536d4ea811b77c0094f",
+  "transfer_verified": true,
+  "driver_sha256": "49512ae018d020718629d56d1de8c2fac76252303dbf506a1aa1718efda02d04",
+  "inputs": {
+    "render_island_review.py": "6c411eaa5ef825923566b80eb5eda72e7b6b3eb7aeca1a02ff025d2fd5a03f42",
+    "build_web_asset_pack.py": "1d10f4de6683a3bbf70df965d560f1731dc6f2ad149d876841a95d880a48224a",
+    "island-review.glb": "24d9302dd59ba03a21511a241126432e2560e597e3c3e03e1000cea30213d556",
+    "views.json": "63a9997a80718ac7c6094bbeef92781f563b17bee9200daa44ddd6a68b276164",
+    "lighting.json": "64d379c2c1642110449cd9d33813f0a2db78f973f10dbc775733758ce67ffe14",
+    "actor-poses.glb": "53fc6825061966514b94caa44b75c9bea1dddf882896064f1051ef90260366d6"
+  },
+  "outputs": {
+    "facades.png": "07e37ddeb055a7512e80170c21353747223806f06dfd29f1f8ab62861bbe7c57",
+    "street.png": "05bcd1e81fea1ca2c9230e2073ad4638d48dee286fd2207657675f517df437f7",
+    "pond-bridge.png": "20dc3bbabd1b9a0b182de31c2c33788be9babe2022251b3d5c3163968422eb65",
+    "lighthouse-view.png": "796eec9ef1bb4416b80f78b7a4697cec5f92bc7ed7d044ac1ebc79563e822238",
+    "overview.png": "57cc85a10b4c306954a271941bf08aa3d8bd1be1c259506c23a42399fa9757a1",
+    "garden.png": "fdd352e68d347ea842c9dcee6ad50ca4ccab7aa9758892616a51414784e7bb9a",
+    "orchard.png": "134277a4f81411826eba4ed11793964005616a03f5e084889d89e52098ae6115",
+    "actor-poses.png": "933d513891eef339499f40b880392463336de7dc31be015b1e3d7ddf580c5ed3",
+    "render-verification.json": "a61bdf1b1416cee6ea0e09df250b954476ef55e43fe0f86b7413b2d2e85a53ec",
+    "harbor.png": "d3330893d20f10ab87f9a48c1d40f4adc61d46b2e774ee20628c82f963d9c7b7",
+    "island-review.blend": "878f9e71df69fad75e200f6428844bde219573e1f7d21fe4fee958bd4a11a85a",
+    "blender-run.json": "fea9c8e4a8de58634d28d6e215b48701d5f74209824a0a7f6ef0e96f4052e88d"
+  }
+}

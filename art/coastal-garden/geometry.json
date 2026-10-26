@@ -1,0 +1,7 @@
+{
+  "meshes": 517,
+  "triangles": 211778,
+  "bytes": 3570068,
+  "source": "Actual runtime scene; canvas signs and depth-tested hero proxy omitted; water PBR approximation; custom WebGL shaders not evaluated",
+  "browserVerified": false
+}

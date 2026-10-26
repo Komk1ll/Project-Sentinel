@@ -1,0 +1,13 @@
+
+> project-sentinel@0.1.0 build
+> tsc && vite build
+
+vite v6.4.4 building for production...
+transforming...
+✓ 49 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   1.53 kB │ gzip:   0.79 kB
+dist/assets/index-BEWLjiqb.css    8.63 kB │ gzip:   2.53 kB
+dist/assets/index-C-YPFMGP.js   733.05 kB │ gzip: 195.92 kB
+✓ built in 560ms
