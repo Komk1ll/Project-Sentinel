@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { ISLAND_CENTER,coastRadius,SEA_LEVEL } from '@content/island';
+import { ISLAND_CENTER,coastRadius,shorelineRadius,SEA_LEVEL } from '@content/island';
 
 export function createIslandTerrain():THREE.Mesh {
   const vertices:number[]=[],colors:number[]=[],indices:number[]=[];
@@ -7,7 +7,7 @@ export function createIslandTerrain():THREE.Mesh {
   const segments=192;
   bands.forEach(([fraction,y,color])=>{
     for(let i=0;i<segments;i++){
-      const angle=i/segments*Math.PI*2,r=coastRadius(angle)*fraction,c=new THREE.Color(color);
+      const angle=i/segments*Math.PI*2,r=coastRadius(angle)*fraction+(shorelineRadius(angle)-coastRadius(angle))*Math.max(0,Math.min(1,(fraction-.94)/.06)),c=new THREE.Color(color);
       vertices.push(ISLAND_CENTER.x+Math.cos(angle)*r,y,ISLAND_CENTER.z+Math.sin(angle)*r);colors.push(c.r,c.g,c.b);
     }
   });
@@ -21,7 +21,7 @@ export function createIslandTerrain():THREE.Mesh {
 
 /** One analytic water surface: no reflection render targets or downloaded textures. */
 export function createOcean(time:{value:number}):THREE.Mesh {
-  const geometry=new THREE.PlaneGeometry(700,700,160,160);geometry.rotateX(-Math.PI/2);
+  const geometry=new THREE.PlaneGeometry(700,700,96,96);geometry.rotateX(-Math.PI/2);
   const material=new THREE.ShaderMaterial({
     uniforms:{uTime:time,uSea:{value:SEA_LEVEL}},
     vertexShader:`
@@ -41,6 +41,7 @@ export function createOcean(time:{value:number}):THREE.Mesh {
       void main(){
         vec2 p=waterWorld.xz-vec2(46.,32.); float a=atan(p.y,p.x);
         float radius=pow(pow(abs(cos(a)/62.),4.)+pow(abs(sin(a)/46.),4.),-.25)*(1.+.025*sin(a*3.)+.018*sin(a*7.));
+        radius*=max(.95,1.+.035*sin(a*5.)+.022*sin(a*11.)+.012*cos(a*17.));
         float shore=length(p)/radius;
         float rippleA=waterWorld.x*.72+waterWorld.z*.31+uTime*1.1;
         float rippleB=waterWorld.x*-.36+waterWorld.z*.83-uTime*.85;
@@ -48,7 +49,7 @@ export function createOcean(time:{value:number}):THREE.Mesh {
         vec3 n=normalize(waveNormal+detailNormal-vec3(0.,1.,0.)),v=normalize(cameraPosition-waterWorld);
         float fresnel=.035+.965*pow(1.-max(dot(n,v),0.),5.);
         float shallow=1.-smoothstep(1.01,1.28,shore);
-        vec3 base=mix(vec3(.025,.055,.12),vec3(.09,.20,.26),shallow);
+        vec3 base=mix(vec3(.025,.10,.18),vec3(.12,.34,.38),shallow);
         vec3 sky=mix(vec3(.29,.25,.38),vec3(.12,.19,.34),clamp(reflect(-v,n).y,0.,1.));
         vec3 colour=mix(base,sky,fresnel*.72);
         vec3 sun=normalize(vec3(-.45,.38,-.28));
@@ -56,7 +57,7 @@ export function createOcean(time:{value:number}):THREE.Mesh {
         colour+=vec3(1.,.58,.28)*sparkle*.85;
         float foam=1.-smoothstep(.012,.045,abs(shore-1.025+sin(a*24.+uTime*1.4)*.009));
         foam*=.55+.25*sin(p.x*1.5+p.y*.8-uTime*2.);
-        colour=mix(colour,vec3(.42,.51,.61),foam*.7);
+        colour=mix(colour,vec3(.65,.78,.77),foam*.7);
         float haze=smoothstep(140.,310.,distance(cameraPosition,waterWorld));
         colour=mix(colour,vec3(.09,.11,.22),haze);
         gl_FragColor=vec4(colour,1.);

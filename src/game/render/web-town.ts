@@ -1,3 +1,5 @@
+import { GARDEN_TREES } from '@content/coastal-garden';
+import { createCoastalGarden } from '@game/render/coastal-garden-view';
 import { COASTAL_TREES } from '@content/harbor';
 import { createHarbor } from '@game/render/harbor-view';
 import { createStreetDressing } from '@game/render/street-dressing';
@@ -184,7 +186,9 @@ export function createWebTown(assets?: ReadonlyMap<string, THREE.Group>, time = 
       town.add(mesh);
     });
   }
-  const trees=[...TOWN_TREES,...WILD_TREES,...COASTAL_TREES];
+  const gardenKit=assets?.get('coastal-garden-kit');
+  if(gardenKit)town.add(createCoastalGarden(gardenKit,time));
+  const trees=[...TOWN_TREES.filter(t=>!gardenKit||!(t.x<=12&&t.z>=52)),...WILD_TREES,...COASTAL_TREES,...GARDEN_TREES];
   const treePack=assets?.get('tree');
   if (treePack?.getObjectByName('tree-oak')) {
     ['oak','birch','pine'].forEach((species,index)=>instances(`tree-${species}`,

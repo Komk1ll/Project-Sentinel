@@ -35,7 +35,7 @@ it('keeps harbor approaches walkable and the boat channel clear',()=>{
 const encode=(x:number,z:number,layout='coastal-island-v3')=>JSON.stringify({schemaVersion:1,layout,buildId:'cybershield-first-aid',savedAt:1,stage:'completed',world:{interiorId:null,position:{x,z},outdoorReturn:{x,z}}});
 it('relocates valid v3 positions covered by the new lighthouse or beds and preserves completion',()=>{
   for(const p of [LIGHTHOUSE,{x:36.5,z:54.3},{x:4,z:38}]){
-    const save=parseTownSave(encode(p.x,p.z));expect(save?.stage).toBe('completed');expect(save?.layout).toBe('coastal-island-v4');
+    const save=parseTownSave(encode(p.x,p.z));expect(save?.stage).toBe('completed');expect(save?.layout).toBe('coastal-island-v5');
     expect(isTownWorldState(save?.world)).toBe(true);expect(save?.world.position).not.toEqual({x:p.x,z:p.z});
     expect(parseTownSave(encode(p.x,p.z,'coastal-island-v4'))).toBeNull();
   }

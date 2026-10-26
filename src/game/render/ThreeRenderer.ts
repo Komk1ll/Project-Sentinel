@@ -1,3 +1,4 @@
+import { gardenBridgeHeight } from '@content/coastal-garden';
 import { updateHarbor } from '@game/render/harbor-view';
 import { addHeroSilhouette } from '@game/render/hero-silhouette';
 import { EVENING_LIGHT } from '@content/evening-light';
@@ -249,7 +250,7 @@ export class ThreeRenderer {
     const dx = x - this.lastPosition.x;
     const dz = z - this.lastPosition.y;
     const moving = Math.hypot(dx, dz) > .0001;
-    placeOnGround(this.character,x,z,world.heading,.065);
+    placeOnGround(this.character,x,z,world.heading,.065+(world.interior?0:gardenBridgeHeight(world.position)));
     this.surfaceUp.value.set(0,1,0);
     this.walkTime += moving ? deltaSeconds * 10 : 0;
     const stride = moving ? Math.sin(this.walkTime) * .55 : 0;

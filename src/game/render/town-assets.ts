@@ -27,9 +27,9 @@ export async function loadTownAssets(): Promise<Map<string, THREE.Group>> {
   const loader = new GLTFLoader();
   const web = ['hero', 'master', 'medic', 'workshop', 'clinic', 'house-base', 'tree', 'bench', 'aid-kit'];
   const polished = ['hero', 'master', 'medic', 'workshop'];
-  const names = [...web, 'architecture-details', 'street-kit', 'harbor-kit', 'resident', 'interior-station', 'interior-clinic'];
+  const names = [...web, 'architecture-details', 'street-kit', 'harbor-kit', 'coastal-garden-kit', 'resident', 'interior-station', 'interior-clinic'];
   const results = await Promise.allSettled(names.map(async name => {
-    const folder = name === 'harbor-kit' ? 'harbor' : ['hero','street-kit'].includes(name) ? 'evening' : ['tree', 'architecture-details'].includes(name) ? 'island-detail' : polished.includes(name) ? 'polish-v4' : web.includes(name) ? 'web-mvp' : 'cozy';
+    const folder = name === 'coastal-garden-kit' ? 'coastal-garden' : name === 'harbor-kit' ? 'harbor' : ['hero','street-kit'].includes(name) ? 'evening' : ['tree', 'architecture-details'].includes(name) ? 'island-detail' : polished.includes(name) ? 'polish-v4' : web.includes(name) ? 'web-mvp' : 'cozy';
     const url = new URL(`${import.meta.env.BASE_URL}assets/models/${folder}/${name}.glb`, document.baseURI).href;
     const gltf = await loader.loadAsync(url);
     gltf.scene.animations = gltf.animations;

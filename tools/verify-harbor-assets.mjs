@@ -17,8 +17,8 @@ GLTFLoader.prototype.loadAsync=async function(url){
 try{
   const {loadTownAssets,disposeObject}=await server.ssrLoadModule('/src/game/render/town-assets.ts');
   const {CAR_SIZE}=await server.ssrLoadModule('/src/content/street-details.ts');
-  const assets=await loadTownAssets();assert.equal(assets.size,15);assert.equal(files.length,15);
-  const payload=files.reduce((n,file)=>n+file.bytes,0);assert.ok(payload<=5_200_000,`Payload ${payload} exceeds 5.2 MB`);
+  const assets=await loadTownAssets();assert.equal(assets.size,16);assert.equal(files.length,16);
+  const payload=files.reduce((n,file)=>n+file.bytes,0);assert.ok(payload<=5_500_000,`Payload ${payload} exceeds 5.5 MB`);
   const manifest=JSON.parse(await readFile('art/evening-island/assets/manifest.json','utf8'));
   for(const name of ['hero','street-kit']){
     const file=files.find(file=>file.path.endsWith(`evening/${name}.glb`));
@@ -27,8 +27,8 @@ try{
   const harborManifest=JSON.parse(await readFile('art/island-harbor/assets/manifest.json','utf8'));
   const harborFile=files.find(file=>file.path.endsWith('/harbor/harbor-kit.glb'));
   assert.equal(harborFile.sha256,harborManifest.sha256);
-  const kit=assets.get('harbor-kit'),metrics={};
-  for(const group of kit.children){
+  const metrics={};
+  for(const group of [...assets.get('harbor-kit').children,...assets.get('coastal-garden-kit').children]){
     group.updateMatrixWorld(true);let triangles=0,meshes=0;const materials=new Set();
     group.traverse(object=>{
       if(!object.isMesh)return;meshes++;
@@ -52,6 +52,10 @@ try{
       assert.ok(size.y>1.3&&size.y<1.5);
     }
   }
+  const gardenManifest=JSON.parse(await readFile('art/coastal-garden/assets/manifest.json','utf8'));
+  assert.equal(files.find(f=>f.path.endsWith('/coastal-garden-kit.glb')).sha256,gardenManifest.sha256);
+  assert.ok(Math.abs(metrics['garden-bridge'].size[0]-17)<.05);
+  assert.ok(metrics['apple-tree'].size[1]>3.5&&metrics['apple-tree'].size[1]<4.5);
   const windows=assets.get('street-kit').getObjectByName('evening-windows');assert.ok(windows);
   windows.traverse(object=>{if(object.isMesh){assert.ok(object.material.emissiveIntensity>0);assert.ok(object.material.emissive.r>object.material.emissive.b);}});
   assert.ok(metrics.lighthouse.size[0]<=4.4&&metrics.lighthouse.size[2]<=4.4);
@@ -63,7 +67,7 @@ try{
   const clips=hero.animations.map(clip=>({name:clip.name,duration:clip.duration,tracks:clip.tracks.map(track=>track.name)}));
   for(const clip of hero.animations)for(const track of clip.tracks){assert.ok(/^(left|right)-(arm|leg)\.quaternion$/.test(track.name));assert.ok([...track.values].every(Number.isFinite));}
   const scene=JSON.parse(await readFile(`${reportRoot}/geometry.json`,'utf8'));
-  assert.ok(scene.triangles<=240_000,`${scene.triangles} triangles`);assert.ok(scene.meshes<=550);
+  assert.ok(scene.triangles<=260_000,`${scene.triangles} triangles`);assert.ok(scene.meshes<=600);
   const report={payload,requests:files.length,files,groups:metrics,clips,scene,checks:['real GLTFLoader decode','verified source hashes','finite geometry and unit normals','nondegenerate triangles','car collision bounds','hero metre scale','authored limb-only animation clips','warm emissive panes','payload and scene budgets'],browserVerified:false};
   await writeFile(`${reportRoot}/asset-verification.json`,JSON.stringify(report,null,2));
   console.log({payload,requests:files.length,meshes:scene.meshes,triangles:scene.triangles});assets.forEach(disposeObject);

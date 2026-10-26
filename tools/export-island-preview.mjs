@@ -20,8 +20,8 @@ try{
   const {placeOnGround}=await server.ssrLoadModule('/src/game/render/world-surface.ts');
   const {createOcean}=await server.ssrLoadModule('/src/game/render/island-terrain.ts');
   const assets=new Map();
-  for(const name of ['hero','workshop','clinic','house-base','tree','bench','architecture-details','street-kit','harbor-kit']){
-    const folder=name==='harbor-kit'?'harbor':['hero','street-kit'].includes(name)?'evening':['tree','architecture-details'].includes(name)?'island-detail':['hero','workshop'].includes(name)?'polish-v4':'web-mvp';
+  for(const name of ['hero','workshop','clinic','house-base','tree','bench','architecture-details','street-kit','harbor-kit','coastal-garden-kit']){
+    const folder=name==='coastal-garden-kit'?'coastal-garden':name==='harbor-kit'?'harbor':['hero','street-kit'].includes(name)?'evening':['tree','architecture-details'].includes(name)?'island-detail':['hero','workshop'].includes(name)?'polish-v4':'web-mvp';
     const bytes=await readFile(`public/assets/models/${folder}/${name}.glb`);
     const asset=await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),'');asset.scene.animations=asset.animations;assets.set(name,asset.scene);
   }
@@ -36,10 +36,10 @@ try{
   scene.traverse(object=>{if(object.isMesh){for(const mat of Array.isArray(object.material)?object.material:[object.material])if(mat.map)mat.map=null;}});
   // GLTF cannot serialize custom WebGL shaders: offline water is a PBR approximation.
   const ocean=createOcean({value:0});ocean.material.dispose();
-  ocean.material=new THREE.MeshStandardMaterial({color:0x273d5a,roughness:.24,metalness:.18});
+  ocean.material=new THREE.MeshStandardMaterial({color:0x326b79,roughness:.24,metalness:.18});
   ocean.position.y=-.65;scene.add(ocean);
   const views=[];
-  for(const [name,x,z,span,overview] of [['overview',46,38,64,true],['street',32,35,11,false],['garden',86,38,22,false],['facades',38,26,12,false],['harbor',59,79,19,false],['lighthouse-view',64,66,10,false],['orchard',8,51,14,false]]){
+  for(const [name,x,z,span,overview] of [['overview',46,38,64,true],['street',32,35,11,false],['garden',86,40,26,false],['pond-bridge',88,58,13,false],['facades',38,26,12,false],['harbor',59,79,19,false],['lighthouse-view',64,66,10,false],['orchard',8,51,14,false]]){
     const target=new THREE.Vector3(x,0,z);
     const camera=new THREE.OrthographicCamera(-span*1.5,span*1.5,span,-span,.1,400);camera.name=name;
     camera.up.set(0,1,0);
@@ -48,7 +48,7 @@ try{
   }
   scene.getObjectByName('lantern-light-pools').material.name='lantern-spill';
   scene.updateMatrixWorld(true);
-  const output=process.argv[2]??'art/island-landscape';await mkdir(output,{recursive:true});
+  const output=process.argv[2]??'art/coastal-garden';await mkdir(output,{recursive:true});
   const {EVENING_LIGHT}=await server.ssrLoadModule('/src/content/evening-light.ts');
   await writeFile(`${output}/lighting.json`,JSON.stringify(EVENING_LIGHT,null,2));
   const glb=await new GLTFExporter().parseAsync(scene,{binary:true,onlyVisible:true});await writeFile(`${output}/island-review.glb`,Buffer.from(glb));

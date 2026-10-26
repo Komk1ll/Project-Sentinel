@@ -1,3 +1,4 @@
+import { GARDEN_TREES } from '@content/coastal-garden';
 import { COASTAL_TREES } from '@content/harbor';
 // @vitest-environment jsdom
 import { readFile } from 'node:fs/promises';
@@ -36,7 +37,7 @@ it('loads every authored lot and instances every tree with matching wind shadows
   const foliage:THREE.InstancedMesh[]=[];
   town.traverse(object=>{if(object instanceof THREE.InstancedMesh && object.userData.animatedFoliage)foliage.push(object);});
   expect(foliage).toHaveLength(3);
-  expect(foliage.reduce((sum,mesh)=>sum+mesh.count,0)).toBe(TOWN_TREES.length+WILD_TREES.length+COASTAL_TREES.length);
+  expect(foliage.reduce((sum,mesh)=>sum+mesh.count,0)).toBe(TOWN_TREES.length+WILD_TREES.length+COASTAL_TREES.length+GARDEN_TREES.length);
   const depthDisposals=[];
   for(const mesh of foliage){
     const material=mesh.material as THREE.MeshStandardMaterial;

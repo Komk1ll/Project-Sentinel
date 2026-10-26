@@ -15,8 +15,12 @@ export function coastRatio(point:TownPosition):number {
 export function isIslandLand(point:TownPosition):boolean {
   return Number.isFinite(point.x)&&Number.isFinite(point.z)&&coastRatio(point)<=.94;
 }
+/** Outer visual shoreline varies beyond the stable walkable land envelope. */
+export function shorelineRadius(angle:number):number {
+  return coastRadius(angle)*Math.max(.95,1+.035*Math.sin(angle*5)+.022*Math.sin(angle*11)+.012*Math.cos(angle*17));
+}
 export function coastOutline(fraction=1):TownPosition[]{
-  return Array.from({length:192},(_,i)=>{const angle=i/192*Math.PI*2,r=coastRadius(angle)*fraction;
+  return Array.from({length:192},(_,i)=>{const angle=i/192*Math.PI*2,r=coastRadius(angle)*fraction+(shorelineRadius(angle)-coastRadius(angle))*Math.max(0,Math.min(1,(fraction-.94)/.06));
     return {x:ISLAND_CENTER.x+Math.cos(angle)*r,z:ISLAND_CENTER.z+Math.sin(angle)*r};});
 }
 /** Rounded rectangular promenade with a complete, walkable loop. */

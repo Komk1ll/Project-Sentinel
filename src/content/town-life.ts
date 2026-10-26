@@ -1,3 +1,4 @@
+import { onGardenWalk,onGardenBridge } from '@content/coastal-garden';
 import { isIslandLand,COAST_PATH } from '@content/island';
 import type { TownPosition } from '@game/systems/town-world';
 export interface TownResident { readonly id:string; readonly name:string; readonly color:number; readonly route:readonly TownPosition[]; readonly dialogue:string; }
@@ -26,7 +27,7 @@ export const WILD_BENCHES = [
 ];
 export const WILD_TREES = Array.from({length:80},(_,i)=>({
   x:70+(i%6)*5+Math.sin(i*3.7),z:2+Math.floor(i/6)*5+Math.cos(i*2.3),rotation:i*1.7,scale:.85+(i%4)*.1,
-})).filter(tree=>isIslandLand(tree)&&[16,32,48,70].every(z=>Math.abs(tree.z-z)>3.5)
+})).filter(tree=>!onGardenWalk(tree,1.2)&&!onGardenBridge(tree,-1.2)&&isIslandLand(tree)&&[16,32,48,70].every(z=>Math.abs(tree.z-z)>3.5)
   && [72,96].every(x=>Math.abs(tree.x-x)>2.5)
   && !ISLAND_PONDS.some(pond=>Math.abs(tree.x-pond.x)<pond.width/2+2&&Math.abs(tree.z-pond.z)<pond.depth/2+2)
   && !(tree.x>78&&tree.z>14&&tree.z<30)
