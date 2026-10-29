@@ -10,7 +10,9 @@ import * as THREE from 'three';
 
 it.each([...GARDEN_OBSTACLES,...GARDEN_TREE_OBSTACLES])('blocks new solid scenery at $x,$z',point=>expect(isWalkableTownPosition(point)).toBe(false));
 it('keeps garden walks and the existing full promenade clear',()=>{
-  for(const walk of GARDEN_WALKS)for(const point of walk.points)expect(isWalkableTownPosition(point),JSON.stringify(point)).toBe(true);
+  for(const walk of GARDEN_WALKS)for(const point of walk.points){
+    expect(isWalkableTownPosition(point),JSON.stringify(point)).toBe(true);
+  }
   for(const p of COAST_PATH)expect(isWalkableTownPosition(p)).toBe(true);
 });
 it('crosses the pond on the bridge, rejects water alongside and stops at the rails',()=>{
