@@ -1,30 +1,88 @@
 import * as THREE from 'three';
-import { ISLAND_CENTER,coastRadius,shorelineRadius,SEA_LEVEL } from '@content/island';
+import { ISLAND_CENTER, coastRadius, shorelineRadius, SEA_LEVEL } from '@content/island';
+import { islandElevation } from '@content/island-elevation';
 
-export function createIslandTerrain():THREE.Mesh {
-  const vertices:number[]=[],colors:number[]=[],indices:number[]=[];
-  const bands=[[0,0,0x91a874],[.8,0,0x8fa571],[.94,0,0x9eae7f],[1,-.4,0xd6c49b],[1.07,-1.2,0xb9b293],[1.16,-2.8,0x89988c]] as const;
-  const segments=192;
-  bands.forEach(([fraction,y,color])=>{
-    for(let i=0;i<segments;i++){
-      const angle=i/segments*Math.PI*2,r=coastRadius(angle)*fraction+(shorelineRadius(angle)-coastRadius(angle))*Math.max(0,Math.min(1,(fraction-.94)/.06)),c=new THREE.Color(color);
-      vertices.push(ISLAND_CENTER.x+Math.cos(angle)*r,y,ISLAND_CENTER.z+Math.sin(angle)*r);colors.push(c.r,c.g,c.b);
+/**
+ * Creates the textured island terrain mesh with continuous terrace heights,
+ * gentle slopes in the eastern park, and natural cliff -> sand -> grass transitions.
+ */
+export function createIslandTerrain(): THREE.Mesh {
+  const vertices: number[] = [], colors: number[] = [], indices: number[] = [];
+  // Concentric radial bands providing fine geometry over park terraces and shore drops
+  const bands = [
+    { fraction: 0, color: 0x91a874, drop: 0 },
+    { fraction: 0.25, color: 0x90a672, drop: 0 },
+    { fraction: 0.48, color: 0x8fa571, drop: 0 },
+    { fraction: 0.70, color: 0x8ea470, drop: 0 },
+    { fraction: 0.84, color: 0x92a875, drop: 0 },
+    { fraction: 0.94, color: 0x9eae7f, drop: 0 },
+    { fraction: 1.00, color: 0xd6c49b, drop: -0.4 },
+    { fraction: 1.07, color: 0xb9b293, drop: -1.2 },
+    { fraction: 1.16, color: 0x89988c, drop: -2.8 },
+  ] as const;
+
+  const segments = 192;
+  bands.forEach((band) => {
+    for (let i = 0; i < segments; i++) {
+      const angle = (i / segments) * Math.PI * 2;
+      const r = coastRadius(angle) * band.fraction +
+        (shorelineRadius(angle) - coastRadius(angle)) * Math.max(0, Math.min(1, (band.fraction - 0.94) / 0.06));
+      const vx = ISLAND_CENTER.x + Math.cos(angle) * r;
+      const vz = ISLAND_CENTER.z + Math.sin(angle) * r;
+      const groundElevation = islandElevation(vx, vz);
+
+      let vy: number;
+      if (band.fraction <= 0.94) {
+        vy = groundElevation;
+      } else if (band.fraction <= 1.00) {
+        // Taper smoothly to sandy shore
+        const t = (band.fraction - 0.94) / 0.06;
+        vy = groundElevation * (1 - t) + band.drop * t;
+      } else {
+        vy = band.drop;
+      }
+
+      // Dynamic color tint: high terraces get slightly warmer sunlight tone, loam edges get sandy tone
+      const c = new THREE.Color(band.color);
+      if (band.fraction <= 0.94 && groundElevation > 0.4) {
+        c.lerp(new THREE.Color(0x98b278), (groundElevation - 0.4) * 0.8);
+      }
+
+      vertices.push(vx, vy, vz);
+      colors.push(c.r, c.g, c.b);
     }
   });
-  for(let ring=0;ring<bands.length-1;ring++)for(let i=0;i<segments;i++){
-    const a=ring*segments+i,b=ring*segments+(i+1)%segments,c=a+segments,d=b+segments;
-    if(ring===0)indices.push(a,d,c);else indices.push(a,b,d,a,d,c);
+
+  for (let ring = 0; ring < bands.length - 1; ring++) {
+    for (let i = 0; i < segments; i++) {
+      const a = ring * segments + i;
+      const b = ring * segments + ((i + 1) % segments);
+      const c = a + segments;
+      const d = b + segments;
+      if (ring === 0) indices.push(a, d, c);
+      else indices.push(a, b, d, a, d, c);
+    }
   }
-  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));geometry.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));geometry.setIndex(indices);geometry.computeVertexNormals();
-  const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.95}));mesh.name='island-terrain';mesh.receiveShadow=true;return mesh;
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+  geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+
+  const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95 }));
+  mesh.name = 'island-terrain';
+  mesh.receiveShadow = true;
+  return mesh;
 }
 
 /** One analytic water surface: no reflection render targets or downloaded textures. */
-export function createOcean(time:{value:number}):THREE.Mesh {
-  const geometry=new THREE.PlaneGeometry(700,700,96,96);geometry.rotateX(-Math.PI/2);
-  const material=new THREE.ShaderMaterial({
-    uniforms:{uTime:time,uSea:{value:SEA_LEVEL}},
-    vertexShader:`
+export function createOcean(time: { value: number }): THREE.Mesh {
+  const geometry = new THREE.PlaneGeometry(700, 700, 96, 96);
+  geometry.rotateX(-Math.PI / 2);
+  const material = new THREE.ShaderMaterial({
+    uniforms: { uTime: time, uSea: { value: SEA_LEVEL } },
+    vertexShader: `
       uniform float uTime; uniform float uSea;
       varying vec3 waterWorld; varying vec3 waveNormal;
       void main(){
@@ -36,7 +94,7 @@ export function createOcean(time:{value:number}):THREE.Mesh {
         waterWorld=(modelMatrix*vec4(p,1.)).xyz;
         gl_Position=projectionMatrix*viewMatrix*vec4(waterWorld,1.);
       }`,
-    fragmentShader:`
+    fragmentShader: `
       uniform float uTime; varying vec3 waterWorld; varying vec3 waveNormal;
       void main(){
         vec2 p=waterWorld.xz-vec2(46.,32.); float a=atan(p.y,p.x);
@@ -65,6 +123,9 @@ export function createOcean(time:{value:number}):THREE.Mesh {
         #include <colorspace_fragment>
       }`,
   });
-  material.name='coastal-water-shader';
-  const mesh=new THREE.Mesh(geometry,material);mesh.name='island-ocean';mesh.position.set(46,0,32);return mesh;
+  material.name = 'coastal-water-shader';
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.name = 'island-ocean';
+  mesh.position.set(46, 0, 32);
+  return mesh;
 }

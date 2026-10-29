@@ -1,4 +1,5 @@
-import { GARDEN_WALKS,GARDEN_BRIDGE,SEAWALLS,GARDEN_TREES } from '@content/coastal-garden';
+import { GARDEN_WALKS,GARDEN_BRIDGE,SEAWALLS,GARDEN_TREES,RESTING_AREAS } from '@content/coastal-garden';
+import { RETAINING_WALLS } from '@content/island-elevation';
 import { LIGHTHOUSE,PIER_DECKS,COASTAL_TREES,HARBOR_PATHS,BREAKWATERS } from '@content/harbor';
 import { ISLAND_BOUNDS, COAST_PATH, coastOutline, MILL } from '@content/island';
 import { TOWN_STOPS, WILD_TREES, ISLAND_PONDS } from '@content/town-life';
@@ -102,13 +103,19 @@ export function drawMinimap(canvas: HTMLCanvasElement, world: TownWorld, mission
     ctx.fillStyle='#f2e6c9';for(const path of HARBOR_PATHS)rect(path.x,path.z,path.width,path.depth);
     ctx.strokeStyle='#92998c';ctx.lineWidth=2.3*p.scale;ctx.lineJoin='round';
     for(const arm of BREAKWATERS){ctx.beginPath();arm.forEach((point,i)=>i?ctx.lineTo(p.x(point.x),p.z(point.z)):ctx.moveTo(p.x(point.x),p.z(point.z)));ctx.stroke();}
+    ctx.fillStyle='#e8dcbf';for(const rest of RESTING_AREAS){ctx.beginPath();ctx.arc(p.x(rest.x),p.z(rest.z),rest.radius*p.scale,0,Math.PI*2);ctx.fill();}
     ctx.strokeStyle='#eadcbd';
     for(const walk of GARDEN_WALKS){ctx.beginPath();walk.points.forEach((v,i)=>i?ctx.lineTo(p.x(v.x),p.z(v.z)):ctx.moveTo(p.x(v.x),p.z(v.z)));if(walk.closed)ctx.closePath();ctx.lineWidth=walk.width*p.scale;ctx.stroke();}
+    ctx.strokeStyle='#7a8277';ctx.lineWidth=Math.max(1,1.1*p.scale);
+    for(const wall of RETAINING_WALLS){
+      const dx=-Math.sin(wall.rotation)*wall.depth/2,dz=Math.cos(wall.rotation)*wall.depth/2;
+      ctx.beginPath();ctx.moveTo(p.x(wall.x-dx),p.z(wall.z-dz));ctx.lineTo(p.x(wall.x+dx),p.z(wall.z+dz));ctx.stroke();
+    }
     ctx.fillStyle='#a78962';rect(GARDEN_BRIDGE.x,GARDEN_BRIDGE.z,GARDEN_BRIDGE.width,GARDEN_BRIDGE.depth);
     ctx.fillStyle='#92998c';for(const wall of SEAWALLS)rect(wall.x,wall.z,1,1);
     ctx.fillStyle='#a78962';for(const deck of PIER_DECKS)rect(deck.x,deck.z,deck.width,deck.depth);
     ctx.fillStyle='#ad6651';rect(LIGHTHOUSE.x,LIGHTHOUSE.z,4,4);
-    if(mode==='island'){text('Морской маяк',LIGHTHOUSE.x+7,LIGHTHOUSE.z-2);text('Причал',58,85);text('Зареченск',32,-10);text('Мельница',MILL.x,MILL.z-3);text('Береговая тропа',25,73);}
+    if(mode==='island'){text('Морской маяк',LIGHTHOUSE.x+7,LIGHTHOUSE.z-2);text('Причал',58,85);text('Зареченск',32,-10);text('Мельница',MILL.x,MILL.z-3);text('Береговая тропа',25,73);text('Бельведер',96,34);}
     ctx.fillStyle='#b3a686';rect(MILL.x,MILL.z,3.8,3.8);
     if(mode!=='island'||size>360)for(const b of TOWN_BUILDINGS){
       if(b.id==='station'||b.id==='clinic')text(b.id==='station'?'Маяк':'Клиника',b.x,b.z);

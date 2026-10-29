@@ -1,4 +1,5 @@
 import { gardenBridgeHeight } from '@content/coastal-garden';
+import { islandElevation } from '@content/island-elevation';
 import { updateHarbor } from '@game/render/harbor-view';
 import { addHeroSilhouette } from '@game/render/hero-silhouette';
 import { EVENING_LIGHT } from '@content/evening-light';
@@ -241,7 +242,9 @@ export class ThreeRenderer {
       }
       this.outdoors.visible = !world.interior;
       this.roomId = nextRoomId;
-      this.target.set(world.position.x, 0, world.position.z);
+      const groundY = world.interior ? 0 : islandElevation(world.position.x, world.position.z);
+      const bridgeY = world.interior ? 0 : gardenBridgeHeight(world.position);
+      this.target.set(world.position.x, groundY + bridgeY, world.position.z);
       this.lastPosition.set(world.position.x, world.position.z);
     }
     const { x, z } = world.position;
@@ -250,7 +253,9 @@ export class ThreeRenderer {
     const dx = x - this.lastPosition.x;
     const dz = z - this.lastPosition.y;
     const moving = Math.hypot(dx, dz) > .0001;
-    placeOnGround(this.character,x,z,world.heading,.065+(world.interior?0:gardenBridgeHeight(world.position)));
+    const groundY = world.interior ? 0 : islandElevation(x, z);
+    const bridgeY = world.interior ? 0 : gardenBridgeHeight(world.position);
+    placeOnGround(this.character,x,z,world.heading,groundY+bridgeY+.065);
     this.surfaceUp.value.set(0,1,0);
     this.walkTime += moving ? deltaSeconds * 10 : 0;
     const stride = moving ? Math.sin(this.walkTime) * .55 : 0;
@@ -287,7 +292,7 @@ export class ThreeRenderer {
       this.camera.position.copy(this.target).add(this.cameraOffset);
     } else {
       const overview=Math.max(0,Math.min(1,(this.options.zoom.span-22)/43));
-      const center=new THREE.Vector3(x,0,z).lerp(new THREE.Vector3(ISLAND_CENTER.x,0,ISLAND_CENTER.z),overview);
+      const center=new THREE.Vector3(x,groundY+bridgeY,z).lerp(new THREE.Vector3(ISLAND_CENTER.x,0,ISLAND_CENTER.z),overview);
       this.target.lerp(center,1-Math.exp(-deltaSeconds*7));
       this.camera.up.set(0,1,0);
       this.camera.position.copy(this.target).add(this.cameraOffset.clone().multiplyScalar(1+overview));
@@ -303,7 +308,7 @@ export class ThreeRenderer {
     this.doorMarker.visible = Boolean(nearby) && !world.interior;
     if (nearby) {
       const entry = buildingEntrance(nearby);
-      placeOnGround(this.doorMarker,entry.x,entry.z,0,.09);
+      placeOnGround(this.doorMarker,entry.x,entry.z,0,islandElevation(entry.x,entry.z)+.09);
       this.doorMarker.rotateX(-Math.PI/2);
     }
     this.renderer.render(this.scene, this.camera);

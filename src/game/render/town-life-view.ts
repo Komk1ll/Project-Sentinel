@@ -1,5 +1,6 @@
 import { ActorAnimation } from '@game/render/actor-animation';
 import { MILL } from '@content/island';
+import { islandElevation } from '@content/island-elevation';
 import * as THREE from 'three';
 import { TOWN_STOPS } from '@content/town-life';
 import { placeOnGround } from '@game/render/world-surface';
@@ -39,7 +40,7 @@ export class TownLifeView {
       this.actors.push(actor);this.animations.push(new ActorAnimation(actor,prototype?.animations??[]));this.group.add(actor);
     }
     for(const stop of TOWN_STOPS){
-      const group=new THREE.Group();group.name=`stop-${stop.id}`;placeOnGround(group,stop.x,stop.z);this.group.add(group);
+      const group=new THREE.Group();group.name=`stop-${stop.id}`;placeOnGround(group,stop.x,stop.z,0,islandElevation(stop.x,stop.z));this.group.add(group);
       if(stop.kind==='board'){
         mesh(group,0x80644b,0,.65,0,.12,1.3,.12);mesh(group,0x387d78,0,1.45,0,1.3,.65,.12);
         for(let i=0;i<3;i++)mesh(group,0xf1dfb1,-.36+i*.36,1.45,.07,.23,.35,.02);
@@ -52,10 +53,10 @@ export class TownLifeView {
         mesh(group,0x488f93,.8,.2,0,.16,.19,.15,true);
       }
     }
-    const fountain=new THREE.Group();fountain.name='garden-fountain';placeOnGround(fountain,24,24);this.group.add(fountain);
+    const fountain=new THREE.Group();fountain.name='garden-fountain';placeOnGround(fountain,24,24,0,islandElevation(24,24));this.group.add(fountain);
     mesh(fountain,0xb4baa5,0,.22,0,.9,.22,.9,true);mesh(fountain,0x6aadae,0,.41,0,.75,.025,.75,true);
     for(let i=0;i<12;i++)this.jets.push(mesh(fountain,0xbfe5e1,0,.7,0,.035,.07,.035,true));
-    const mill=new THREE.Group();mill.scale.setScalar(1.4);mill.name='meadow-windmill';placeOnGround(mill,MILL.x,MILL.z);this.group.add(mill);
+    const mill=new THREE.Group();mill.scale.setScalar(1.4);mill.name='meadow-windmill';placeOnGround(mill,MILL.x,MILL.z,0,islandElevation(MILL.x,MILL.z));this.group.add(mill);
     const tower=new THREE.Mesh(new THREE.CylinderGeometry(.9,1.3,4,16),new THREE.MeshStandardMaterial({color:0xeadbb9,roughness:.9}));
     tower.position.y=2;tower.castShadow=true;tower.receiveShadow=true;mill.add(tower);
     const roof=new THREE.Mesh(new THREE.ConeGeometry(1.4,1.3,16),new THREE.MeshStandardMaterial({color:0x667b6c,roughness:.85}));
@@ -88,7 +89,9 @@ export class TownLifeView {
   update(delta:number):void{
     this.elapsed+=Number.isFinite(delta)?Math.min(Math.max(delta,0),.05):0;
     this.actors.forEach((actor,i)=>{
-      const resident=this.life.residents[i]!;placeOnGround(actor,resident.position.x,resident.position.z,resident.heading,.065);
+      const resident=this.life.residents[i]!;
+      const groundY = islandElevation(resident.position.x, resident.position.z);
+      placeOnGround(actor,resident.position.x,resident.position.z,resident.heading,.065+groundY);
       const animation=this.animations[i]!;
       if(animation.available){animation.update(delta,resident.walking,this.life.message===resident.data.dialogue);return;}
       const stride=resident.walking?Math.sin(this.elapsed*7+i)*.48:0;
@@ -110,7 +113,8 @@ export class TownLifeView {
     this.jets.forEach((jet,i)=>{const t=(this.elapsed*.7+i/12)%1,angle=i*Math.PI/6;jet.position.set(Math.cos(angle)*t*.65,.42+Math.sin(t*Math.PI)*.85,Math.sin(angle)*t*.65);});
     this.butterflies.forEach((object,i)=>{
       const x=i<6?23:86,z=i<6?27:36;
-      placeOnGround(object,x+Math.sin(this.elapsed*.5+i)*2,z+Math.cos(this.elapsed*.35+i)*2,this.elapsed*.3,1.5+Math.sin(this.elapsed+i)*.3);
+      const groundY = islandElevation(x, z);
+      placeOnGround(object,x+Math.sin(this.elapsed*.5+i)*2,z+Math.cos(this.elapsed*.35+i)*2,this.elapsed*.3,groundY+1.5+Math.sin(this.elapsed+i)*.3);
       object.children.forEach((wing,j)=>wing.rotation.z=Math.sin(this.elapsed*12+i)*(j?1:-1));
     });
     this.flowers.forEach((flower,i)=>{flower.position.y=.32+(this.life.watered ? .10 : 0);flower.rotation.z=Math.sin(this.elapsed*2+i)*.1;});

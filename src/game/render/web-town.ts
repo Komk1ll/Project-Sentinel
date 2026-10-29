@@ -7,6 +7,7 @@ import { animateFoliage } from '@game/render/foliage-wind';
 import { createIslandLandscape } from '@game/render/island-landscape';
 import * as THREE from 'three';
 import { COAST_PATH } from '@content/island';
+import { islandElevation } from '@content/island-elevation';
 import { createIslandTerrain } from '@game/render/island-terrain';
 import { placeOnGround, surfaceStrip, pathRibbon } from '@game/render/world-surface';
 import { WILD_TREES, WILD_BENCHES } from '@content/town-life';
@@ -177,7 +178,8 @@ export function createWebTown(assets?: ReadonlyMap<string, THREE.Group>, time = 
       const mesh=new THREE.InstancedMesh(geometry,object.material,locations.length);
       mesh.name=`${name}-instances`; mesh.castShadow=true; mesh.receiveShadow=true;
       locations.forEach((location,index)=>{
-        placeOnGround(placement,location.x,location.z,location.rotation);
+        const groundY = islandElevation(location.x, location.z);
+        placeOnGround(placement,location.x,location.z,location.rotation,groundY);
         placement.scale.setScalar(location.scale ?? 1); placement.updateMatrix();
         matrix.copy(placement.matrix); mesh.setMatrixAt(index,matrix);
       });
