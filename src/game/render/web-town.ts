@@ -3,6 +3,7 @@ import { createCoastalGarden } from '@game/render/coastal-garden-view';
 import { COASTAL_TREES } from '@content/harbor';
 import { createHarbor } from '@game/render/harbor-view';
 import { createStreetDressing } from '@game/render/street-dressing';
+import { createIslandGreening } from '@game/render/island-greening-view';
 import { animateFoliage } from '@game/render/foliage-wind';
 import { createIslandLandscape } from '@game/render/island-landscape';
 import * as THREE from 'three';
@@ -203,6 +204,7 @@ export function createWebTown(assets?: ReadonlyMap<string, THREE.Group>, time = 
   if(streetKit)town.add(createStreetDressing(streetKit,time));
   const harborKit=assets?.get('harbor-kit');
   if(harborKit)town.add(createHarbor(harborKit,time));
+  town.add(createIslandGreening(time));
   for (const car of streetKit?[]:TOWN_CARS) {
     const group = new THREE.Group(); group.position.set(car.x, 0, car.z); group.rotation.y = car.rotation;
     box(group, 'car', car.color, 0, .5, 0, 1.3, .55, 2.7);

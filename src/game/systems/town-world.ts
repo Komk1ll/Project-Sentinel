@@ -1,6 +1,7 @@
 import { COASTAL_V1,COASTAL_V2,COASTAL_V3,COASTAL_V4 } from '@content/legacy-coastal-layouts';
 import { GARDEN_OBSTACLES,GARDEN_TREE_OBSTACLES,onGardenBridge } from '@content/coastal-garden';
 import { HARBOR_OBSTACLES,isPierPosition } from '@content/harbor';
+import { GREENING_OBSTACLES } from '@content/island-greening';
 import { isIslandLand, ISLAND_BOUNDS, MILL } from '@content/island';
 import { WILD_TREES, WILD_BENCHES, ISLAND_PONDS } from '@content/town-life';
 import { isPreviousPlanetState } from '@game/systems/legacy-planet-state';
@@ -28,7 +29,7 @@ const SHARED_COLLIDERS = [...TOWN_BUILDINGS, ...WILD_TREES.map(t=>({...t,width:.
 const EVENING_COLLIDERS=COASTAL_V2;
 const HARBOR_V3_COLLIDERS=COASTAL_V3;
 const LANDSCAPE_V4_COLLIDERS=COASTAL_V4;
-const TOWN_COLLIDERS=[...SHARED_COLLIDERS,...OUTDOOR_OBSTACLES,...HARBOR_OBSTACLES,...GARDEN_OBSTACLES,...GARDEN_TREE_OBSTACLES];
+const TOWN_COLLIDERS=[...SHARED_COLLIDERS,...OUTDOOR_OBSTACLES,...HARBOR_OBSTACLES,...GARDEN_OBSTACLES,...GARDEN_TREE_OBSTACLES,...GREENING_OBSTACLES];
 const PRE_EVENING_COLLIDERS=COASTAL_V1;
 
 function clamp(value: number, min: number, max: number): number {
