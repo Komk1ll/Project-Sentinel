@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" width="900" height="900">
+<rect width="900" height="900" fill="#0f2b38"/>
+<path d="M 0 0 L 400 0 C 350 150, 250 300, 100 400 L 0 400 Z" fill="#d8c89b"/>
+<path d="M 200 0 L 450 0 L 700 0 L 900 0 L 900 125 L 600 150 L 350 150 L 200 125 Z" fill="#8c8d82" stroke="#4a4c44" stroke-width="3"/>
+<path d="M 150 300 L 150 650 L 225 775 L 300 800" fill="none" stroke="#545b5e" stroke-width="100" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 775 300 L 775 650 L 700 775 L 625 800" fill="none" stroke="#545b5e" stroke-width="100" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="132.49999999999994" y="306.25" width="35" height="87.5" fill="#cbd5e1" stroke="#475569" stroke-width="1.5" rx="2"/>
+<rect x="132.49999999999994" y="406.25" width="35" height="87.5" fill="#cbd5e1" stroke="#475569" stroke-width="1.5" rx="2"/>
+<rect x="132.49999999999994" y="506.25" width="35" height="87.5" fill="#cbd5e1" stroke="#475569" stroke-width="1.5" rx="2"/>
+<rect x="132.49999999999994" y="600" width="35" height="75" fill="#cbd5e1" stroke="#475569" stroke-width="1.5" rx="2"/>
+<rect x="169.99999999999994" y="680.0000000000001" width="35" height="80" fill="#cbd5e1" stroke="#475569" stroke-width="1.5" rx="2"/>
+<rect x="244.99999999999994" y="750" width="35" height="75" fill="#cbd5e1" stroke="#475569" stroke-width="1.5" rx="2"/>
+<rect x="757.4999999999999" y="306.25" width="35" height="87.5" fill="#cbd5e1" stroke="#475569" stroke-width="1.5" rx="2"/>
+<rect x="757.4999999999999" y="406.25" width="35" height="87.5" fill="#cbd5e1" stroke="#475569" stroke-width="1.5" rx="2"/>
+<rect x="757.4999999999999" y="506.25" width="35" height="87.5" fill="#cbd5e1" stroke="#475569" stroke-width="1.5" rx="2"/>
+<rect x="757.4999999999999" y="600" width="35" height="75" fill="#cbd5e1" stroke="#475569" stroke-width="1.5" rx="2"/>
+<rect x="719.9999999999999" y="680.0000000000001" width="35" height="80" fill="#cbd5e1" stroke="#475569" stroke-width="1.5" rx="2"/>
+<rect x="644.9999999999999" y="750" width="35" height="75" fill="#cbd5e1" stroke="#475569" stroke-width="1.5" rx="2"/>
+<rect x="405.00000000000006" y="150" width="90" height="480" fill="#92623b" stroke="#5c3818" stroke-width="2"/>
+<line x1="405.00000000000006" y1="150" x2="494.99999999999994" y2="150" stroke="#5c3818" stroke-width="1" opacity="0.6"/>
+<line x1="405.00000000000006" y1="169.99999999999994" x2="494.99999999999994" y2="169.99999999999994" stroke="#5c3818" stroke-width="1" opacity="0.6"/>
+<line x1="405.00000000000006" y1="189.99999999999986" x2="494.99999999999994" y2="189.99999999999986" stroke="#5c3818" stroke-width="1" opacity="0.6"/>
+<line x1="405.00000000000006" y1="209.99999999999977" x2="494.99999999999994" y2="209.99999999999977" stroke="#5c3818" stroke-width="1" opacity="0.6"/>
+<line x1="405.00000000000006" y1="229.99999999999972" x2="494.99999999999994" y2="229.99999999999972" stroke="#5c3818" stroke-width="1" opacity="0.6"/>
+<line x1="405.00000000000006" y1="249.99999999999966" x2="494.99999999999994" y2="249.99999999999966" stroke="#5c3818" stroke-width="1" opacity="0.6"/>
+<line x1="405.00000000000006" y1="269.99999999999955" x2="494.99999999999994" y2="269.99999999999955" stroke="#5c3818" stroke-width="1" opacity="0.6"/>
+<line x1="405.00000000000006" y1="289.9999999999995" x2="494.99999999999994" y2="289.9999999999995" stroke="#5c3818" stroke-width="1" opacity="0.6"/>
+<line x1="405.00000000000006" y1="309.99999999999943" x2="494.99999999999994" y2="309.99999999999943" stroke="#5c3818" stroke-width="1" opacity="0.6"/>
+<line x1="405.00000000000006" y1="329.9999999999994" x2="494.99999999999994" y2="329.9999999999994" stroke="#5c3818" stroke-width="1" opacity="0.6"/>
+<line x1="405.00000000000006" y1="349.9999999999993" x2="494.99999999999994" y2="349.9999999999993" stroke="#5c3818" stroke-width="1" opacity="0.6"/>
+<line x1="405.00000000000006" y1="369.9999999999992" x2="494.99999999999994" y2="369.9999999999992" stroke="#5c3818" stroke-width="1" opacity="0.6"/>
+<line x1="405.00000000000006" y1="389.99999999999915" x2="494.99999999999994" y2="389.99999999999915" stroke="#5c3818" stroke-width="1" opacity="0.6"/>
+<line x1="405.00000000000006" y1="409.9999999999991" x2="494.99999999999994" y2="409.9999999999991" stroke="#5c3818" stroke-width="1" opacity="0.6"/>
+<line x1="405.00000000000006" y1="429.999999999999" x2="494.99999999999994" y2="429.999999999999" stroke="#5c3818" stroke-width="1" opacity="0.6"/>
+<line x1="405.00000000000006" y1="449.9999999999989" x2="494.99999999999994" y2="449.9999999999989" stroke="#5c3818" stroke-width="1" opacity="0.6"/>
+<line x1="405.00000000000006" y1="469.99999999999886" x2="494.99999999999994" y2="469.99999999999886" stroke="#5c3818" stroke-width="1" opacity="0.6"/>
+<line x1="405.00000000000006" y1="489.9999999999988" x2="494.99999999999994" y2="489.9999999999988" stroke="#5c3818" stroke-width="1" opacity="0.6"/>
+<line x1="405.00000000000006" y1="509.99999999999875" x2="494.99999999999994" y2="509.99999999999875" stroke="#5c3818" stroke-width="1" opacity="0.6"/>
+<line x1="405.00000000000006" y1="529.9999999999986" x2="494.99999999999994" y2="529.9999999999986" stroke="#5c3818" stroke-width="1" opacity="0.6"/>
+<line x1="405.00000000000006" y1="549.9999999999986" x2="494.99999999999994" y2="549.9999999999986" stroke="#5c3818" stroke-width="1" opacity="0.6"/>
+<line x1="405.00000000000006" y1="569.9999999999985" x2="494.99999999999994" y2="569.9999999999985" stroke="#5c3818" stroke-width="1" opacity="0.6"/>
+<line x1="405.00000000000006" y1="589.9999999999984" x2="494.99999999999994" y2="589.9999999999984" stroke="#5c3818" stroke-width="1" opacity="0.6"/>
+<line x1="405.00000000000006" y1="609.9999999999984" x2="494.99999999999994" y2="609.9999999999984" stroke="#5c3818" stroke-width="1" opacity="0.6"/>
+<line x1="405.00000000000006" y1="629.9999999999983" x2="494.99999999999994" y2="629.9999999999983" stroke="#5c3818" stroke-width="1" opacity="0.6"/>
+<rect x="275" y="630.0000000000001" width="350" height="90" fill="#92623b" stroke="#5c3818" stroke-width="2"/>
+<circle cx="650" cy="75" r="55.00000000000001" fill="#dc2626" stroke="#ffffff" stroke-width="4"/>
+<circle cx="650" cy="75" r="30" fill="#ffffff"/>
+<g id="quay-stairs-detail">
+    <rect x="269.99999999999994" y="119.99999999999993" width="60" height="70" fill="#94a3b8" stroke="#0284c7" stroke-width="2.5" rx="3"/>
+<line x1="269.99999999999994" y1="134" x2="330.00000000000006" y2="134" stroke="#334155" stroke-width="2"/>
+<line x1="269.99999999999994" y1="148.00000000000006" x2="330.00000000000006" y2="148.00000000000006" stroke="#334155" stroke-width="2"/>
+<line x1="269.99999999999994" y1="161.99999999999974" x2="330.00000000000006" y2="161.99999999999974" stroke="#334155" stroke-width="2"/>
+<line x1="269.99999999999994" y1="175.9999999999998" x2="330.00000000000006" y2="175.9999999999998" stroke="#334155" stroke-width="2"/>
+<line x1="269.99999999999994" y1="189.99999999999986" x2="330.00000000000006" y2="189.99999999999986" stroke="#334155" stroke-width="2"/>
+<line x1="272.49999999999994" y1="119.99999999999993" x2="272.49999999999994" y2="190.00000000000023" stroke="#0f172a" stroke-width="3"/>
+<line x1="327.50000000000006" y1="119.99999999999993" x2="327.50000000000006" y2="190.00000000000023" stroke="#0f172a" stroke-width="3"/>
+</g>
+<g transform="translate(555.0000000000001, 500) rotate(4.583662361046586)">
+      <ellipse cx="0" cy="0" rx="22.5" ry="55.00000000000001" fill="#38bdf8" stroke="#0284c7" stroke-width="2"/>
+      <rect x="-15" y="-30" width="30" height="45" fill="#e0f2fe" rx="3"/>
+    </g>
+<g transform="translate(340.00000000000006, 525) rotate(-6.875493541569878)">
+      <ellipse cx="0" cy="0" rx="22.5" ry="55.00000000000001" fill="#38bdf8" stroke="#0284c7" stroke-width="2"/>
+      <rect x="-15" y="-30" width="30" height="45" fill="#e0f2fe" rx="3"/>
+    </g>
+<line x1="550" y1="544.9999999999999" x2="491.4999999999999" y2="537.5" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/>
+<line x1="560" y1="455.00000000000006" x2="491.4999999999999" y2="462.5" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/>
+<line x1="344.99999999999994" y1="569.9999999999999" x2="408.5000000000001" y2="562.5" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/>
+<line x1="334.99999999999994" y1="480.00000000000006" x2="408.5000000000001" y2="487.5" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/>
+<rect x="523.7500000000001" y="106.25" width="27.500000000000004" height="27.500000000000004" fill="#d97706" stroke="#78350f" stroke-width="1.5" rx="2"/>
+<circle cx="362.5" cy="119.99999999999993" r="11.25" fill="#92400e" stroke="#451a03" stroke-width="1.5"/>
+<circle cx="384.99999999999994" cy="144.99999999999994" r="8.75" fill="#ef4444" stroke="#ffffff" stroke-width="2"/>
+<rect x="702.4999999999999" y="107.49999999999993" width="25" height="25" fill="#d97706" stroke="#78350f" stroke-width="1.5" rx="2"/>
+<circle cx="719.9999999999999" cy="64.99999999999986" r="11.25" fill="#92400e" stroke="#451a03" stroke-width="1.5"/>
+<g id="harbor-zoom-legend" transform="translate(20, 20)">
+    <rect width="250" height="150" fill="#0f172a" opacity="0.9" rx="6" stroke="#334155" stroke-width="1.5"/>
+    <text x="15" y="24" fill="#f8fafc" font-size="13" font-family="sans-serif" font-weight="bold">Harbor Detail Map</text>
+    <rect x="18" y="38" width="14" height="10" fill="#94a3b8" stroke="#0284c7"/>
+    <text x="42" y="47" fill="#cbd5e1" font-size="11" font-family="sans-serif">Stone Quay Water Stairs</text>
+    <line x1="18" y1="68" x2="32" y2="68" stroke="#f59e0b" stroke-width="3"/>
+    <text x="42" y="72" fill="#cbd5e1" font-size="11" font-family="sans-serif">Mooring Ropes &amp; Cleats</text>
+    <rect x="18" y="86" width="14" height="10" fill="#cbd5e1" stroke="#475569"/>
+    <text x="42" y="95" fill="#cbd5e1" font-size="11" font-family="sans-serif">Breakwater Capping Course</text>
+    <rect x="18" y="110" width="14" height="10" fill="#d97706" stroke="#78350f"/>
+    <text x="42" y="119" fill="#cbd5e1" font-size="11" font-family="sans-serif">Quayside Cargo Stacks</text>
+  </g>
+</svg>
