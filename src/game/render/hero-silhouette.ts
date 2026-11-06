@@ -3,7 +3,8 @@ import * as THREE from 'three';
 /** Opaque queue order matters: scenery depth -> hidden silhouette -> normal hero.
  * The proxy never writes depth, so the actor cannot occlude itself. No scene holes.
  */
-export function addHeroSilhouette(root:THREE.Object3D):void {
+export function addHeroSilhouette(root:THREE.Object3D):THREE.Mesh[] {
+  const proxies:THREE.Mesh[]=[];
   const sources:THREE.Mesh[]=[];
   root.traverse(object=>{if(object instanceof THREE.Mesh&&!object.userData.heroSilhouette)sources.push(object);});
   const material=new THREE.MeshBasicMaterial({color:0x96c9bd,depthFunc:THREE.GreaterDepth,depthWrite:false,toneMapped:false,fog:false});
@@ -14,5 +15,7 @@ export function addHeroSilhouette(root:THREE.Object3D):void {
     proxy.name='occluded-hero-silhouette';proxy.userData.heroSilhouette=true;
     proxy.renderOrder=10;proxy.raycast=()=>{};
     source.add(proxy);
+    proxies.push(proxy);
   }
+  return proxies;
 }

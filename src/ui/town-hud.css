@@ -84,3 +84,25 @@
 .town-life-message {position:absolute;left:50%;bottom:105px;transform:translateX(-50%);width:min(480px,calc(100vw - 32px));box-sizing:border-box;padding:18px 22px;border:1px solid #c6d2bd;border-radius:18px;background:#fffaf0f5;color:#304b49;box-shadow:0 10px 36px #203f4020;line-height:1.55;font-size:14px;pointer-events:none;}
 .town-life-message[hidden] {display:none;}
 @media(max-width:600px){.town-life-message{bottom:115px;font-size:13px;padding:12px 16px;}}
+
+.town-action-button.town-stair-down[hidden] { display:none; }
+.town-stair-down:not([hidden]) { margin-top:4px; }
+
+.town-story-panel { position:fixed; z-index:12; left:50%; top:50%; transform:translate(-50%,-50%); width:min(560px,92vw); max-height:88vh; overflow:auto; padding:24px; border-radius:16px; background:#fff6e1; color:#173d3a; box-shadow:0 0 0 100vmax #132f35aa; pointer-events:auto; }
+.town-story-panel[hidden] { display:none; }
+.town-story-panel p { font-size:16px; line-height:1.5; }
+.town-story-choices { display:grid; gap:8px; margin:14px 0; }
+.town-story-panel button { border:1px solid #82968b; border-radius:8px; padding:9px 12px; background:#e9efde; color:#173d3a; font-size:16px; cursor:pointer; }
+.town-story-panel button:disabled { opacity:.55; cursor:default; }
+
+.town-story-backdrop { position:fixed; inset:0; z-index:11; background:#132f35aa; pointer-events:auto; }
+.town-story-backdrop[hidden] { display:none; }
+.town-story-panel { box-shadow:0 12px 56px #132f3566; }
+.town-story-panel p { white-space:pre-line; }
+.town-menu-toggle { pointer-events:auto; cursor:pointer; border:1px solid #b5b7a4; border-radius:8px; padding:5px 9px; color:#174a45; background:#fff7e4; margin-bottom:5px; }
+.town-hud .town-menu-toggle,.town-hud .town-story-panel,.town-hud .town-story-panel button,.town-hud .town-story-backdrop { pointer-events:auto !important; }
+
+.town-story-outcome { margin:0; padding:8px 12px; border-left:3px solid #448577; border-radius:5px; background:#e9efde; }
+
+.town-theme-toggle { margin-left:6px; }
+.town-hud[data-theme=night] .town-theme-toggle { background:#253a54; color:#f4e2bd; border-color:#546783; }

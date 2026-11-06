@@ -1,7 +1,7 @@
 import { expect,it } from 'vitest';
 import * as THREE from 'three';
 import { addHeroSilhouette } from '@game/render/hero-silhouette';
-import { HARBOR_OBSTACLES,isPierPosition } from '@content/harbor';
+import { HARBOR_OBSTACLES,HARBOR_BOATS,isPierPosition } from '@content/harbor';
 import { TownWorld,isWalkableTownPosition,isTownWorldState } from '@game/systems/town-world';
 import { walkingRoute,clearWalkingSegment } from '@game/systems/town-navigation';
 import { parseTownSave } from '@game/systems/town-save';
@@ -48,6 +48,24 @@ it('offers coastal information without consuming mission progress',()=>{
 });
 it('animates the beacon and moored boats without drifting their mooring positions',()=>{
   const root=new THREE.Group(),beacon=new THREE.Group(),boat=new THREE.Group();beacon.name='lighthouse-beacon';boat.name='harbor-boat-0';boat.position.set(62.2,0,82);root.add(beacon,boat);
-  updateHarbor(root,12);expect(beacon.rotation.y).toBeCloseTo(2.64);expect(boat.position.x).toBe(62.2);expect(boat.position.z).toBe(82);
+  updateHarbor(root,12);expect(beacon.rotation.y).toBeCloseTo(2.64);expect(boat.position.x).toBe(HARBOR_BOATS[0]!.x);expect(boat.position.z).toBe(HARBOR_BOATS[0]!.z);
   const before=boat.position.clone();updateHarbor(root,NaN);expect(boat.position).toEqual(before);
+});
+
+it.each(HARBOR_BOATS)('boards at $x, sails, and returns to the pier', berth => {
+  const world = new TownWorld(berth.boarding);
+  const mission = new FirstAidMission(world);
+  expect(mission.interaction?.label).toBe('Сесть в лодку');
+  expect(mission.interact()).toBe(true);
+  expect(world.activeBoat).toBe(HARBOR_BOATS.indexOf(berth));
+  for (let step = 0; step < 12; step++) world.move(0, 1, .05);
+  expect(world.position.z).toBeGreaterThan(berth.z + 4);
+  expect(mission.interact()).toBe(false);
+  expect(world.snapshot.position).toEqual(berth.boarding);
+  expect(isTownWorldState(world.snapshot)).toBe(true);
+  for (let step = 0; step < 12; step++) world.move(0, -1, .05);
+  expect(mission.interact()).toBe(true);
+  expect(world.activeBoat).toBeNull();
+  expect(world.position).toEqual(berth.boarding);
+  mission.destroy();
 });

@@ -60,8 +60,8 @@ export function islandElevation(x: number, z: number): number {
   }
 
   // 4. Central Garden Slope (smooth ramp connecting town x: 64 to the eastern terrace x: 78)
-  if (x > 64 && x < 78 && z >= 12 && z <= 52) {
-    const rampX = (x - 64) / 14;
+  if (x > 64 && x < 83 && z >= 12 && z <= 52) {
+    const rampX = Math.min(1, (x - 64) / 14, (83 - x) / 5);
     const smoothRamp = rampX * rampX * (3 - 2 * rampX);
     const zWeight = 1 - Math.abs((z - 32) / 22);
     elevation = Math.max(elevation, 0.35 * smoothRamp * Math.max(0, zWeight));
@@ -74,7 +74,8 @@ export function islandElevation(x: number, z: number): number {
   const pondDist = Math.hypot(dPondX / 13, dPondZ / 8);
   if (pondDist < 1) {
     const pondBowl = (1 - pondDist) * 0.32;
-    elevation = Math.max(0.08, elevation - pondBowl);
+    const pondFloor = Math.min(.08, (1 - pondDist) * .8);
+    elevation = Math.max(pondFloor, elevation - pondBowl);
   }
 
   // Shore slope attenuation: taper to sea level as we approach the coast

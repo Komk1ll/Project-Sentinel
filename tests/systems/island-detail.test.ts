@@ -36,7 +36,9 @@ it('loads every authored lot and instances every tree with matching wind shadows
   }
   const foliage:THREE.InstancedMesh[]=[];
   town.traverse(object=>{if(object instanceof THREE.InstancedMesh && object.userData.animatedFoliage)foliage.push(object);});
-  expect(foliage).toHaveLength(3);
+  expect(new Set(foliage.map(mesh => mesh.name)).size).toBe(3);
+  expect(foliage.length).toBeGreaterThan(3);
+  expect(new Set(foliage.map(mesh => mesh.geometry)).size).toBe(3);
   expect(foliage.reduce((sum,mesh)=>sum+mesh.count,0)).toBe(TOWN_TREES.length+WILD_TREES.length+COASTAL_TREES.length+GARDEN_TREES.length);
   const depthDisposals=[];
   for(const mesh of foliage){
@@ -48,7 +50,7 @@ it('loads every authored lot and instances every tree with matching wind shadows
     expect(color.uniforms.foliageTime).toBe(time);expect(depth.uniforms.foliageTime).toBe(time);
     expect(color.vertexShader.match(/vec3 windOrigin[\s\S]*?transformed.z[^;]+;/)?.[0])
       .toBe(depth.vertexShader.match(/vec3 windOrigin[\s\S]*?transformed.z[^;]+;/)?.[0]);
-    expect(color.fragmentShader).toContain('islandGrain');
+    expect(color.fragmentShader).not.toContain('townDetailAtlas');
     expect(material.customProgramCacheKey()).toContain('foliage-wind-v2');
     const expanded=mesh.boundingSphere!.radius;mesh.computeBoundingSphere();
     expect(expanded-mesh.boundingSphere!.radius).toBeCloseTo(.2);

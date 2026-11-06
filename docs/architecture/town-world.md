@@ -27,6 +27,10 @@ simplify routes without crossing buildings, ponds or the sea. Map guidance does
 not automatically move the player. Nearby mode frames the complete mission route,
 District keeps the original town view, Island includes the beach and coastal loop.
 North stays at the top; map scale is in metres, independent of camera zoom.
+The HUD computes routes in a dedicated worker. It keeps one request in flight,
+discards results for a different room or objective, and refreshes a cached route
+after the player moves 0.75 m. Movement-driven map draws are capped at 15 per
+second and include a trailing redraw when movement stops.
 
 ## Life and interaction
 
@@ -52,6 +56,9 @@ world-space colour grain, roughness variation and derivative-based micro-bump.
 The grain hook composes with the facade visibility cutaway. Canvas signs retain
 their original materials. Sun direction is fixed in world space; camera-dependent
 shadow coverage preserves detail near the hero and covers the overview.
+The engine targets up to 60 frames per second and stops its loop when the tab
+is hidden. The drawing buffer is limited to roughly 2.1 million pixels. Shadow
+maps refresh at roughly 30 Hz and immediately on room transitions.
 
 The camera stays Y-up. Outdoor half-span is 5–85 m; the overview button targets
 65 m and smoothly centers the island. Portrait framing widens at overview zoom.

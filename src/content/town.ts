@@ -1,4 +1,4 @@
-export type BuildingKind = 'home' | 'shop' | 'cafe' | 'clinic' | 'workshop' | 'library' | 'townhall';
+export type BuildingKind = 'home' | 'shop' | 'cafe' | 'clinic' | 'workshop' | 'library' | 'townhall' | 'lighthouse';
 
 export interface TownBuilding {
   readonly id: string;

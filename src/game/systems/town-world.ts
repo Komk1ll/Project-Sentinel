@@ -1,12 +1,12 @@
 import { COASTAL_V1,COASTAL_V2,COASTAL_V3,COASTAL_V4 } from '@content/legacy-coastal-layouts';
-import { GARDEN_OBSTACLES,GARDEN_TREE_OBSTACLES,onGardenBridge } from '@content/coastal-garden';
-import { HARBOR_OBSTACLES,isPierPosition } from '@content/harbor';
+import { GARDEN_OBSTACLES,GARDEN_TREE_OBSTACLES,onGardenBridge,onParkCreek } from '@content/coastal-garden';
+import { LIGHTHOUSE,HARBOR_OBSTACLES,HARBOR_BOATS,isPierPosition,isNavigableWater } from '@content/harbor';
 import { isIslandLand, ISLAND_BOUNDS, MILL } from '@content/island';
 import { WILD_TREES, WILD_BENCHES, ISLAND_PONDS } from '@content/town-life';
 import { isPreviousPlanetState } from '@game/systems/legacy-planet-state';
-import { buildingEntrance, LEGACY_TOWN_BUILDINGS, TOWN_BUILDINGS, TOWN_SPAWN, type TownBuilding } from '@content/town';
-import { OUTDOOR_OBSTACLES, LEGACY_OUTDOOR_OBSTACLES, type TownObstacle } from '@content/town-props';
-import { getInteriorLayout } from '@content/interiors';
+import { ROAD_CENTERS, TOWN_SIZE, buildingEntrance, LEGACY_TOWN_BUILDINGS, TOWN_BUILDINGS, TOWN_SPAWN, type TownBuilding } from '@content/town';
+import { carFootprint, PARKED_CAR_OBSTACLES, TOWN_CARS, OUTDOOR_OBSTACLES, LEGACY_OUTDOOR_OBSTACLES, type TownObstacle } from '@content/town-props';
+import { getInteriorLayout, HOME_LAMP, STAIR_LANDING } from '@content/interiors';
 
 export interface TownPosition {
   readonly x: number;
@@ -15,21 +15,29 @@ export interface TownPosition {
 
 export interface TownWorldState {
   readonly interiorId: string | null;
+  readonly interiorFloor?: number;
   readonly position: TownPosition;
   readonly outdoorReturn: TownPosition;
 }
+
+const ENTERABLE_BUILDINGS: readonly TownBuilding[] = [...TOWN_BUILDINGS, LIGHTHOUSE];
 
 const PLAYER_RADIUS = 0.3;
 const MOVEMENT_SPEED = 5;
 const INTERACTION_DISTANCE = 2.4;
 const INTERIOR_EXIT: TownPosition = { x: 0, z: 3 };
 const SHARED_COLLIDERS = [...TOWN_BUILDINGS, ...WILD_TREES.map(t=>({...t,width:.4*t.scale,depth:.4*t.scale})),
-  ...WILD_BENCHES.map(b=>({...b,width:1.6,depth:.55})), {...MILL,width:3.8,depth:3.8}];
+  ...WILD_BENCHES.map(b=>({...b,width:1.6,depth:.55}))];
 const EVENING_COLLIDERS=COASTAL_V2;
 const HARBOR_V3_COLLIDERS=COASTAL_V3;
 const LANDSCAPE_V4_COLLIDERS=COASTAL_V4;
-const TOWN_COLLIDERS=[...SHARED_COLLIDERS,...OUTDOOR_OBSTACLES,...HARBOR_OBSTACLES,...GARDEN_OBSTACLES,...GARDEN_TREE_OBSTACLES];
+const GARDEN_BASE_COLLIDERS = [...SHARED_COLLIDERS, ...OUTDOOR_OBSTACLES, ...HARBOR_OBSTACLES, ...GARDEN_OBSTACLES];
+const PRE_CREEK_COLLIDERS = [...GARDEN_BASE_COLLIDERS, { x: 86, z: 24, width: 3.8, depth: 3.8 }, ...GARDEN_TREE_OBSTACLES.filter(tree => tree.z < 54 || tree.z > 64 || tree.x < 78)];
+const TOWN_COLLIDERS = [...GARDEN_BASE_COLLIDERS, ...GARDEN_TREE_OBSTACLES, { ...MILL, width: 3.8, depth: 3.8 }];
 const PRE_EVENING_COLLIDERS=COASTAL_V1;
+const PARKED_CAR_SET = new Set<TownObstacle>(PARKED_CAR_OBSTACLES);
+const STATIC_TOWN_COLLIDERS = TOWN_COLLIDERS.filter(obstacle => !PARKED_CAR_SET.has(obstacle));
+type CarPose = TownPosition & { readonly rotation: number };
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
@@ -42,26 +50,40 @@ function distance(first: TownPosition, second: TownPosition): number {
 function record(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
-function validPosition(value: unknown, interior: TownBuilding | null, outdoor: readonly TownObstacle[] = TOWN_COLLIDERS): value is TownPosition {
+function validPosition(value: unknown, interior: TownBuilding | null, outdoor: readonly TownObstacle[] = TOWN_COLLIDERS, liveObstacles = outdoor, floor = 0): value is TownPosition {
   if (!record(value) || typeof value.x !== 'number' || typeof value.z !== 'number'
     || !Number.isFinite(value.x) || !Number.isFinite(value.z)) return false;
   if (interior) {
     if(value.x < -4.5 || value.x > 4.5 || value.z < -3.5 || value.z > 3.5) return false;
-  } else if(outdoor===TOWN_COLLIDERS || outdoor===LANDSCAPE_V4_COLLIDERS || outdoor===HARBOR_V3_COLLIDERS || outdoor===PRE_EVENING_COLLIDERS || outdoor===EVENING_COLLIDERS) {
-    if((!isIslandLand({x:value.x,z:value.z}) && !((outdoor===TOWN_COLLIDERS || outdoor===LANDSCAPE_V4_COLLIDERS || outdoor===HARBOR_V3_COLLIDERS) && isPierPosition({x:value.x,z:value.z}))) || (!(outdoor===TOWN_COLLIDERS&&onGardenBridge({x:value.x,z:value.z})) && ISLAND_PONDS.some(p=>
-      ((value.x as number)-p.x)**2/(p.width/2+PLAYER_RADIUS)**2+((value.z as number)-p.z)**2/(p.depth/2+PLAYER_RADIUS)**2<1))) return false;
+  } else if(outdoor===TOWN_COLLIDERS || outdoor===PRE_CREEK_COLLIDERS || outdoor===LANDSCAPE_V4_COLLIDERS || outdoor===HARBOR_V3_COLLIDERS || outdoor===PRE_EVENING_COLLIDERS || outdoor===EVENING_COLLIDERS) {
+    const point = { x: value.x, z: value.z };
+    const currentLayout = outdoor === TOWN_COLLIDERS;
+    const previousGarden = outdoor === PRE_CREEK_COLLIDERS;
+    const pierLayout = currentLayout || previousGarden || outdoor === LANDSCAPE_V4_COLLIDERS || outdoor === HARBOR_V3_COLLIDERS;
+    if (!isIslandLand(point) && !(pierLayout && isPierPosition(point))) return false;
+    if (currentLayout) {
+      if (inPond(point.x, point.z, ISLAND_PONDS[1])) return false;
+      if (!onGardenBridge(point) && onParkCreek(point, PLAYER_RADIUS)) return false;
+    } else if (inPond(point.x, point.z, ISLAND_PONDS[1]) ||
+      (!(previousGarden && onGardenBridge(point)) && inPond(point.x, point.z, ISLAND_PONDS[0]))) return false;
   } else if(value.x<.5 || value.x>63.5 || value.z<.5 || value.z>63.5) return false;
-  const obstacles = interior ? getInteriorLayout(interior).obstacles : outdoor;
+  const obstacles = interior ? getInteriorLayout(interior, floor).obstacles : liveObstacles;
   const x = value.x;
   const z = value.z;
   return !obstacles.some(item => Math.abs(x - item.x) < item.width / 2 + PLAYER_RADIUS - 1e-7
     && Math.abs(z - item.z) < item.depth / 2 + PLAYER_RADIUS - 1e-7);
 }
 
+function inPond(x: number, z: number, p: (typeof ISLAND_PONDS)[number]): boolean {
+  return ((x - p.x) / (p.width / 2 + PLAYER_RADIUS)) ** 2 + ((z - p.z) / (p.depth / 2 + PLAYER_RADIUS)) ** 2 < 1;
+}
+
 export function isTownWorldState(value: unknown): value is TownWorldState {
   if (!record(value)) return false;
-  const interior = value.interiorId === null ? null : TOWN_BUILDINGS.find(building => building.id === value.interiorId);
-  if (interior === undefined || !validPosition(value.position, interior) || !validPosition(value.outdoorReturn, null)) return false;
+  const interior = value.interiorId === null ? null : ENTERABLE_BUILDINGS.find(building => building.id === value.interiorId);
+  const floor = value.interiorFloor === undefined ? 0 : value.interiorFloor;
+  if (typeof floor !== 'number' || !Number.isInteger(floor) || floor < 0 || floor >= (interior?.floors ?? 1)) return false;
+  if (interior === undefined || !validPosition(value.position, interior, TOWN_COLLIDERS, TOWN_COLLIDERS, floor) || !validPosition(value.outdoorReturn, null)) return false;
   return !interior || distance(value.outdoorReturn, buildingEntrance(interior)) <= INTERACTION_DISTANCE + 1e-7;
 }
 
@@ -76,7 +98,7 @@ function safeNear(point: TownPosition, maxDistance = 4): TownPosition | null {
 
 /** Only validated earlier coastal saves may relocate around newly placed scenery. */
 export function migrateCoastalWorldState(value: unknown, layout='coastal-island-v1'): TownWorldState | null {
-  const oldColliders=layout==='coastal-island-v4'?LANDSCAPE_V4_COLLIDERS:layout==='coastal-island-v3'?HARBOR_V3_COLLIDERS:layout==='coastal-island-v2'?EVENING_COLLIDERS:PRE_EVENING_COLLIDERS;
+  const oldColliders=layout==='coastal-island-v5'?PRE_CREEK_COLLIDERS:layout==='coastal-island-v4'?LANDSCAPE_V4_COLLIDERS:layout==='coastal-island-v3'?HARBOR_V3_COLLIDERS:layout==='coastal-island-v2'?EVENING_COLLIDERS:PRE_EVENING_COLLIDERS;
   if (!record(value)) return null;
   const room=value.interiorId===null?null:TOWN_BUILDINGS.find(b=>b.id===value.interiorId);
   if(room===undefined || !validPosition(value.position,room,oldColliders)
@@ -124,8 +146,14 @@ export function isWalkableTownPosition(position: TownPosition, interior: TownBui
 export class TownWorld {
   private currentPosition: TownPosition;
   private currentInterior: TownBuilding | null = null;
+  private floor = 0;
   private outdoorReturn: TownPosition;
   private facing = 0;
+  private boat: number | null = null;
+  private car: number | null = null;
+  private readonly litHomes = new Set<string>();
+  private readonly cars: CarPose[] = TOWN_CARS.map(car => ({ ...car }));
+  private readonly liveObstacles = [...STATIC_TOWN_COLLIDERS, ...this.cars.map(carFootprint)];
   private readonly listeners = new Set<(world: TownWorld) => void>();
 
   constructor(spawn: TownPosition = TOWN_SPAWN) {
@@ -134,12 +162,18 @@ export class TownWorld {
   }
 
   get snapshot(): TownWorldState {
-    return { interiorId: this.currentInterior?.id ?? null, position: { ...this.currentPosition }, outdoorReturn: { ...this.outdoorReturn } };
+    const position = this.boat !== null ? HARBOR_BOATS[this.boat]!.boarding
+      : this.currentInterior ? this.currentPosition
+      : safeNear(this.carExit ?? this.currentPosition) ?? TOWN_SPAWN;
+    return { interiorId: this.currentInterior?.id ?? null, ...(this.floor ? { interiorFloor: this.floor } : {}), position: { ...position }, outdoorReturn: { ...this.outdoorReturn } };
   }
 
   restore(state: TownWorldState): boolean {
     if (!isTownWorldState(state)) return false;
-    this.currentInterior = TOWN_BUILDINGS.find(building => building.id === state.interiorId) ?? null;
+    this.boat = null;
+    this.car = null;
+    this.currentInterior = ENTERABLE_BUILDINGS.find(building => building.id === state.interiorId) ?? null;
+    this.floor = state.interiorFloor ?? 0;
     this.currentPosition = { ...state.position };
     this.outdoorReturn = { ...state.outdoorReturn };
     this.notify();
@@ -150,6 +184,47 @@ export class TownWorld {
     return this.currentPosition;
   }
 
+  get activeBoat(): number | null { return this.boat; }
+  get activeCar(): number | null { return this.car; }
+  get carPoses(): readonly CarPose[] { return this.cars; }
+
+  private get nearbyCar(): number {
+    if (this.interior || this.boat !== null) return -1;
+    let nearest = -1;
+    let closest = 2.25;
+    this.cars.forEach((car, index) => {
+      const separation = distance(this.position, car);
+      if (separation <= closest) { nearest = index; closest = separation; }
+    });
+    return nearest;
+  }
+
+  private get carExit(): TownPosition | null {
+    if (this.car === null) return null;
+    const pose = this.cars[this.car]!;
+    for (const [offset, radius] of [[Math.PI / 2, 1.5], [-Math.PI / 2, 1.5], [0, 2.3], [Math.PI, 2.3]] as const) {
+      const angle = pose.rotation + offset;
+      const exit = { x: pose.x + Math.sin(angle) * radius, z: pose.z + Math.cos(angle) * radius };
+      if (this.isWalkable(exit)) return exit;
+    }
+    return null;
+  }
+
+  get carAction(): 'enter' | 'exit' | null {
+    if (this.car !== null) return this.carExit ? 'exit' : null;
+    return this.nearbyCar >= 0 && !this.nearbyBuilding ? 'enter' : null;
+  }
+
+  get boatAction(): 'board' | 'moor' | null {
+    if (this.boat !== null) return distance(this.position, HARBOR_BOATS[this.boat]!) <= 1.1 ? 'moor' : null;
+    return this.boardingBoat >= 0 ? 'board' : null;
+  }
+
+  private get boardingBoat(): number {
+    return this.interior || this.car !== null || !isPierPosition(this.position) ? -1
+      : HARBOR_BOATS.findIndex(boat => distance(this.position, boat.boarding) <= 1.35);
+  }
+
   get heading(): number { return this.facing; }
 
   get interior(): TownBuilding | null {
@@ -157,10 +232,10 @@ export class TownWorld {
   }
 
   get nearbyBuilding(): TownBuilding | null {
-    if (this.currentInterior) return null;
+    if (this.currentInterior || this.boat !== null || this.car !== null) return null;
     let nearest: TownBuilding | null = null;
     let nearestDistance = INTERACTION_DISTANCE;
-    for (const building of TOWN_BUILDINGS) {
+    for (const building of ENTERABLE_BUILDINGS) {
       const entranceDistance = distance(this.currentPosition, buildingEntrance(building));
       if (entranceDistance <= nearestDistance) {
         nearest = building;
@@ -170,14 +245,52 @@ export class TownWorld {
     return nearest;
   }
 
+  get interiorFloor(): number { return this.floor; }
+
+  get stairAction(): 'up' | 'down' | null {
+    if (!this.currentInterior || this.currentInterior.floors < 2 || distance(this.position, STAIR_LANDING) > .82) return null;
+    return this.floor < this.currentInterior.floors - 1 ? 'up' : 'down';
+  }
+
+  changeFloor(direction: 1 | -1): boolean {
+    const next = this.floor + direction;
+    const building = this.currentInterior;
+    if (!building || !this.stairAction || next < 0 || next >= building.floors) return false;
+    this.floor = next;
+    this.currentPosition = { ...STAIR_LANDING };
+    this.notify();
+    return true;
+  }
+
+  get canToggleLamp(): boolean {
+    return this.floor === 0 && this.currentInterior?.kind === 'home' && distance(this.position, HOME_LAMP) <= 1.25;
+  }
+
+  get homeLampOn(): boolean {
+    return this.currentInterior !== null && this.litHomes.has(this.currentInterior.id);
+  }
+
   get canExit(): boolean {
-    return this.currentInterior !== null && distance(this.currentPosition, INTERIOR_EXIT) <= 1.5;
+    return this.floor === 0 && this.currentInterior !== null && distance(this.currentPosition, INTERIOR_EXIT) <= 1.5;
   }
 
   move(dx: number, dz: number, deltaSeconds: number): void {
     if (!Number.isFinite(dx) || !Number.isFinite(dz) || !Number.isFinite(deltaSeconds)) return;
     const directionLength = Math.hypot(dx, dz);
     if (directionLength === 0 || deltaSeconds <= 0) return;
+
+    if (this.boat !== null) {
+      const step = 8 * Math.min(deltaSeconds, .05) / directionLength;
+      const next = { x: this.position.x + dx * step, z: this.position.z + dz * step };
+      if (isNavigableWater(next, this.boat)) {
+        this.currentPosition = next;
+        this.facing = Math.atan2(dx, dz);
+        this.notify();
+      }
+      return;
+    }
+
+    if (this.car !== null) return;
 
     const step = MOVEMENT_SPEED * Math.min(deltaSeconds, 0.05) / directionLength;
     const previousPosition = this.currentPosition;
@@ -197,9 +310,81 @@ export class TownWorld {
     }
   }
 
+  driveCar(throttle: number, steering: number, delta: number): void {
+    const index = this.car;
+    if (index === null || !Number.isFinite(throttle) || !Number.isFinite(steering) || !Number.isFinite(delta) || delta <= 0 || !throttle) return;
+    const dt = Math.min(delta, .05);
+    const direction = Math.sign(throttle);
+    const wheel = clamp(steering, -1, 1);
+    const speed = direction > 0 ? 10 - 4 * Math.abs(wheel) : -5;
+    const distance = dt * speed * Math.abs(clamp(throttle, -1, 1));
+    const heading = this.cars[index]!.rotation;
+    const turn = -wheel * direction * dt * 2.42;
+    if (!this.tryDrive(index, heading + turn, distance) && turn) this.tryDrive(index, heading, distance);
+  }
+
+  private tryDrive(index: number, rotation: number, distance: number): boolean {
+    const next = { x: this.position.x + Math.sin(rotation) * distance,
+      z: this.position.z + Math.cos(rotation) * distance, rotation };
+    const onRoad = (across: number, along: number): boolean => along >= 1 && along <= TOWN_SIZE - 1
+      && ROAD_CENTERS.some(center => Math.abs(across - center) <= 2.05);
+    if (!onRoad(next.x, next.z) && !onRoad(next.z, next.x)) return false;
+    const footprint = carFootprint(next);
+    const ownCollider = STATIC_TOWN_COLLIDERS.length + index;
+    if (this.liveObstacles.some((obstacle, i) => i !== ownCollider &&
+      Math.abs(next.x - obstacle.x) < (footprint.width + obstacle.width) / 2 &&
+      Math.abs(next.z - obstacle.z) < (footprint.depth + obstacle.depth) / 2)) return false;
+    this.cars[index] = next;
+    this.liveObstacles[ownCollider] = footprint;
+    this.currentPosition = { x: next.x, z: next.z };
+    this.facing = next.rotation;
+    this.notify();
+    return true;
+  }
+
   interact(): boolean {
+    if (this.car !== null) {
+      const exit = this.carExit;
+      if (!exit) return false;
+      this.car = null;
+      this.currentPosition = exit;
+      this.notify();
+      return true;
+    }
+    if (this.carAction === 'enter') {
+      const index = this.nearbyCar;
+      const car = this.cars[index]!;
+      this.car = index;
+      this.currentPosition = { x: car.x, z: car.z };
+      this.facing = car.rotation;
+      this.notify();
+      return true;
+    }
+    if (this.boat !== null) {
+      if (this.boatAction !== 'moor') return false;
+      this.currentPosition = HARBOR_BOATS[this.boat]!.boarding;
+      this.boat = null;
+      this.notify();
+      return true;
+    }
+    const index = this.boardingBoat;
+    if (index >= 0) {
+      const berth = HARBOR_BOATS[index]!;
+      this.boat = index;
+      this.currentPosition = { x: berth.x, z: berth.z };
+      this.facing = berth.rotation;
+      this.notify();
+      return true;
+    }
     if (this.currentInterior) {
-      if (!this.canExit) return false;
+      if (this.stairAction) return this.changeFloor(this.stairAction === 'up' ? 1 : -1);
+      if (!this.canExit) {
+        if (!this.canToggleLamp) return false;
+        if (this.homeLampOn) this.litHomes.delete(this.currentInterior.id);
+        else this.litHomes.add(this.currentInterior.id);
+        this.notify();
+        return true;
+      }
       this.currentInterior = null;
       this.currentPosition = this.outdoorReturn;
       this.notify();
@@ -222,7 +407,11 @@ export class TownWorld {
   }
 
   private isWalkable(position: TownPosition): boolean {
-    return isWalkableTownPosition(position, this.currentInterior);
+    if (this.currentInterior) {
+      if (this.floor === 0) return isWalkableTownPosition(position, this.currentInterior);
+      return validPosition(position, this.currentInterior, TOWN_COLLIDERS, TOWN_COLLIDERS, this.floor);
+    }
+    return validPosition(position, null, TOWN_COLLIDERS, this.liveObstacles);
   }
 
   private notify(): void {

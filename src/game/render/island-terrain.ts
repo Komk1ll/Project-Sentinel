@@ -9,7 +9,7 @@ import { islandElevation } from '@content/island-elevation';
 export function createIslandTerrain(): THREE.Mesh {
   const vertices: number[] = [], colors: number[] = [], indices: number[] = [];
   // Concentric radial bands providing fine geometry over park terraces and shore drops
-  const bands = [
+  const bandStops = [
     { fraction: 0, color: 0x91a874, drop: 0 },
     { fraction: 0.25, color: 0x90a672, drop: 0 },
     { fraction: 0.48, color: 0x8fa571, drop: 0 },
@@ -21,6 +21,21 @@ export function createIslandTerrain(): THREE.Mesh {
     { fraction: 1.16, color: 0x89988c, drop: -2.8 },
   ] as const;
 
+  // Keep the shoreline bands while resolving the smaller terrace slopes inland.
+  const bands = bandStops.slice(0, -1).flatMap((start, index) => {
+    const end = bandStops[index + 1]!;
+    const count = Math.ceil((end.fraction - start.fraction) * 65 / 1.1);
+    return Array.from({ length: count }, (_, step) => {
+      const t = step / count;
+      return {
+        fraction: THREE.MathUtils.lerp(start.fraction, end.fraction, t),
+        color: new THREE.Color(start.color).lerp(new THREE.Color(end.color), t),
+        drop: THREE.MathUtils.lerp(start.drop, end.drop, t),
+      };
+    });
+  });
+  const edge = bandStops[bandStops.length - 1]!;
+  bands.push({ ...edge, color: new THREE.Color(edge.color) });
   const segments = 192;
   bands.forEach((band) => {
     for (let i = 0; i < segments; i++) {
@@ -77,11 +92,11 @@ export function createIslandTerrain(): THREE.Mesh {
 }
 
 /** One analytic water surface: no reflection render targets or downloaded textures. */
-export function createOcean(time: { value: number }): THREE.Mesh {
+export function createOcean(time: { value: number }, night = { value: 0 }): THREE.Mesh {
   const geometry = new THREE.PlaneGeometry(700, 700, 96, 96);
   geometry.rotateX(-Math.PI / 2);
   const material = new THREE.ShaderMaterial({
-    uniforms: { uTime: time, uSea: { value: SEA_LEVEL } },
+    uniforms: { uTime: time, uNight: night, uSea: { value: SEA_LEVEL } },
     vertexShader: `
       uniform float uTime; uniform float uSea;
       varying vec3 waterWorld; varying vec3 waveNormal;
@@ -95,7 +110,7 @@ export function createOcean(time: { value: number }): THREE.Mesh {
         gl_Position=projectionMatrix*viewMatrix*vec4(waterWorld,1.);
       }`,
     fragmentShader: `
-      uniform float uTime; varying vec3 waterWorld; varying vec3 waveNormal;
+      uniform float uTime; uniform float uNight; varying vec3 waterWorld; varying vec3 waveNormal;
       void main(){
         vec2 p=waterWorld.xz-vec2(46.,32.); float a=atan(p.y,p.x);
         float radius=pow(pow(abs(cos(a)/62.),4.)+pow(abs(sin(a)/46.),4.),-.25)*(1.+.025*sin(a*3.)+.018*sin(a*7.));
@@ -115,9 +130,16 @@ export function createOcean(time: { value: number }): THREE.Mesh {
         colour+=vec3(1.,.58,.28)*sparkle*.85;
         float foam=1.-smoothstep(.012,.045,abs(shore-1.025+sin(a*24.+uTime*1.4)*.009));
         foam*=.55+.25*sin(p.x*1.5+p.y*.8-uTime*2.);
-        colour=mix(colour,vec3(.65,.78,.77),foam*.7);
+        vec2 harbor=waterWorld.xz-vec2(58.,77.6);
+        vec2 pierEdge=abs(harbor)-vec2(1.8,9.6);
+        vec2 headEdge=abs(waterWorld.xz-vec2(58.,89.))-vec2(7.,1.8);
+        float dockEdge=min(abs(length(max(pierEdge,0.))+min(max(pierEdge.x,pierEdge.y),0.)),
+          abs(length(max(headEdge,0.))+min(max(headEdge.x,headEdge.y),0.)));
+        float dockFoam=(1.-smoothstep(.06,.66,dockEdge))*(.13+.08*sin(rippleA*2.));
+        colour=mix(colour,vec3(.65,.78,.77),clamp(foam*.7+dockFoam,0.,1.));
         float haze=smoothstep(140.,310.,distance(cameraPosition,waterWorld));
         colour=mix(colour,vec3(.09,.11,.22),haze);
+        colour=mix(colour*vec3(1.09,1.16,1.2), colour*vec3(.24,.38,.65)+vec3(.005,.012,.03),uNight);
         gl_FragColor=vec4(colour,1.);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>

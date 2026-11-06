@@ -1,12 +1,12 @@
 import * as THREE from 'three';
 import type { TownBuilding } from '@content/town';
-import { getInteriorLayout, type FloorFinish, type InteriorFurniture } from '@content/interiors';
+import { getInteriorLayout, HOME_LAMP, STAIR_LANDING, type FloorFinish, type InteriorFurniture } from '@content/interiors';
 
 /** Roofless furnished rooms share every obstacle footprint with TownWorld. */
-export function createInteriorMeshes(building: TownBuilding): THREE.Group {
+export function createInteriorMeshes(building: TownBuilding, floor = 0): THREE.Group {
   const room = new THREE.Group();
-  room.name = `Interior: ${building.id}`;
-  const layout = getInteriorLayout(building);
+  room.name = `Interior: ${building.id} · ${floor + 1}`;
+  const layout = getInteriorLayout(building, floor);
   const palette = layout.palette;
   const materials = new Map<number, THREE.MeshStandardMaterial>();
   const surface = (color: number): THREE.MeshStandardMaterial => {
@@ -204,6 +204,23 @@ export function createInteriorMeshes(building: TownBuilding): THREE.Group {
         for (const side of [-1, 1]) for (const y of [h * .25, h * .75]) box(w, .07, .035, x, y, z + side * (d / 2 - .0175), metal);
         box(w * .4, .22, .01, x, h * .55, z + d / 2 - .005, linen);
         break;
+      case 'piano':
+        box(w, h, d, x, h / 2, z, dark);
+        box(.25, .12, d * .91, x - w / 2 + .06, h * .66, z, wood);
+        for (let i = 0; i < 16; i++) {
+          const keyZ = z + (i - 7.5) * d / 18;
+          box(.23, .025, d / 21, x - w / 2 + .035, h * .74, keyZ, linen);
+          if (i % 3 !== 1) box(.12, .04, d / 35, x - w / 2 + .08, h * .76, keyZ + d / 40, dark);
+        }
+        break;
+      case 'oven':
+        box(w, h, d, x, h / 2, z, metal);
+        for (const side of [-1, 1]) {
+          box(w * .42, h * .62, .045, x + side * w * .24, h * .43, z + d / 2, dark);
+          box(w * .32, h * .3, .035, x + side * w * .24, h * .47, z + d / 2 + .03, surface(0x9e7254));
+          box(w * .24, .045, .06, x + side * w * .24, h * .73, z + d / 2 + .05, trim);
+        }
+        break;
       case 'display':
         box(w, h * .75, d, x, h * .375, z, wood);
         box(w, .06, d, x, h * .78, z, metal);
@@ -228,12 +245,82 @@ export function createInteriorMeshes(building: TownBuilding): THREE.Group {
   box(.83, .63, .05, 2.7, 2.02, -3.84, cloth);
   box(.45, .08, .012, 2.7, 1.88, -3.81, metal);
   box(.75, .04, .012, 2.7, 2.12, -3.81, linen);
+  if (building.kind === 'home' && floor === 0) {
+    const rug = surface(0xa97660);
+    box(2.35, .014, 2.85, 2.25, .03, 1.63, rug);
+    box(2.19, .012, 2.68, 2.25, .039, 1.63, cloth);
+    for (const side of [-1, 1]) {
+      box(.062, .01, 2.47, 2.25 + side * .96, .048, 1.63, trim);
+      box(2.05, .01, .055, 2.25, .048, 1.63 + side * 1.23, trim);
+      box(.29, .23, .37, 3.61, .69, 1.7 + side * .61, side > 0 ? rug : linen);
+    }
+
+    for (const z of [-1.1, 1.9]) for (const side of [-1, 1]) {
+      box(.09, 1.36, .31, -4.76, 2.01, z + side * .61, cloth);
+      box(.11, .055, .32, -4.74, 1.78, z + side * .61, trim);
+    }
+    for (const [x, z] of [[-.15, -3.7], [3.65, -3.7]]) {
+      box(.26, .25, .26, x!, 1.16, z!, surface(0xa46246));
+      for (let leaf = 0; leaf < 4; leaf++)
+        box(.1, .28, .11, x! + Math.sin(leaf * 2.4) * .12, 1.38 + leaf * .045, z! + Math.cos(leaf * 2.4) * .08, surface(0x688454));
+    }
+
+    box(.24, .045, .22, HOME_LAMP.x + .17, .49, HOME_LAMP.z - .31, dark);
+    box(.04, .23, .04, HOME_LAMP.x + .17, .60, HOME_LAMP.z - .31, dark);
+    const shade = new THREE.Mesh(new THREE.CylinderGeometry(.115, .19, .19, 10),
+      new THREE.MeshStandardMaterial({ color: 0xe8c795, emissive: 0xfac577, emissiveIntensity: 0 }));
+    shade.name = 'home-lamp-shade';
+    shade.position.set(HOME_LAMP.x + .17, .78, HOME_LAMP.z - .31);
+    room.add(shade);
+    const lamp = new THREE.PointLight(0xffcc80, 5, 4, 2);
+    lamp.name = 'home-lamp';
+    lamp.position.set(HOME_LAMP.x + .17, .73, HOME_LAMP.z - .31);
+    lamp.visible = false;
+    room.add(lamp);
+  }
+  if (building.kind === 'lighthouse') {
+    box(.72, .25, .35, 2.9, 1, -3.14, dark);
+    for (let index = 0; index < 4; index++)
+      box(.1, .065, .025, 2.66 + index * .15, 1.03, -2.95, surface(index === 0 ? 0xc78b51 : 0x73948d));
+    box(.035, .38, .035, 3.15, 1.21, -3.21, metal);
+    box(1.65, 1.05, .05, .85, 2.03, -3.86, wood);
+    box(1.47, .89, .035, .85, 2.03, -3.82, surface(0x789a9d));
+    box(.71, .53, .025, 1.01, 2.03, -3.79, surface(0xa8b68a));
+  }
   const light = new THREE.PointLight(0xffd4a3, 16, 13, 2);
   light.position.set(1, 2.8, .5);
   room.add(light);
-  const exit = new THREE.Mesh(new THREE.RingGeometry(.3, .43, 32), new THREE.MeshBasicMaterial({ color: 0x80b7a4, transparent: true, opacity: .6, depthWrite: false }));
-  exit.rotation.x = -Math.PI / 2;
-  exit.position.set(0, .055, 3);
-  room.add(exit);
+  if (floor > 0) {
+    box(1.8, .018, 1.6, 1.54, .036, 2.6, cloth);
+    box(1.65, .015, 1.45, 1.54, .046, 2.6, surface(0x9a8a75));
+    box(1.15, .01, .95, 1.54, .054, 2.6, cloth);
+  }
+  if (floor === 0) {
+    const exit = new THREE.Mesh(new THREE.RingGeometry(.3, .43, 32), new THREE.MeshBasicMaterial({ color: 0x80b7a4, transparent: true, opacity: .6, depthWrite: false }));
+    exit.rotation.x = -Math.PI / 2;
+    exit.position.set(0, .055, 3);
+    room.add(exit);
+  }
   return room;
+}
+
+/** Compact stair flight and landing shared by generated and authored rooms. */
+export function createInteriorStairs(): THREE.Group {
+  const stairs = new THREE.Group();
+  stairs.name = 'interior-stairs';
+  const wood = new THREE.MeshStandardMaterial({ color: 0x806046, roughness: .85 });
+  const trim = new THREE.MeshStandardMaterial({ color: 0xc7a579, roughness: .85 });
+  for (let i = 0; i < 5; i++) {
+    const height = .14 + i * .15;
+    const step = new THREE.Mesh(new THREE.BoxGeometry(.82, height, .235), i % 2 ? wood : trim);
+    step.position.set(-.43, height / 2, -.31 - i * .23);
+    step.castShadow = step.receiveShadow = true;
+    stairs.add(step);
+  }
+  const landing = new THREE.Mesh(new THREE.RingGeometry(.27, .39, 28),
+    new THREE.MeshBasicMaterial({ color: 0xe1b881, side: THREE.DoubleSide }));
+  landing.rotation.x = -Math.PI / 2;
+  landing.position.set(STAIR_LANDING.x, .065, STAIR_LANDING.z);
+  stairs.add(landing);
+  return stairs;
 }

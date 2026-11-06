@@ -138,9 +138,9 @@ it('loads the shipped GLBs, delivers the parcel, reuses rooms and releases their
     const material=terrain.material as MeshStandardMaterial;
     const shader={...ShaderLib.standard,uniforms:{...ShaderLib.standard.uniforms}};
     material.onBeforeCompile(shader as unknown as Parameters<typeof material.onBeforeCompile>[0],renderer.renderer);
-    expect(shader.fragmentShader).toContain('islandGrain');
+    expect(shader.fragmentShader).toContain('texture2D(townDetailAtlas');
     expect(shader.fragmentShader).not.toContain('sentinelPlayer');
-    expect(shader.vertexShader).toContain('instanceMatrix*islandDetailWorld');
+    expect(shader.vertexShader).toContain('townDetailUV');
     // Surface grain must preserve the animated foliage shader.
     let leafMaterial: MeshStandardMaterial | undefined;
     town.traverse(object=>{if(object instanceof Mesh && object.userData.animatedFoliage)leafMaterial=object.material as MeshStandardMaterial;});

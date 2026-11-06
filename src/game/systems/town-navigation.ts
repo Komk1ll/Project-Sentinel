@@ -1,4 +1,5 @@
 import { buildingEntrance, TOWN_BUILDINGS, type TownBuilding } from '@content/town';
+import type { CampaignTarget } from '@game/systems/campaign';
 import { MASTER, MEDIC } from '@content/first-aid';
 import { isWalkableTownPosition, type TownPosition, type TownWorld } from '@game/systems/town-world';
 
@@ -7,6 +8,7 @@ export interface NavigationGoal { readonly position: TownPosition; readonly labe
 export function navigationGoal(world: TownWorld, buildingId: string | null): NavigationGoal | null {
   if (!buildingId) return null;
   if (world.interior) {
+    if (world.interiorFloor > 0) return null;
     const actor = [MASTER, MEDIC].find(actor => actor.buildingId === world.interior?.id && actor.buildingId === buildingId);
     // Actors are colliders too: guide to a free interaction point beside them.
     const approach = actor ? [-Math.PI/2, 0, Math.PI, Math.PI/2].map(angle => ({ x: actor.x+Math.sin(angle), z: actor.z+Math.cos(angle) }))
@@ -16,6 +18,15 @@ export function navigationGoal(world: TownWorld, buildingId: string | null): Nav
   }
   const building = TOWN_BUILDINGS.find(building => building.id === buildingId);
   return building ? { position: buildingEntrance(building), label: buildingId === 'station' ? 'Маяк · вход' : 'Поликлиника · вход' } : null;
+}
+
+export function storyNavigationGoal(world: TownWorld, target: CampaignTarget | null, buildingId: string | null): NavigationGoal | null {
+  if (!target) return navigationGoal(world, buildingId);
+  if (world.interiorFloor > 0) return null;
+  if ((world.interior?.id ?? null) === target.buildingId) return { position: target.point, label: target.label };
+  if (world.interior) return { position: { x: 0, z: 3 }, label: 'Выход на улицу' };
+  const building = TOWN_BUILDINGS.find(item => item.id === target.buildingId);
+  return building ? { position: buildingEntrance(building), label: building.name + ' · вход' } : null;
 }
 
 /** Check every short segment against the same player-radius collision query as movement. */

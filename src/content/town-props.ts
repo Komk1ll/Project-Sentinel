@@ -7,6 +7,13 @@ export const TOWN_CARS = [
   { x: 49.25, z: 57, color: 0x566b59, rotation: 0 },
 ] as const;
 
+export function carFootprint(car: { x: number; z: number; rotation: number }): TownObstacle {
+  const sine = Math.abs(Math.sin(car.rotation));
+  const cosine = Math.abs(Math.cos(car.rotation));
+  return { x: car.x, z: car.z, width: CAR_SIZE.width * cosine + CAR_SIZE.depth * sine,
+    depth: CAR_SIZE.width * sine + CAR_SIZE.depth * cosine };
+}
+
 export interface TownObstacle {
   readonly x: number;
   readonly z: number;
@@ -56,10 +63,9 @@ export const PRE_EVENING_OUTDOOR_OBSTACLES: readonly TownObstacle[] = [
 ];
 
 /** Current scenery keeps the historical footprint list frozen for save migration. */
+export const PARKED_CAR_OBSTACLES = TOWN_CARS.map(carFootprint);
 export const OUTDOOR_OBSTACLES: readonly TownObstacle[] = [
   ...PRE_EVENING_OUTDOOR_OBSTACLES.slice(TOWN_CARS.length),
-  ...TOWN_CARS.map(car=>({x:car.x,z:car.z,
-    width:Math.abs(Math.sin(car.rotation))>.5?CAR_SIZE.depth:CAR_SIZE.width,
-    depth:Math.abs(Math.sin(car.rotation))>.5?CAR_SIZE.width:CAR_SIZE.depth})),
+  ...PARKED_CAR_OBSTACLES,
   ...STREET_OBSTACLES,
 ];

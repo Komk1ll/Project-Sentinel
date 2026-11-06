@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { STREET_BEDS,STREET_BUSHES,STREET_LAMPS,STREET_BINS } from '@content/street-details';
 import { TOWN_CARS,TOWN_PLANTERS } from '@content/town-props';
 import { placeOnGround } from '@game/render/world-surface';
@@ -28,6 +29,20 @@ export function createStreetDressing(kit:THREE.Group,time:{value:number}):THREE.
   instances('flowerbed',[...STREET_BEDS,...TOWN_PLANTERS]);
   instances('lantern',STREET_LAMPS);
   instances('litter-bin',STREET_BINS);
+  // Wipers, grille slats and plate trim share one small mesh across all cars.
+  const detailParts: THREE.BufferGeometry[] = [];
+  for (const side of [-1, 1]) {
+    const wiper = new THREE.BoxGeometry(.38, .018, .023);
+    wiper.rotateY(side * .26);
+    wiper.translate(side * .27, .888, .566);
+    detailParts.push(wiper);
+  }
+  for (let slat = 0; slat < 7; slat++)
+    detailParts.push(new THREE.BoxGeometry(.023, .071, .015).translate((slat - 3) * .069, .593, 1.684));
+  detailParts.push(new THREE.BoxGeometry(.43, .018, .022).translate(0, .48, -1.681));
+  const vehicleDetails = mergeGeometries(detailParts)!;
+  detailParts.forEach(part => part.dispose());
+  const detailMaterial = new THREE.MeshStandardMaterial({ color: 0x546064, metalness: .26, roughness: .55 });
   for(const [i,car] of TOWN_CARS.entries()){
     const prototype=kit.getObjectByName(i%2?'car-wagon':'car-hatch');if(!prototype)continue;
     const model=prototype.clone(true);model.name=`parked-car-${i}`;
@@ -41,6 +56,9 @@ export function createStreetDressing(kit:THREE.Group,time:{value:number}):THREE.
         object.material=tinted;
       }
     });
+    const details = new THREE.Mesh(vehicleDetails, detailMaterial);
+    details.name = 'car-wipers-and-grille';
+    model.add(details);
     placeOnGround(model,car.x,car.z,car.rotation);group.add(model);
   }
   const windows=kit.getObjectByName('evening-windows')?.clone(true);

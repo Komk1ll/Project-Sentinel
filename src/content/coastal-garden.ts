@@ -54,7 +54,8 @@ function smoothSpline(waypoints: readonly TownPosition[], segmentsPerHop = 6, cl
 
 // 1. Central Promenade & Mill Ascent Walk (connects town at x: 64 to mill terrace at x: 86)
 const MILL_ASCENT_WAYPOINTS: readonly TownPosition[] = [
-  { x: 64, z: 24 },
+  { x: 64, z: 32 },
+  { x: 67, z: 30 },
   { x: 69, z: 24 },
   { x: 74, z: 23 },
   { x: 78, z: 21 },
@@ -66,7 +67,7 @@ const MILL_ASCENT_WAYPOINTS: readonly TownPosition[] = [
   { x: 86, z: 30.5 },
   { x: 80.5, z: 30.5 },
   { x: 76.5, z: 25 },
-  { x: 70, z: 24 },
+  { x: 69, z: 24 },
 ];
 
 // 2. Belvedere Overlook Ridge Walk (sweeps from mill east side to the scenic ocean overlook)
@@ -76,15 +77,12 @@ const BELVEDERE_WAYPOINTS: readonly TownPosition[] = [
   { x: 96, z: 38 }, // Belvedere Resting Plaza
   { x: 97.3, z: 42.5 }, // Smooth curve east of garden bush
   { x: 97.2, z: 47 }, // Passage through retaining wall gap
-  { x: 98.0, z: 52 }, // Scenic descent east of pond retaining wall
-  { x: 98.0, z: 56 }, // Approach clear of northern rail tip
-  { x: 96.0, z: 58 }, // Bridge east deck entrance
-  { x: 88.0, z: 58 }, // Bridge center
+  { x: 98.0, z: 54 }, // Join the pond path before the bridge approach
 ];
 
 // 3. Pond Shore & Bridge Walk (loops along pond banks, crossing bridge at x: 88, z: 58)
 const POND_SHORE_WAYPOINTS: readonly TownPosition[] = [
-  { x: 64, z: 36 },
+  { x: 67, z: 30 },
   { x: 69, z: 38 },
   { x: 74, z: 43 },
   { x: 77, z: 48 },
@@ -94,7 +92,7 @@ const POND_SHORE_WAYPOINTS: readonly TownPosition[] = [
   { x: 84, z: 58 },
   { x: 88, z: 58 }, // Bridge center
   { x: 94, z: 58 },
-  { x: 96, z: 58 }, // Bridge East exit
+  { x: 96.5, z: 58 }, // Bridge East exit
   { x: 98, z: 54 },
   { x: 96, z: 48 },
 ];
@@ -108,8 +106,10 @@ const NORTH_MEADOW_WAYPOINTS: readonly TownPosition[] = [
   { x: 82, z: 16 }, // Mill Hill Terrace Rest plaza
   { x: 88, z: 15 }, // Northern mill slope
   { x: 93, z: 16 },
-  { x: 95, z: 21 },
-  { x: 91.5, z: 26 }, // Joins mill promenade
+  { x: 91.5, z: 22 }, // Joins the mill loop
+  { x: 95, z: 22.5 },
+  { x: 98, z: 23.5 },
+  { x: 100, z: 25 }, // Joins the coastal promenade
 ];
 
 /**
@@ -118,7 +118,7 @@ const NORTH_MEADOW_WAYPOINTS: readonly TownPosition[] = [
  * the willow pond shore, and the walkable bridge.
  */
 export const GARDEN_WALKS: readonly GardenWalk[] = [
-  { points: smoothSpline(MILL_ASCENT_WAYPOINTS, 6, true), width: 1.9, closed: true },
+  { points: smoothSpline(MILL_ASCENT_WAYPOINTS, 8), width: 1.9, closed: false },
   { points: smoothSpline(BELVEDERE_WAYPOINTS, 6, false), width: 1.85, closed: false },
   { points: smoothSpline(POND_SHORE_WAYPOINTS, 6, false), width: 1.9, closed: false },
   { points: smoothSpline(NORTH_MEADOW_WAYPOINTS, 6, false), width: 1.8, closed: false },
@@ -150,6 +150,22 @@ export const RESTING_BENCHES = [
   { x: 80.0, z: 15.0, rotation: 0.3 },
   { x: 81.2, z: 48.5, rotation: -0.6 },
 ];
+
+export const PARK_CREEK = { x: 88, z: 58, width: 9.2, depth: 15 } as const;
+
+export function creekBend(dz: number): number {
+  return 2.15 * Math.sin(dz * 0.45);
+}
+
+export function onParkCreek(p: TownPosition, clearance = 0): boolean {
+  const dz = p.z - PARK_CREEK.z;
+  return Math.hypot((p.x - PARK_CREEK.x - creekBend(dz)) / (4.6 + clearance), dz / (7.5 + clearance)) < 1;
+}
+
+export function creekBank(angle: number, margin = 0): TownPosition {
+  const dz = Math.sin(angle) * (7.5 + margin);
+  return { x: 88 + creekBend(dz) + Math.cos(angle) * (4.6 + margin), z: 58 + dz };
+}
 
 export const GARDEN_BRIDGE = { x: 88, z: 58, width: 17, depth: 2.6 } as const;
 export function onGardenBridge(p: TownPosition, inset = 0.3): boolean {
@@ -241,12 +257,30 @@ export const COAST_CLIFFS = [
   })
 ).filter(p => !(p.x > 36 && p.x < 78 && p.z > 66));
 
+export const MILL_FIELD = { x: 91, firstRowZ: 7, rowSpacing: 1.2, rows: 5, width: 7.4 } as const;
+
+export const PARK_FLOWER_BEDS = [
+  { x: 86, z: 24, width: 5.5, depth: 5.0 },
+  { x: 73, z: 30, width: 4.8, depth: 2.6 },
+  { x: 78.8, z: 36.8, width: 3.8, depth: 2.5 },
+  { x: 87.3, z: 40.5, width: 5.5, depth: 2.9 },
+  { x: 71, z: 48, width: 4.0, depth: 3.5 },
+  { x: 81, z: 45.2, width: 3.9, depth: 2.6 },
+  { x: 92, z: 43.8, width: 3.6, depth: 2.6 },
+] as const;
+
 export const GARDEN_TREES = [
-  [68, 2], [70, 8], [94, 6], [96, 10], [94, 38], [100, 42], [78, 43], [74, 56], [95, 68]
+  [68, 2], [70, 8], [95.5, 5.8], [96, 10], [94, 38], [100, 42], [78, 43], [74, 56], [95, 68], [79, 61], [82, 64], [94, 62], [91, 54],
+  [72.5, 2], [75.5, 9.5], [86, 2.5], [89, 0.5],
+  [88, 13.4], [96.2, 15], [94, 29.5], [95.5, 33],
+  [72.5, 26.5], [73.5, 33], [80, 39],
+  [87, 7.5], [94.8, 13.4], [69, 43], [74, 50],
+  [81, 42], [86.5, 46.5], [90, 39], [91, 33.5]
 ]
   .map(([x, z], i) => ({ x: x!, z: z!, rotation: i * 2.4, scale: 0.85 + (i % 3) * 0.12 }))
   .filter(p => isIslandLand(p)
     && !onGardenWalk(p, 1.4)
+    && !onParkCreek(p, 1.2)
     && !RETAINING_WALLS.some(w => Math.hypot(p.x - w.x, p.z - w.z) < 2.0)
     && COAST_PATH.every((q, i) => segmentDistance(p, q, COAST_PATH[(i + 1) % COAST_PATH.length]!) > 2.8));
 

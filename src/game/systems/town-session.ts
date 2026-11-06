@@ -27,7 +27,7 @@ export class TownSession {
     this.status = loaded.status;
     if (loaded.data) {
       world.restore(loaded.data.world);
-      mission.restore(loaded.data.stage);
+      mission.restore(loaded.data.stage, loaded.data.campaign);
     }
     this.lastState = this.fingerprint();
     this.lastStage = mission.snapshot.stage;
@@ -44,7 +44,7 @@ export class TownSession {
     this.timer = null;
     const state = this.fingerprint();
     if (state === this.lastState) return;
-    const success = this.store.save({ schemaVersion: 1, buildId: 'cybershield-first-aid', savedAt: Date.now(), world: this.world.snapshot, stage: this.mission.snapshot.stage });
+    const success = this.store.save({ schemaVersion: 1, buildId: 'cybershield-first-aid', savedAt: Date.now(), world: this.world.snapshot, stage: this.mission.snapshot.stage, ...(this.mission.snapshot.stage === 'completed' ? { campaign: this.mission.campaignProgress } : {}) });
     if (success) this.lastState = state;
     this.setStatus(success ? 'saved' : 'unavailable');
   }
@@ -61,7 +61,7 @@ export class TownSession {
   destroy(): void {
     this.flush(); this.unsubscribe(); this.listeners.clear();
   }
-  private fingerprint(): string { return JSON.stringify({ world: this.world.snapshot, stage: this.mission.snapshot.stage }); }
+  private fingerprint(): string { return JSON.stringify({ world: this.world.snapshot, stage: this.mission.snapshot.stage, campaign: this.mission.campaignProgress }); }
   private changed(): void {
     if (this.suspended || this.fingerprint() === this.lastState) return;
     const stage = this.mission.snapshot.stage;

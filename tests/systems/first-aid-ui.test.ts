@@ -40,6 +40,27 @@ describe('First aid engine and HUD integration', () => {
     vi.unstubAllGlobals();
   });
 
+  it('caps rendering on fast displays and pauses while the tab is hidden', () => {
+    const render = vi.spyOn(engine.threeRenderer, 'render');
+    const requestFrame = vi.mocked(requestAnimationFrame);
+    for (let frame = 0; frame < 144; frame++) {
+      requestFrame.mock.lastCall![0](1000 + frame * 1000 / 144);
+    }
+    expect(render).toHaveBeenCalledTimes(60);
+
+    const hidden = vi.spyOn(document, 'hidden', 'get').mockReturnValue(true);
+    const requestsBeforeHide = requestFrame.mock.calls.length;
+    document.dispatchEvent(new Event('visibilitychange'));
+    expect(cancelAnimationFrame).toHaveBeenCalled();
+    expect(requestFrame).toHaveBeenCalledTimes(requestsBeforeHide);
+
+    hidden.mockReturnValue(false);
+    document.dispatchEvent(new Event('visibilitychange'));
+    expect(requestFrame).toHaveBeenCalledTimes(requestsBeforeHide + 1);
+    requestFrame.mock.lastCall![0](60_000);
+    expect(render).toHaveBeenLastCalledWith(1 / 60);
+  });
+
   it('shows the first goal without claiming a kit or successful conversation', () => {
     expect(host.querySelector('.town-objective')?.textContent).toBe(FIRST_AID_TEXT.meetObjective);
     expect(host.querySelector('.town-inventory')?.textContent).toBe(FIRST_AID_TEXT.emptyInventory);
@@ -97,14 +118,14 @@ describe('First aid engine and HUD integration', () => {
     walkTo(engine.world, { x: 32, z: 46 }); walkTo(engine.world, { x: 40, z: 46 });
     pressE(); walkTo(engine.world, { x: 0, z: .25 }); walkTo(engine.world, { x: .75, z: .25 });
     pressE();
-    expect(host.querySelector('.town-objective')?.textContent).toBe(FIRST_AID_TEXT.completedObjective);
+    expect(host.querySelector('.town-objective')?.textContent).toBe('Осмотреть робота');
     window.dispatchEvent(new Event('pagehide'));
     engine.destroy();
     engine = new GameEngine({ gameContainerId: 'unused', threeContainerId: 'unused' });
     engine.registerCleanup(mountTownHud(host, engine.firstAid, engine.cameraZoom, engine.session));
     engine.init();
     expect(engine.world.interior?.id).toBe('clinic');
-    expect(host.querySelector('.town-objective')?.textContent).toBe(FIRST_AID_TEXT.completedObjective);
+    expect(host.querySelector('.town-objective')?.textContent).toBe('Осмотреть робота');
     expect(host.querySelector('.town-inventory')?.textContent).toContain('Набор передан');
     expect(host.querySelector('.town-session-note')?.textContent).toContain('восстановлен');
     pressE(); expect(engine.firstAid.snapshot.inventory).toEqual([]);

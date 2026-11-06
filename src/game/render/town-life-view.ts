@@ -2,6 +2,7 @@ import { ActorAnimation } from '@game/render/actor-animation';
 import { MILL } from '@content/island';
 import { islandElevation } from '@content/island-elevation';
 import * as THREE from 'three';
+import { addCharacterDetails } from '@game/render/character-details';
 import { TOWN_STOPS } from '@content/town-life';
 import { placeOnGround } from '@game/render/world-surface';
 import type { TownLife } from '@game/systems/town-life';
@@ -25,7 +26,7 @@ export class TownLifeView {
       let material=this.materials.get(color);if(!material){material=new THREE.MeshStandardMaterial({color,roughness:.8});this.materials.set(color,material);}
       const item=new THREE.Mesh(round?this.sphere:this.cube,material);item.position.set(x,y,z);item.scale.set(w,h,d);item.castShadow=true;item.receiveShadow=true;parent.add(item);return item;
     };
-    for(const resident of life.residents){
+    for(const [variant, resident] of life.residents.entries()){
       const actor=prototype?.clone(true)??new THREE.Group();actor.name=`resident-${resident.data.id}`;
       // Recolour only clothing; preserve skin, face and shared geometry.
       if(prototype){const copied=new Map<THREE.Material,THREE.Material>();actor.traverse(object=>{
@@ -37,6 +38,7 @@ export class TownLifeView {
           copied.set(source,material);return material;
         };object.material=Array.isArray(object.material)?object.material.map(recolour):recolour(object.material);
       });}else {mesh(actor,resident.data.color,0,1,0,.24,.5,.19,true);mesh(actor,0xc29b7a,0,1.55,0,.18,.21,.18,true);}
+      if (prototype) addCharacterDetails(actor, 'resident', variant);
       this.actors.push(actor);this.animations.push(new ActorAnimation(actor,prototype?.animations??[]));this.group.add(actor);
     }
     for(const stop of TOWN_STOPS){

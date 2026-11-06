@@ -74,3 +74,22 @@ Herd's on-request build and 18 HTTP file hashes were checked against the product
 output. No persistent Vite/preview process or login agent was started. Source and
 visual changes remain on a feature branch; this task does not bypass the pending
 GitHub review required for the earlier main update.
+
+## Playable boats
+
+The harbor entrance is open. The two boats moor at separate openings at the
+seaward end of the pier. The runtime replaces the baked ropes with rails drawn
+from the same footprints used for walking collision. Gold deck markers identify
+the boarding points.
+
+The contextual action boards a nearby boat from the deck. The normal movement
+keys steer in camera-relative directions. Boat clearance keeps the hull away
+from the shore, the pier and the other moored boat. The minimap marks the active
+berth. The same contextual action moors the boat and returns the player to the
+deck when close to that berth. A save taken at sea resumes at the boarding point
+and keeps the current quest stage.
+
+The eastern park uses a finer terrain mesh and subdivided ribbons. Garden
+approaches connect directly to the town and bridge. Large decorative grass
+overlays and redundant road extensions were removed where they hid or crossed
+the walks.

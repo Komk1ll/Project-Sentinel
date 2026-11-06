@@ -1,15 +1,15 @@
-import { GARDEN_WALKS,GARDEN_BRIDGE,SEAWALLS,GARDEN_TREES,RESTING_AREAS } from '@content/coastal-garden';
+import { GARDEN_WALKS,GARDEN_BRIDGE,SEAWALLS,GARDEN_TREES,RESTING_AREAS,creekBank,MILL_FIELD } from '@content/coastal-garden';
 import { RETAINING_WALLS } from '@content/island-elevation';
-import { LIGHTHOUSE,PIER_DECKS,COASTAL_TREES,HARBOR_PATHS,BREAKWATERS } from '@content/harbor';
+import { LIGHTHOUSE,PIER_DECKS,COASTAL_TREES,HARBOR_PATHS,HARBOR_BOATS } from '@content/harbor';
 import { ISLAND_BOUNDS, COAST_PATH, coastOutline, MILL } from '@content/island';
 import { TOWN_STOPS, WILD_TREES, ISLAND_PONDS } from '@content/town-life';
 import { TOWN_OPEN_SPACES, ROAD_CENTERS, TOWN_BUILDINGS, TOWN_SIZE } from '@content/town';
 import { TOWN_TREES } from '@content/town-props';
-import { getInteriorLayout } from '@content/interiors';
+import { getInteriorLayout, STAIR_LANDING } from '@content/interiors';
 import { MASTER, MEDIC } from '@content/first-aid';
 import type { FirstAidMission } from '@game/systems/first-aid-mission';
 import type { TownPosition, TownWorld } from '@game/systems/town-world';
-import { navigationGoal, walkingRoute } from '@game/systems/town-navigation';
+import { storyNavigationGoal, walkingRoute } from '@game/systems/town-navigation';
 
 export type MinimapMode = 'nearby' | 'district' | 'island';
 interface MapProjection { readonly x: (value: number) => number; readonly z: (value: number) => number; readonly scale: number; }
@@ -43,15 +43,16 @@ export function routeMapProjection(size: number, points: readonly TownPosition[]
   return {scale,x:value=>12+(value-startX)*scale,z:value=>12+(value-startZ)*scale};
 }
 
-export function drawMinimap(canvas: HTMLCanvasElement, world: TownWorld, mission: FirstAidMission, mode: MinimapMode = 'nearby'): void {
+export function drawMinimap(canvas: HTMLCanvasElement, world: TownWorld, mission: FirstAidMission, mode: MinimapMode = 'nearby', cachedRoute?: readonly TownPosition[]): void {
   const ctx=canvas.getContext('2d'); if (!ctx) return;
   const size=canvas.clientWidth || 240, ratio=Math.min(window.devicePixelRatio || 1,2);
   const resolution=Math.round(size*ratio);
   if(canvas.width!==resolution || canvas.height!==resolution) canvas.width=canvas.height=resolution;
   ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,size,size);
-  const goal=navigationGoal(world,mission.snapshot.targetBuildingId);
-  const route=goal ? walkingRoute(world.position,goal.position,world.interior) : [];
-  const p=world.interior ? minimapProjection(size,true) : routeMapProjection(size,[world.position,...route,...(goal?[goal.position]:[])],mode);
+  const goal=world.activeBoat !== null ? null : storyNavigationGoal(world,mission.storyTarget,mission.snapshot.targetBuildingId);
+  const route = goal ? cachedRoute ?? walkingRoute(world.position, goal.position, world.interior) : [];
+  const berth = world.activeBoat === null ? null : HARBOR_BOATS[world.activeBoat];
+  const p=world.interior ? minimapProjection(size,true) : routeMapProjection(size,[world.position,...route,...(berth ? [berth] : []),...(goal?[goal.position]:[])],mode);
   const visible=(x:number,z:number):boolean=>p.x(x)>9 && p.x(x)<size-9 && p.z(z)>9 && p.z(z)<size-9;
   const rect=(x:number,z:number,w:number,d:number):void=>ctx.fillRect(p.x(x-w/2),p.z(z-d/2),w*p.scale,d*p.scale);
   const text=(label:string,x:number,z:number,color='#304b49'):void=>{
@@ -67,7 +68,7 @@ export function drawMinimap(canvas: HTMLCanvasElement, world: TownWorld, mission
     ctx.fillStyle='#fffaf0';rect(0,0,10,8);
     ctx.strokeStyle='#839890';ctx.lineWidth=2;ctx.strokeRect(p.x(-5),p.z(-4),10*p.scale,8*p.scale);
     ctx.fillStyle='#b0b9ac';
-    for(const item of getInteriorLayout(world.interior).obstacles)rect(item.x,item.z,item.width,item.depth);
+    for(const item of getInteriorLayout(world.interior, world.interiorFloor).obstacles)rect(item.x,item.z,item.width,item.depth);
     ctx.fillStyle='#267e7b';rect(0,4,1.6,.16);
     text('Выход',0,3.65);
   } else {
@@ -88,6 +89,9 @@ export function drawMinimap(canvas: HTMLCanvasElement, world: TownWorld, mission
     for(const road of ROAD_CENTERS){rect(road,32,6.6,64);rect(32,road,64,6.6);}
     ctx.fillStyle='#a5b4b2';
     for(const road of ROAD_CENTERS){rect(road,32,4.1,64);rect(32,road,64,4.1);}
+    ctx.fillStyle = '#baa36b';
+    for (let row = 0; row < MILL_FIELD.rows; row++)
+      rect(MILL_FIELD.x, MILL_FIELD.firstRowZ + row * MILL_FIELD.rowSpacing, MILL_FIELD.width, 0.84);
     ctx.fillStyle='#88a175';
     for(const tree of [...TOWN_TREES,...WILD_TREES,...COASTAL_TREES,...GARDEN_TREES]){ctx.beginPath();ctx.arc(p.x(tree.x),p.z(tree.z),Math.max(1.8,tree.scale*.65*p.scale),0,Math.PI*2);ctx.fill();}
     for(const b of TOWN_BUILDINGS){
@@ -97,12 +101,23 @@ export function drawMinimap(canvas: HTMLCanvasElement, world: TownWorld, mission
       ctx.fillStyle='#fffaf0';rect(b.x,b.z+b.depth/2,1.6,.6);
     }
     if(mode!=='island')for(const space of TOWN_OPEN_SPACES)text(space.kind==='orchard'?'Сад':space.label,space.x,space.z-2.1,'#4b6a40');
-    ctx.fillStyle='#69aeb8';for(const pond of ISLAND_PONDS){ctx.beginPath();ctx.ellipse(p.x(pond.x),p.z(pond.z),pond.width*p.scale/2,pond.depth*p.scale/2,0,0,Math.PI*2);ctx.fill();}
+    ctx.fillStyle='#69aeb8';
+    ctx.beginPath();
+    for (let i = 0; i < 48; i++) {
+      const bank = creekBank(i * Math.PI / 24);
+      if (i === 0) ctx.moveTo(p.x(bank.x), p.z(bank.z));
+      else ctx.lineTo(p.x(bank.x), p.z(bank.z));
+    }
+    ctx.closePath();
+    ctx.fill();
+    for(const pond of ISLAND_PONDS.slice(1)){ctx.beginPath();ctx.ellipse(p.x(pond.x),p.z(pond.z),pond.width*p.scale/2,pond.depth*p.scale/2,0,0,Math.PI*2);ctx.fill();}
     for(const stop of TOWN_STOPS){ctx.fillStyle='#6c9a81';rect(stop.x,stop.z,1.8,1.8);}
     for(const resident of mission.life.residents){ctx.fillStyle='#8e6182';ctx.beginPath();ctx.arc(p.x(resident.position.x),p.z(resident.position.z),2.4,0,Math.PI*2);ctx.fill();}
     ctx.fillStyle='#f2e6c9';for(const path of HARBOR_PATHS)rect(path.x,path.z,path.width,path.depth);
-    ctx.strokeStyle='#92998c';ctx.lineWidth=2.3*p.scale;ctx.lineJoin='round';
-    for(const arm of BREAKWATERS){ctx.beginPath();arm.forEach((point,i)=>i?ctx.lineTo(p.x(point.x),p.z(point.z)):ctx.moveTo(p.x(point.x),p.z(point.z)));ctx.stroke();}
+    ctx.fillStyle='#856044';
+    HARBOR_BOATS.forEach((boat, index) => {
+      if (world.activeBoat !== index) rect(boat.x, boat.z, 1.7, 4.2);
+    });
     ctx.fillStyle='#e8dcbf';for(const rest of RESTING_AREAS){ctx.beginPath();ctx.arc(p.x(rest.x),p.z(rest.z),rest.radius*p.scale,0,Math.PI*2);ctx.fill();}
     ctx.strokeStyle='#eadcbd';
     for(const walk of GARDEN_WALKS){ctx.beginPath();walk.points.forEach((v,i)=>i?ctx.lineTo(p.x(v.x),p.z(v.z)):ctx.moveTo(p.x(v.x),p.z(v.z)));if(walk.closed)ctx.closePath();ctx.lineWidth=walk.width*p.scale;ctx.stroke();}
@@ -114,11 +129,18 @@ export function drawMinimap(canvas: HTMLCanvasElement, world: TownWorld, mission
     ctx.fillStyle='#a78962';rect(GARDEN_BRIDGE.x,GARDEN_BRIDGE.z,GARDEN_BRIDGE.width,GARDEN_BRIDGE.depth);
     ctx.fillStyle='#92998c';for(const wall of SEAWALLS)rect(wall.x,wall.z,1,1);
     ctx.fillStyle='#a78962';for(const deck of PIER_DECKS)rect(deck.x,deck.z,deck.width,deck.depth);
+    if (berth) {
+      ctx.fillStyle = '#f2bd65';
+      ctx.beginPath();
+      ctx.arc(p.x(berth.boarding.x), p.z(berth.boarding.z), 4, 0, Math.PI * 2);
+      ctx.fill();
+      text('Причал', berth.boarding.x, berth.boarding.z + 4);
+    }
     ctx.fillStyle='#ad6651';rect(LIGHTHOUSE.x,LIGHTHOUSE.z,4,4);
     if(mode==='island'){text('Морской маяк',LIGHTHOUSE.x+7,LIGHTHOUSE.z-2);text('Причал',58,85);text('Зареченск',32,-10);text('Мельница',MILL.x,MILL.z-3);text('Береговая тропа',25,73);text('Бельведер',96,34);}
     ctx.fillStyle='#b3a686';rect(MILL.x,MILL.z,3.8,3.8);
     if(mode!=='island'||size>360)for(const b of TOWN_BUILDINGS){
-      if(b.id==='station'||b.id==='clinic')text(b.id==='station'?'Маяк':'Клиника',b.x,b.z);
+      if(b.id==='station'||b.id==='clinic'||b.id==='library'||b.id==='townhall')text(({station:'Маяк',clinic:'Клиника',library:'Библиотека',townhall:'Администрация'})[b.id],b.x,b.z);
       else if(size>360&&mode!=='island')text(b.kind==='home'?'Дом':b.id==='townhall'?'Администрация':b.id==='post'?'Почта':b.id==='grocery'?'Магазин':b.name.replace(/ «.*»/,''),b.x,b.z);
     }
   }
@@ -133,7 +155,11 @@ export function drawMinimap(canvas: HTMLCanvasElement, world: TownWorld, mission
     ctx.fillStyle='#bc801d';ctx.fill();ctx.strokeStyle='#fffaf0';ctx.lineWidth=2;ctx.stroke();
   }
   if(world.interior){
-    const actor=[MASTER,MEDIC].find(person=>person.buildingId===world.interior?.id);
+    if (world.interior.floors > 1) {
+      ctx.fillStyle = '#af855c';
+      rect(STAIR_LANDING.x, STAIR_LANDING.z, .75, .75);
+    }
+    const actor=world.interiorFloor === 0 ? [MASTER,MEDIC].find(person=>person.buildingId===world.interior?.id) : undefined;
     if(actor)text(actor===MASTER?'Мастер':'Медик',actor.x,actor.z-.65);
   }
   // A directional triangle distinguishes the player from destination diamonds.

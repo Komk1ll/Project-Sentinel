@@ -1,8 +1,10 @@
 import { gardenBridgeHeight } from '@content/coastal-garden';
 import { islandElevation } from '@content/island-elevation';
+import { boatAltitude } from '@content/harbor';
 import { updateHarbor } from '@game/render/harbor-view';
+import { addCharacterDetails } from '@game/render/character-details';
 import { addHeroSilhouette } from '@game/render/hero-silhouette';
-import { EVENING_LIGHT } from '@content/evening-light';
+import { EVENING_LIGHT, TOWN_LIGHT, type TownTheme } from '@content/evening-light';
 import { ActorAnimation } from '@game/render/actor-animation';
 import * as THREE from 'three';
 import { ISLAND_CENTER } from '@content/island';
@@ -16,7 +18,8 @@ import { createMasterMesh } from '@game/render/master-mesh';
 import { MASTER, MEDIC } from '@content/first-aid';
 import type { FirstAidMission } from '@game/systems/first-aid-mission';
 import { createWebTown } from '@game/render/web-town';
-import { createInteriorMeshes } from '@game/render/interior-meshes';
+import { CampaignView } from '@game/render/campaign-view';
+import { createInteriorMeshes, createInteriorStairs } from '@game/render/interior-meshes';
 import type { TownWorld } from '@game/systems/town-world';
 import { buildingEntrance, TOWN_BUILDINGS } from '@content/town';
 import type { CameraZoom } from '@game/systems/camera-zoom';
@@ -39,7 +42,11 @@ export class ThreeRenderer {
   private heroAnimation:ActorAnimation|null=null;
   private readonly sun = new THREE.DirectionalLight(EVENING_LIGHT.sun,EVENING_LIGHT.sunIntensity);
   private readonly shaderTime = {value:0};
-  private readonly ocean = createOcean(this.shaderTime);
+  private readonly nightWater = { value: 0 };
+  private readonly ocean = createOcean(this.shaderTime, this.nightWater);
+  private theme: TownTheme = 'morning';
+  private readonly ambient = new THREE.HemisphereLight();
+  private readonly fill = new THREE.DirectionalLight();
   private readonly surfaceUp = { value: new THREE.Vector3(0,1,0) };
   private readonly container: HTMLElement;
   private outdoors: THREE.Group;
@@ -54,6 +61,10 @@ export class ThreeRenderer {
   private leftLeg: THREE.Object3D = new THREE.Group();
   private rightLeg: THREE.Object3D = new THREE.Group();
   private leftArm: THREE.Object3D = new THREE.Group();
+  private readonly campaignView = new CampaignView();
+  private carSilhouettes: THREE.Mesh[][] = [];
+  private carModels: (THREE.Object3D | undefined)[] = [];
+  private oars: THREE.Group[] = [];
   private rightArm: THREE.Object3D = new THREE.Group();
   private readonly target = new THREE.Vector3();
   private readonly cameraOffset = new THREE.Vector3(28, 34, 28);
@@ -61,15 +72,19 @@ export class ThreeRenderer {
   private room: THREE.Group | null = null;
   private roomId: string | null = null;
   private walkTime = 0;
+  private heroMarker: THREE.Mesh | null = null;
   private lastPosition = new THREE.Vector2();
+  private shadowElapsed = 0;
+  private reducedQuality = false;
+  private slowFrames = 0;
   private isDestroyed = false;
 
   constructor(private readonly options: ThreeRendererOptions) {
     const container = document.getElementById(options.containerId);
     if (!container) throw new Error(`Missing render container: ${options.containerId}`);
     this.container = container;
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    this.renderer.shadowMap.autoUpdate = false;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -79,18 +94,20 @@ export class ThreeRenderer {
     this.container.appendChild(this.renderer.domElement);
     this.camera = new THREE.OrthographicCamera(-20, 20, 14, -14, .1, 500);
     this.scene.fog = new THREE.Fog(EVENING_LIGHT.sky, 180, 380);
-    this.scene.add(new THREE.HemisphereLight(EVENING_LIGHT.ambientSky, EVENING_LIGHT.ambientGround, EVENING_LIGHT.ambientIntensity));
+    this.scene.add(this.ambient);
     const sun = this.sun;
     sun.position.set(-25, 45, -5);
     sun.target.position.set(32, 0, 32);
     sun.castShadow = true;
-    sun.shadow.mapSize.set(2048, 2048);
+    const compact = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+    const shadowSize = compact ? 1024 : 2048;
+    sun.shadow.mapSize.set(shadowSize, shadowSize);
     Object.assign(sun.shadow.camera, { left: -55, right: 55, top: 55, bottom: -55, near: 1, far: 250 });
     sun.shadow.bias = -.0005;
     sun.shadow.normalBias = .025;
     sun.shadow.radius = 4;
     this.scene.add(sun, sun.target);
-    const fill = new THREE.DirectionalLight(EVENING_LIGHT.fill, EVENING_LIGHT.fillIntensity);
+    const fill = this.fill;
     fill.position.set(40, 25, 60); this.scene.add(fill);
     this.outdoors = createWebTown(undefined,this.shaderTime);
     this.lifeView=new TownLifeView(options.life??options.firstAid.life);
@@ -99,8 +116,12 @@ export class ThreeRenderer {
     this.scene.add(this.assetLibrary);
     enhanceSurfaceMaterials(this.outdoors);
     this.scene.add(this.outdoors);
+    this.cacheCarModels();
     this.scene.add(this.ocean);
+    this.setTheme(this.theme);
+    this.scene.add(this.campaignView.group);
     this.buildCharacter();
+    this.attachOars();
     this.scene.add(this.character);
     this.master.group.visible = false;
     this.scene.add(this.master.group);
@@ -139,7 +160,9 @@ export class ThreeRenderer {
     this.disposeGroup(this.outdoors);
     this.assetLibrary.add(...assets.values());
     this.outdoors = createWebTown(assets,this.shaderTime);
+    this.cacheCarModels();
     this.harbor=this.outdoors.getObjectByName('island-harbor')??null;
+    this.setTheme(this.theme);
     this.lifeView=new TownLifeView(this.options.life??this.options.firstAid.life,take('hero'));
     this.outdoors.add(this.lifeView.group);
     enhanceSurfaceMaterials(this.outdoors);
@@ -149,6 +172,7 @@ export class ThreeRenderer {
     this.disposeGroup(this.character);
     this.character.clear();
     const hero = take('hero');
+    addCharacterDetails(hero, 'hero');
     this.heroAnimation?.dispose();
     this.heroAnimation=new ActorAnimation(hero,hero.animations);
     this.character.add(hero);
@@ -164,16 +188,20 @@ export class ThreeRenderer {
     this.rightLeg = hero.getObjectByName('right-leg') ?? new THREE.Object3D();
     this.leftArm = hero.getObjectByName('left-arm') ?? new THREE.Object3D();
     this.rightArm = hero.getObjectByName('right-arm') ?? new THREE.Object3D();
+    this.attachOars();
     [this.leftLeg, this.rightLeg, this.leftArm, this.rightArm].forEach((limb, index) => { this.limbRest[index] = limb.rotation.x; });
     const marker = new THREE.Mesh(new THREE.RingGeometry(.33, .4, 32), new THREE.MeshBasicMaterial({ color: 0x2b9493, side: THREE.DoubleSide }));
-    marker.rotation.x = -Math.PI / 2; marker.position.y = .03; this.character.add(marker);
+    marker.rotation.x = -Math.PI / 2; marker.position.y = .03; this.character.add(marker); this.heroMarker = marker;
     for (const [name, actor] of [['master', this.master], ['medic', this.medic]] as const) {
       this.disposeGroup(actor.group); actor.group.clear();
-      const model = take(name); actor.group.add(model);
+      const model = take(name);
+      addCharacterDetails(model, name);
+      actor.group.add(model);
       actor.group.position.y = .08;
       actor.kit = attachKit(model);
     }
     const seatedResident = take('resident');
+    addCharacterDetails(seatedResident, 'seated');
     seatedResident.scale.setScalar(.70);
     this.resident.add(seatedResident);
     for (const [name, model] of assets) if (name.startsWith('interior-')) {
@@ -215,7 +243,68 @@ export class ThreeRenderer {
     }
     addHeroSilhouette(this.character);
     const ring = new THREE.Mesh(new THREE.RingGeometry(.3, .35, 40), new THREE.MeshBasicMaterial({ color: 0x7accca, transparent: true, opacity: .6, depthWrite: false }));
-    ring.rotation.x = -Math.PI / 2; ring.position.y = .04; this.character.add(ring);
+    ring.rotation.x = -Math.PI / 2; ring.position.y = .04; this.character.add(ring); this.heroMarker = ring;
+  }
+
+  private cacheCarModels(): void {
+    this.carModels = this.options.world.carPoses.map((_, index) => this.outdoors.getObjectByName('parked-car-' + index));
+    this.carSilhouettes = this.carModels.map(model => {
+      const proxies = model ? addHeroSilhouette(model) : [];
+      proxies.forEach(proxy => { proxy.visible = false; });
+      return proxies;
+    });
+  }
+
+  private attachOars(): void {
+    this.oars = [this.leftArm, this.rightArm].map((arm, i) => {
+      const side = i === 0 ? -1 : 1;
+      const oar = new THREE.Group();
+      oar.name = i === 0 ? 'left-oar' : 'right-oar';
+      oar.position.set(side * .015, -.5, 0);
+      oar.visible = false;
+      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(.025, .03, 1.26, 6),
+        new THREE.MeshStandardMaterial({ color: 0xb8996c }));
+      shaft.rotation.z = Math.PI / 2;
+      shaft.position.x = side * .43;
+      const blade = new THREE.Mesh(new THREE.BoxGeometry(.47, .055, .22),
+        new THREE.MeshStandardMaterial({ color: 0x9c663b }));
+      blade.position.x = side * 1.19;
+      oar.add(shaft, blade);
+      arm.add(oar);
+      return oar;
+    });
+  }
+
+  public setTheme(theme: TownTheme): void {
+    this.theme = theme;
+    const light = TOWN_LIGHT[theme];
+    this.nightWater.value = Number(theme === 'night');
+    this.renderer.toneMappingExposure = light.exposure;
+    this.renderer.setClearColor(light.sky);
+    this.scene.fog?.color.setHex(light.sky);
+    this.sun.color.setHex(light.sun);
+    this.ambient.color.setHex(light.ambientSky);
+    this.ambient.groundColor.setHex(light.ambientGround);
+    this.ambient.intensity = light.ambientIntensity;
+    this.fill.color.setHex(light.fill);
+    this.fill.intensity = light.fillIntensity;
+    for (const name of ['illuminated-windows', 'lantern-light-pools', 'lighthouse-beacon']) {
+      const object = this.outdoors.getObjectByName(name);
+      if (object) object.visible = theme === 'night';
+    }
+    this.shadowElapsed = 1;
+
+  }
+
+  public observeFrameTime(milliseconds: number): void {
+    if (this.reducedQuality || !Number.isFinite(milliseconds)) return;
+    this.slowFrames = milliseconds > 29 ? this.slowFrames + 1 : Math.max(0, this.slowFrames - 2);
+    if (this.slowFrames < 14) return;
+    this.reducedQuality = true;
+    this.sun.shadow.mapSize.set(1024, 1024);
+    this.sun.shadow.map?.dispose();
+    this.sun.shadow.map = null;
+    this.resize();
   }
 
   public render(deltaSeconds = 1 / 60): void {
@@ -223,20 +312,24 @@ export class ThreeRenderer {
     const world = this.options.world;
     this.shaderTime.value += Number.isFinite(deltaSeconds)?Math.max(0,Math.min(.05,deltaSeconds)):0;
     this.ocean.visible = !world.interior;
-    const nextRoomId = world.interior?.id ?? null;
-    this.master.group.visible = nextRoomId === MASTER.buildingId;
+    const groundRoomId = world.interiorFloor === 0 ? world.interior?.id : undefined;
+    const nextRoomId = world.interior ? groundRoomId ?? world.interior.id + ':' + world.interiorFloor : null;
+    this.master.group.visible = groundRoomId === MASTER.buildingId;
     this.master.kit.visible = this.options.firstAid.snapshot.stage === 'meet-master';
     if (this.heroKit) this.heroKit.visible = this.options.firstAid.snapshot.stage === 'deliver-aid';
-    this.medic.group.visible = nextRoomId === MEDIC.buildingId;
+    this.medic.group.visible = groundRoomId === MEDIC.buildingId;
     this.medic.kit.visible = this.options.firstAid.snapshot.clinicSupplied;
-    this.resident.visible = nextRoomId === MEDIC.buildingId && this.options.firstAid.snapshot.clinicSupplied;
-    if (nextRoomId !== this.roomId) {
+    this.resident.visible = groundRoomId === MEDIC.buildingId && this.options.firstAid.snapshot.clinicSupplied;
+    const roomChanged = nextRoomId !== this.roomId;
+    if (roomChanged) {
       if (this.room) {
         this.scene.remove(this.room);
         if (!this.interiorAssets.has(this.roomId ?? '')) this.disposeGroup(this.room);
       }
-      this.room = world.interior ? this.interiorAssets.get(world.interior.id) ?? createInteriorMeshes(world.interior) : null;
+      const authored = groundRoomId ? this.interiorAssets.get(groundRoomId) : undefined;
+      this.room = world.interior ? authored ?? createInteriorMeshes(world.interior, world.interiorFloor) : null;
       if (this.room) {
+        if ((world.interior?.floors ?? 0) > 1 && !this.room.getObjectByName('interior-stairs')) this.room.add(createInteriorStairs());
         enhanceSurfaceMaterials(this.room);
         this.scene.add(this.room);
       }
@@ -249,25 +342,58 @@ export class ThreeRenderer {
     }
     const { x, z } = world.position;
     this.lifeView.update(deltaSeconds);
-    updateHarbor(this.harbor,this.shaderTime.value);
+    this.campaignView.update(this.options.firstAid, deltaSeconds, this.shaderTime.value);
+    if (world.interior?.kind === 'home') {
+      const lamp = this.room?.getObjectByName('home-lamp');
+      const shade = this.room?.getObjectByName('home-lamp-shade');
+      if (lamp) lamp.visible = world.homeLampOn;
+      if (shade instanceof THREE.Mesh && shade.material instanceof THREE.MeshStandardMaterial)
+        shade.material.emissiveIntensity = world.homeLampOn ? .55 : 0;
+    }
+    const boat = world.activeBoat;
+    this.character.visible = world.activeCar === null;
+    if (!world.interior) world.carPoses.forEach((car, index) => {
+      const model = this.carModels[index];
+      if (model) placeOnGround(model, car.x, car.z, car.rotation);
+      for (const proxy of this.carSilhouettes[index] ?? []) proxy.visible = world.activeCar === index;
+    });
+    if (!world.interior) updateHarbor(this.harbor, this.shaderTime.value,
+      boat === null ? undefined : { index: boat, x, z, heading: world.heading });
     const dx = x - this.lastPosition.x;
     const dz = z - this.lastPosition.y;
     const moving = Math.hypot(dx, dz) > .0001;
-    const groundY = world.interior ? 0 : islandElevation(x, z);
+    const groundY = boat !== null ? boatAltitude(this.shaderTime.value, boat) + .19 : world.interior ? 0 : islandElevation(x, z);
     const bridgeY = world.interior ? 0 : gardenBridgeHeight(world.position);
-    placeOnGround(this.character,x,z,world.heading,groundY+bridgeY+.065);
+    const heroY = boat === null ? groundY + bridgeY + .065
+      : groundY - this.leftLeg.position.y + .08;
+    placeOnGround(this.character, x, z, world.heading, heroY);
+    if (this.heroMarker) this.heroMarker.visible = boat === null;
     this.surfaceUp.value.set(0,1,0);
     this.walkTime += moving ? deltaSeconds * 10 : 0;
     const stride = moving ? Math.sin(this.walkTime) * .55 : 0;
-    if(this.heroAnimation?.available)this.heroAnimation.update(deltaSeconds,moving);
+    if (boat !== null) {
+      this.leftLeg.rotation.x = this.rightLeg.rotation.x = -1.43;
+      this.leftArm.rotation.x = this.rightArm.rotation.x = -.55;
+    } else if(this.heroAnimation?.available)this.heroAnimation.update(deltaSeconds,moving);
     else {
     this.leftLeg.rotation.x = (this.limbRest[0] ?? 0) + stride; this.rightLeg.rotation.x = (this.limbRest[1] ?? 0) - stride;
     this.leftArm.rotation.x = (this.limbRest[2] ?? 0) - stride * .7; this.rightArm.rotation.x = (this.limbRest[3] ?? 0) + stride * .7;
     }
-    if (this.heroKit?.visible) {
+    if (boat === null && this.heroKit?.visible) {
       this.leftArm.rotation.x = -.75; this.rightArm.rotation.x = -.75;
       this.leftArm.rotation.z = -.28; this.rightArm.rotation.z = .28;
     } else { this.leftArm.rotation.z = 0; this.rightArm.rotation.z = 0; }
+    for (const [i, oar] of this.oars.entries()) {
+      oar.visible = boat !== null;
+      if (boat === null) continue;
+      const side = i === 0 ? -1 : 1;
+      const arm = i === 0 ? this.leftArm : this.rightArm;
+      const stroke = moving ? this.walkTime * .65 : 0;
+      arm.rotation.x = -.72 + Math.sin(stroke) * .49;
+      arm.rotation.z = side * .43;
+      oar.rotation.y = side * Math.sin(stroke) * .48;
+      oar.rotation.z = -side * (.82 + Math.cos(stroke) * .27);
+    }
     const poseKitHolder = (actor: typeof this.master): void => {
       const left = actor.group.getObjectByName('left-arm');
       const right = actor.group.getObjectByName('right-arm');
@@ -298,12 +424,18 @@ export class ThreeRenderer {
       this.camera.position.copy(this.target).add(this.cameraOffset.clone().multiplyScalar(1+overview));
     }
     this.camera.lookAt(this.target);
-    this.sun.intensity=world.interior?EVENING_LIGHT.interiorIntensity:EVENING_LIGHT.sunIntensity;
-    this.sun.target.position.copy(this.target);
-    this.sun.position.copy(this.target).add(new THREE.Vector3(...EVENING_LIGHT.sunOffset));
-    const shadowSpan=world.interior?15:Math.max(24,Math.min(90,this.options.zoom.span*1.5));
-    Object.assign(this.sun.shadow.camera,{left:-shadowSpan,right:shadowSpan,top:shadowSpan,bottom:-shadowSpan});
-    this.sun.shadow.camera.updateProjectionMatrix();
+    const light = TOWN_LIGHT[this.theme];
+    this.sun.intensity=world.interior?light.interiorIntensity:light.sunIntensity * (this.options.firstAid.campaignProgress.ending === 'network' ? 1.1 : 1);
+    this.shadowElapsed += deltaSeconds;
+    if (roomChanged || !this.sun.shadow.map || this.shadowElapsed >= (this.reducedQuality ? .22 : .083) - .001) {
+      this.shadowElapsed = 0;
+      this.sun.target.position.copy(this.target);
+      this.sun.position.copy(this.target).add(new THREE.Vector3(...light.sunOffset));
+      const shadowSpan=world.interior?15:Math.max(24,Math.min(90,this.options.zoom.span*1.5));
+      Object.assign(this.sun.shadow.camera,{left:-shadowSpan,right:shadowSpan,top:shadowSpan,bottom:-shadowSpan});
+      this.sun.shadow.camera.updateProjectionMatrix();
+      this.renderer.shadowMap.needsUpdate = true;
+    }
     const nearby = TOWN_BUILDINGS.find(building => building.id === this.options.firstAid.snapshot.targetBuildingId) ?? world.nearbyBuilding;
     this.doorMarker.visible = Boolean(nearby) && !world.interior;
     if (nearby) {
@@ -322,7 +454,13 @@ export class ThreeRenderer {
   };
 
   private readonly resize = (): void => {
-    this.renderer.setSize(this.container.clientWidth || window.innerWidth, this.container.clientHeight || window.innerHeight);
+    const width = Math.max(1, this.container.clientWidth || window.innerWidth);
+    const height = Math.max(1, this.container.clientHeight || window.innerHeight);
+    const compact = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+    const pixelBudget = this.reducedQuality ? 520_000 : compact ? 950_000 : 1_650_000;
+    const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5, Math.sqrt(pixelBudget / (width * height)));
+    this.renderer.setPixelRatio(pixelRatio);
+    this.renderer.setSize(width, height);
   };
 
   private disposeGroup(group: THREE.Object3D): void {

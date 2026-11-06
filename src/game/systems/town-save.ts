@@ -1,6 +1,8 @@
 import { isTownWorldState, migrateCoastalWorldState, migrateTownWorldState, type TownWorldState } from '@game/systems/town-world';
 import { isFirstAidStage, type FirstAidStage } from '@game/systems/first-aid-mission';
 
+import { isCampaignProgress, type CampaignProgress } from '@game/systems/campaign';
+
 export const TOWN_SAVE_KEY = 'cybershield.town.v1';
 export const TOWN_BACKUP_KEY = 'cybershield.town.v1.backup';
 export interface TownSave {
@@ -10,6 +12,7 @@ export interface TownSave {
   readonly savedAt: number;
   readonly world: TownWorldState;
   readonly stage: FirstAidStage;
+  readonly campaign?: CampaignProgress;
 }
 export interface SaveStorage {
   getItem(key: string): string | null;
@@ -30,10 +33,10 @@ export function parseTownSave(raw: string | null): TownSave | null {
       || !isFirstAidStage(save.stage)) return null;
     if(save.layout !== undefined && save.layout !== 'coastal-island-v1' && save.layout !== 'coastal-island-v2' && save.layout !== 'coastal-island-v3' && save.layout !== 'coastal-island-v4' && save.layout !== 'coastal-island-v5') return null;
     const world = save.layout === 'coastal-island-v5'
-      ? (isTownWorldState(save.world)?save.world:null)
+      ? (isTownWorldState(save.world) ? save.world : migrateCoastalWorldState(save.world, 'coastal-island-v5'))
       : save.layout !== undefined ? migrateCoastalWorldState(save.world,save.layout as string) : migrateTownWorldState(save.world);
-    if (!world) return null;
-    return { schemaVersion: 1, layout: 'coastal-island-v5', buildId: 'cybershield-first-aid', savedAt: save.savedAt, world, stage: save.stage };
+    if (!world || (save.campaign !== undefined && (save.stage !== 'completed' || !isCampaignProgress(save.campaign)))) return null;
+    return { schemaVersion: 1, layout: 'coastal-island-v5', buildId: 'cybershield-first-aid', savedAt: save.savedAt, world, stage: save.stage, ...(save.campaign ? { campaign: save.campaign as CampaignProgress } : {}) };
   } catch { return null; }
 }
 

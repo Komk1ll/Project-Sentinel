@@ -1,7 +1,6 @@
 import * as THREE from 'three';
-import { COAST_CLIFFS, GARDEN_BRIDGE, ORCHARD_FENCES, SEAWALLS, onGardenWalk, segmentDistance } from '@content/coastal-garden';
+import { COAST_CLIFFS, GARDEN_BRIDGE, ORCHARD_FENCES, SEAWALLS, onGardenWalk, segmentDistance, creekBank, onParkCreek, PARK_FLOWER_BEDS } from '@content/coastal-garden';
 import { RETAINING_WALLS, islandElevation } from '@content/island-elevation';
-import { BREAKWATERS } from '@content/harbor';
 import { ROAD_CENTERS } from '@content/town';
 import { COAST_PATH } from '@content/island';
 import { ISLAND_PONDS } from '@content/town-life';
@@ -43,11 +42,6 @@ export function createCoastalGarden(kit: THREE.Group, time: { value: number }): 
 
   instances('cliff-module', COAST_CLIFFS);
 
-  const harborWalls = BREAKWATERS.flatMap(arm => arm.slice(1).flatMap((end, i) => {
-    const start = arm[i]!, dx = end.x - start.x, dz = end.z - start.z, n = Math.ceil(Math.hypot(dx, dz) / 2);
-    return Array.from({ length: n }, (_, j) => ({ x: start.x + dx * (j + 0.5) / n, z: start.z + dz * (j + 0.5) / n, rotation: -Math.atan2(dz, dx), y: 0.05 }));
-  }));
-
   const retainingWallModules = RETAINING_WALLS.flatMap(w => {
     const count = Math.max(1, Math.ceil(w.depth / 2.1));
     const dx = -Math.sin(w.rotation), dz = Math.cos(w.rotation);
@@ -59,24 +53,38 @@ export function createCoastalGarden(kit: THREE.Group, time: { value: number }): 
     });
   });
 
-  instances('seawall', [...SEAWALLS, ...harborWalls, ...retainingWallModules]);
+  instances('seawall', [...SEAWALLS, ...retainingWallModules]);
   instances('garden-fence', ORCHARD_FENCES);
   instances('apple-tree', TOWN_TREES.filter(t => t.x <= 12 && t.z >= 52), true);
 
-  const flowers = Array.from({ length: 130 }, (_, i) => {
-    const patch = i % 5, cx = [1, 10, 74, 95, 73][patch]!, cz = [55, 65, 8, 42, 61][patch]!;
-    return { x: cx + Math.sin(i * 2.399) * [1.5, 4.5, 3, 2.2, 1.8][patch]!, z: cz + Math.cos(i * 2.399) * [4, 1.2, 3.5, 3, 3][patch]!, rotation: i * 1.7, scale: 0.8 + (i % 4) * 0.13 };
+  const flowers = Array.from({ length: 182 }, (_, i) => {
+    const patch = i % 7, cx = [1, 10, 74, 95, 73, 81, 94][patch]!, cz = [55, 65, 8, 42, 61, 62, 62][patch]!;
+    return { x: cx + Math.sin(i * 2.399) * [1.5, 4.5, 3, 2.2, 1.8, 2.2, 2][patch]!, z: cz + Math.cos(i * 2.399) * [4, 1.2, 3.5, 3, 3, 2.5, 2][patch]!, rotation: i * 1.7, scale: 0.8 + (i % 4) * 0.13 };
   }).filter(p => !onGardenWalk(p, 0.7)
     && COAST_PATH.every((q, i) => segmentDistance(p, q, COAST_PATH[(i + 1) % COAST_PATH.length]!) > 1.9)
     && !ROAD_CENTERS.some(c => (p.z >= 0 && p.z <= 64 && Math.abs(p.x - c) < 3.8) || (p.x >= 0 && p.x <= 64 && Math.abs(p.z - c) < 3.8))
+    && !onParkCreek(p, 0.8)
     && !ISLAND_PONDS.some(pond => Math.hypot((p.x - pond.x) / (pond.width / 2 + 1), (p.z - pond.z) / (pond.depth / 2 + 1)) < 1));
 
-  instances('flower-cluster', flowers, true);
+  const plantedBeds = PARK_FLOWER_BEDS.flatMap((bed, index) => Array.from({ length: index === 0 ? 22 : 10 }, (_, i) => {
+    const angle = i * 2.399;
+    const radius = index === 0 ? 0.79 + (i % 3) * 0.06 : 0.24 + Math.sqrt(i / 10) * 0.6;
+    return {
+      x: bed.x + Math.cos(angle) * bed.width / 2 * radius,
+      z: bed.z + Math.sin(angle) * bed.depth / 2 * radius,
+      rotation: angle,
+      scale: 0.73 + (i % 4) * 0.12,
+    };
+  })).filter(p => !onGardenWalk(p, 0.5));
+  instances('flower-cluster', [...flowers, ...plantedBeds], true);
 
-  instances('reed-cluster', ISLAND_PONDS.flatMap(pond => Array.from({length: 15}, (_, i) => {
+  instances('reed-cluster', ISLAND_PONDS.slice(1).flatMap(pond => Array.from({length: 15}, (_, i) => {
     const a = (i / 15) * Math.PI * 2;
     return { x: pond.x + Math.cos(a) * (pond.width / 2 + 0.25), z: pond.z + Math.sin(a) * (pond.depth / 2 + 0.25), rotation: a, scale: 0.75 + (i % 3) * 0.15 };
-  })).filter(p => Math.abs(p.z - GARDEN_BRIDGE.z) > 1.9), true);
+  })).concat(Array.from({ length: 30 }, (_, i) => {
+    const angle = i * Math.PI / 15;
+    return { ...creekBank(angle, 0.38 + 0.22 * Math.sin(i * 2.4)), rotation: angle, scale: 0.7 + (i % 4) * 0.14 };
+  })).filter(p => Math.abs(p.z - GARDEN_BRIDGE.z) > 1.9 && !onGardenWalk(p, 0.4)), true);
 
   const bridge = kit.getObjectByName('garden-bridge')?.clone(true);
   if (bridge) {

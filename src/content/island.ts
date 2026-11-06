@@ -30,4 +30,4 @@ export const COAST_PATH:readonly TownPosition[]=Array.from({length:4},(_,corner)
   return Array.from({length:17},(_,i)=>{const angle=-Math.PI/2+corner*Math.PI/2+i/16*Math.PI/2;
     return {x:center.x+Math.cos(angle)*16,z:center.z+Math.sin(angle)*16};});
 }).flat();
-export const MILL={x:86,z:24};
+export const MILL={x:92,z:1.5};

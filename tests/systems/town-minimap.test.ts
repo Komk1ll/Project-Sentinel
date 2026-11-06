@@ -36,7 +36,7 @@ it('labels mission places and follows pickup, room exit, delivery and restoratio
     walkTo(world,{x:0,z:.25});walkTo(world,{x:.75,z:.25});
     expect(host.querySelector('.town-map-goal')?.textContent).toBe('Медработник');
     mission.interact();
-    expect(host.querySelector('.town-map-goal')?.textContent).toBe('Помощь доставлена');
+    expect(host.querySelector('.town-map-goal')?.textContent).toBe('Выход на улицу');
     mission.restore('deliver-aid');
     expect(host.querySelector('.town-map-goal')?.textContent).toBe('Медработник');
   } finally { unmount();session.destroy();mission.destroy(); }

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { LIGHTHOUSE,PIER_ORIGIN,HARBOR_BOATS,HARBOR_PATHS,BREAKWATER_ROCKS } from '@content/harbor';
+import { LIGHTHOUSE,PIER_ORIGIN,HARBOR_BOATS,HARBOR_PATHS,HARBOR_RAILS,boatAltitude } from '@content/harbor';
 import { coastRadius,ISLAND_CENTER,SEA_LEVEL } from '@content/island';
 import { placeOnGround,surfaceStrip } from '@game/render/world-surface';
 import { animateFoliage } from '@game/render/foliage-wind';
@@ -8,6 +8,7 @@ export function createHarbor(kit:THREE.Group,time:{value:number}):THREE.Group {
   const group=new THREE.Group();group.name='island-harbor';
   for(const [name,p] of [['lighthouse',LIGHTHOUSE],['pier',PIER_ORIGIN]] as const){
     const model=kit.getObjectByName(name)?.clone(true);if(!model)continue;
+    if (name === 'pier') model.getObjectByName('batch-pier-rope')?.removeFromParent();
     placeOnGround(model,p.x,p.z);group.add(model);
   }
   HARBOR_BOATS.forEach((p,i)=>{
@@ -38,19 +39,50 @@ export function createHarbor(kit:THREE.Group,time:{value:number}):THREE.Group {
     });
   }
   for(const p of HARBOR_PATHS)group.add(surfaceStrip(p.x,p.z,p.width,p.depth,0xc9b998,.055));
-  const rocks=kit.getObjectByName('coast-rock');
-  rocks?.updateWorldMatrix(true,true);
-  rocks?.traverse(object=>{
-    if(!(object instanceof THREE.Mesh))return;
-    const geometry=object.geometry.clone().applyMatrix4(object.matrixWorld);
-    const mesh=new THREE.InstancedMesh(geometry,object.material,BREAKWATER_ROCKS.length);
-    mesh.name='harbor-breakwaters';mesh.castShadow=true;mesh.receiveShadow=true;
-    BREAKWATER_ROCKS.forEach((p,i)=>{
-      placeOnGround(placement,p.x,p.z,p.rotation,p.y);placement.scale.set(p.scale,p.scale*.85,p.scale);
-      placement.updateMatrix();mesh.setMatrixAt(i,placement.matrix);
+  const rope = new THREE.MeshStandardMaterial({ color: 0x82715b, roughness: 1 });
+  const rails = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), rope, HARBOR_RAILS.length * 2);
+  HARBOR_RAILS.forEach((rail, index) => {
+    [.52, 1.05].forEach((height, level) => {
+      placeOnGround(placement, rail.x, rail.z, 0, height);
+      placement.scale.set(rail.width, .055, rail.depth);
+      placement.updateMatrix();
+      rails.setMatrixAt(index * 2 + level, placement.matrix);
     });
-    mesh.computeBoundingSphere();group.add(mesh);
   });
+  const stepMaterial = new THREE.MeshStandardMaterial({ color: 0x918b77, roughness: .94 });
+  const steps = new THREE.InstancedMesh(new THREE.BoxGeometry(1.75, .33, .55), stepMaterial, 4);
+  for (let i = 0; i < 4; i++) {
+    placeOnGround(placement, 62.1, 75.35 + i * .47, 0, -.04 - i * .15);
+    placement.scale.setScalar(1);
+    placement.updateMatrix();
+    steps.setMatrixAt(i, placement.matrix);
+  }
+  steps.name = 'quay-steps';
+  steps.receiveShadow = true;
+  group.add(steps);
+  const ropeGeometry = new THREE.BoxGeometry(.045, .045, 1);
+  HARBOR_BOATS.forEach((_, index) => {
+    const line = new THREE.Mesh(ropeGeometry, rope);
+    line.name = 'mooring-line-' + index;
+    group.add(line);
+  });
+  const berthMarkers = new THREE.InstancedMesh(
+    new THREE.BoxGeometry(1.65, .01, .16),
+    new THREE.MeshStandardMaterial({ color: 0xe4bc76, roughness: .9 }),
+    HARBOR_BOATS.length,
+  );
+  HARBOR_BOATS.forEach((berth, index) => {
+    placement.position.set(berth.boarding.x, .053, 90.55);
+    placement.rotation.set(0, 0, 0);
+    placement.scale.setScalar(1);
+    placement.updateMatrix();
+    berthMarkers.setMatrixAt(index, placement.matrix);
+  });
+  berthMarkers.receiveShadow = true;
+  group.add(berthMarkers);
+  rails.castShadow = true;
+  rails.receiveShadow = true;
+  group.add(rails);
   // A single additive volume suggests the beacon; no dynamic shadow light or bloom.
   const rotor=new THREE.Group();rotor.name='lighthouse-beacon';rotor.position.set(LIGHTHOUSE.x,9.25,LIGHTHOUSE.z);
   const beamGeometry=new THREE.ConeGeometry(2.1,22,12,1,true);beamGeometry.translate(0,-11,0);beamGeometry.rotateZ(Math.PI/2);
@@ -58,12 +90,23 @@ export function createHarbor(kit:THREE.Group,time:{value:number}):THREE.Group {
   beam.name='beacon-spill';rotor.add(beam);group.add(rotor);
   return group;
 }
-export function updateHarbor(group:THREE.Object3D|null,time:number):void {
+export function updateHarbor(group:THREE.Object3D|null,time:number, active?: { index: number; x: number; z: number; heading: number }):void {
   if(!group||!Number.isFinite(time))return;
   const rotor=group.getObjectByName('lighthouse-beacon');if(rotor)rotor.rotation.y=time*.22;
-  HARBOR_BOATS.forEach((_,i)=>{
+  HARBOR_BOATS.forEach((berth,i)=>{
     const boat=group.getObjectByName(`harbor-boat-${i}`);if(!boat)return;
-    boat.position.y=SEA_LEVEL+.15+Math.sin(time*1.1+i*2)*.035;
+    const pose = active?.index === i ? active : berth;
+    boat.position.set(pose.x, boatAltitude(time, i), pose.z);
+    boat.rotation.y = active?.index === i ? active.heading : berth.rotation;
     boat.rotation.z=Math.sin(time*.8+i)*.025;
+    const line = group.getObjectByName('mooring-line-' + i);
+    if (line) {
+      line.visible = active?.index !== i;
+      const start = new THREE.Vector3(berth.x + .37, .37, 90.53);
+      const end = new THREE.Vector3(berth.x + .24, boat.position.y + .25, berth.z - 1.48);
+      line.position.copy(start).lerp(end, .5);
+      line.scale.z = start.distanceTo(end);
+      line.lookAt(end);
+    }
   });
 }

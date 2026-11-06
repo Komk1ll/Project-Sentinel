@@ -50,10 +50,19 @@ export function createWebTown(assets?: ReadonlyMap<string, THREE.Group>, time = 
   }
   const ground = new THREE.Group(); ground.name = 'street-surfaces'; town.add(ground);
   town.add(createIslandTerrain());
-  ground.add(pathRibbon(COAST_PATH,2.6,0xd8c9ac));
+  // Follow the terrain along the long straights as well as the rounded corners.
+  const promenade = COAST_PATH.flatMap((start, index) => {
+    const end = COAST_PATH[(index + 1) % COAST_PATH.length]!;
+    const count = Math.max(1, Math.ceil(Math.hypot(end.x - start.x, end.z - start.z) / 1.25));
+    return Array.from({ length: count }, (_, step) => ({
+      x: start.x + (end.x - start.x) * step / count,
+      z: start.z + (end.z - start.z) * step / count,
+    }));
+  });
+  ground.add(pathRibbon(promenade, 2.6, 0xd8c9ac, 0.065));
   for(const road of ROAD_CENTERS){
     ground.add(surfaceStrip(road,-3,2.6,6,0xd8c9ac,.045),surfaceStrip(road,67,2.6,6,0xd8c9ac,.045));
-    ground.add(surfaceStrip(-4,road,8,2.6,0xd8c9ac,.045),surfaceStrip(82,road,36,2.6,0xd8c9ac,.045));
+    ground.add(surfaceStrip(-4,road,8,2.6,0xd8c9ac,.045),surfaceStrip(65,road,2,2.6,0xd8c9ac,.045));
   }
   // Split horizontal strips at vertical roads: no coplanar intersection flicker.
   const segments = (half: number): [number, number][] => {
@@ -169,23 +178,32 @@ export function createWebTown(assets?: ReadonlyMap<string, THREE.Group>, time = 
     prototype: THREE.Object3D | undefined = assets?.get(name),
   ): void {
     if (!prototype || !locations.length) return;
+    const cells = new Map<string, (typeof locations)[number][]>();
+    for (const location of locations) {
+      const key = name.startsWith('tree') ? Math.floor(location.x / 32) + ':' + Math.floor(location.z / 32) : 'all';
+      const cell = cells.get(key);
+      if (cell) cell.push(location);
+      else cells.set(key, [location]);
+    }
     prototype.updateWorldMatrix(true,true);
     const placement=new THREE.Object3D(), matrix=new THREE.Matrix4();
     prototype.traverse(object=>{
       if (!(object instanceof THREE.Mesh)) return;
       // Bake prototype offsets once so wind height is measured from ground level.
       const geometry=object.geometry.clone().applyMatrix4(object.matrixWorld);
-      const mesh=new THREE.InstancedMesh(geometry,object.material,locations.length);
-      mesh.name=`${name}-instances`; mesh.castShadow=true; mesh.receiveShadow=true;
-      locations.forEach((location,index)=>{
-        const groundY = islandElevation(location.x, location.z);
-        placeOnGround(placement,location.x,location.z,location.rotation,groundY);
-        placement.scale.setScalar(location.scale ?? 1); placement.updateMatrix();
-        matrix.copy(placement.matrix); mesh.setMatrixAt(index,matrix);
-      });
-      mesh.computeBoundingSphere();
-      if (!Array.isArray(mesh.material) && mesh.material.name.endsWith('_foliage')) animateFoliage(mesh,time);
-      town.add(mesh);
+      for (const cell of cells.values()) {
+        const mesh=new THREE.InstancedMesh(geometry,object.material,cell.length);
+        mesh.name=`${name}-instances`; mesh.castShadow=true; mesh.receiveShadow=true;
+        cell.forEach((location,index)=>{
+          const groundY = islandElevation(location.x, location.z);
+          placeOnGround(placement,location.x,location.z,location.rotation,groundY);
+          placement.scale.setScalar(location.scale ?? 1); placement.updateMatrix();
+          matrix.copy(placement.matrix); mesh.setMatrixAt(index,matrix);
+        });
+        mesh.computeBoundingSphere();
+        if (!Array.isArray(mesh.material) && mesh.material.name.endsWith('_foliage')) animateFoliage(mesh,time);
+        town.add(mesh);
+      }
     });
   }
   const gardenKit=assets?.get('coastal-garden-kit');
@@ -203,8 +221,9 @@ export function createWebTown(assets?: ReadonlyMap<string, THREE.Group>, time = 
   if(streetKit)town.add(createStreetDressing(streetKit,time));
   const harborKit=assets?.get('harbor-kit');
   if(harborKit)town.add(createHarbor(harborKit,time));
-  for (const car of streetKit?[]:TOWN_CARS) {
+  for (const [index, car] of (streetKit ? [] : TOWN_CARS).entries()) {
     const group = new THREE.Group(); group.position.set(car.x, 0, car.z); group.rotation.y = car.rotation;
+    group.name = 'parked-car-' + index;
     box(group, 'car', car.color, 0, .5, 0, 1.3, .55, 2.7);
     box(group, 'car-roof', 0x3e4c4c, 0, .98, -.1, 1.1, .42, 1.35);
     for (const x of [-.52,.52]) for (const z of [-.8,.8]) box(group, 'wheel', 0x3e4c4c, x, .20, z, .25, .4, .45);

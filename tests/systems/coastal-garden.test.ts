@@ -46,6 +46,12 @@ it('keeps cliff modules outside stable walking land and preserves a shoreline en
 });
 it('does not close an open garden connector with an unintended triangle strip',()=>{
   const mesh=pathRibbon([{x:0,z:0},{x:0,z:2},{x:2,z:2}],1,0xffffff,.055,false);
-  expect(mesh.geometry.index!.count).toBe(12);
+  const indices = mesh.geometry.index!;
+  const rowSize = mesh.geometry.getAttribute('position').count / 3;
+  for (let i = 0; i < indices.count; i += 3) {
+    const rows = [0, 1, 2].map(offset => Math.floor(indices.getX(i + offset) / rowSize));
+    expect(Math.max(...rows) - Math.min(...rows)).toBe(1);
+  }
+  expect(indices.count).toBe(2 * (rowSize - 1) * 6);
   expect(mesh.material).toBeInstanceOf(THREE.MeshStandardMaterial);
 });
