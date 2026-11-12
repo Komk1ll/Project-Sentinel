@@ -140,7 +140,8 @@ export function mountTownHud(container: HTMLElement, mission: FirstAidMission, z
   let mapTimer: number | undefined;
   const sameDestination = (request: RouteRequest | null, goal: TownPosition): boolean =>
     request !== null && request.interior === world.interior &&
-    request.goal.x === goal.x && request.goal.z === goal.z;
+    request.goal.x === goal.x && request.goal.z === goal.z &&
+    (world.interior !== null || request.cars?.every((car, index) => car === world.carPoses[index]) === true);
   const renderMap = (force = false): void => {
     const now = performance.now();
     const delay = 1000 / 15 - (now - lastMapDraw);
@@ -151,11 +152,13 @@ export function mountTownHud(container: HTMLElement, mission: FirstAidMission, z
     window.clearTimeout(mapTimer);
     mapTimer = undefined;
     lastMapDraw = now;
-    const goal = world.activeBoat !== null ? null : storyNavigationGoal(world, mission.storyTarget, mission.snapshot.targetBuildingId);
+    const goal = world.activeBoat !== null || world.activeCar !== null
+      ? null : storyNavigationGoal(world, mission.storyTarget, mission.snapshot.targetBuildingId);
     if (routeWorker && goal && !pendingRoute &&
         (!sameDestination(lastRoute, goal.position) || !lastRoute ||
           Math.hypot(world.position.x - lastRoute.start.x, world.position.z - lastRoute.start.z) >= .75)) {
-      pendingRoute = { start: { ...world.position }, goal: goal.position, interior: world.interior };
+      pendingRoute = { start: { ...world.position }, goal: goal.position, interior: world.interior,
+        ...(world.interior ? {} : { cars: [...world.carPoses] }) };
       routeWorker.postMessage(pendingRoute);
     }
     drawMinimap(canvas, world, mission, mapMode,

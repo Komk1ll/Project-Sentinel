@@ -50,7 +50,8 @@ export function drawMinimap(canvas: HTMLCanvasElement, world: TownWorld, mission
   if(canvas.width!==resolution || canvas.height!==resolution) canvas.width=canvas.height=resolution;
   ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,size,size);
   const goal=world.activeBoat !== null ? null : storyNavigationGoal(world,mission.storyTarget,mission.snapshot.targetBuildingId);
-  const route = goal ? cachedRoute ?? walkingRoute(world.position, goal.position, world.interior) : [];
+  const route = goal && world.activeCar === null
+    ? cachedRoute ?? walkingRoute(world.position, goal.position, world.interior, world.carPoses) : [];
   const berth = world.activeBoat === null ? null : HARBOR_BOATS[world.activeBoat];
   const p=world.interior ? minimapProjection(size,true) : routeMapProjection(size,[world.position,...route,...(berth ? [berth] : []),...(goal?[goal.position]:[])],mode);
   const visible=(x:number,z:number):boolean=>p.x(x)>9 && p.x(x)<size-9 && p.z(z)>9 && p.z(z)<size-9;

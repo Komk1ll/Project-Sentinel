@@ -31,6 +31,9 @@ The HUD computes routes in a dedicated worker. It keeps one request in flight,
 discards results for a different room or objective, and refreshes a cached route
 after the player moves 0.75 m. Movement-driven map draws are capped at 15 per
 second and include a trailing redraw when movement stops.
+Outdoor walking routes use the cars' current footprints. Parking a car elsewhere
+invalidates the previous route and collision grid. A new game restores every car
+and its collider to the original parking position.
 
 ## Life and interaction
 

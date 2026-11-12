@@ -37,7 +37,7 @@ const TOWN_COLLIDERS = [...GARDEN_BASE_COLLIDERS, ...GARDEN_TREE_OBSTACLES, { ..
 const PRE_EVENING_COLLIDERS=COASTAL_V1;
 const PARKED_CAR_SET = new Set<TownObstacle>(PARKED_CAR_OBSTACLES);
 const STATIC_TOWN_COLLIDERS = TOWN_COLLIDERS.filter(obstacle => !PARKED_CAR_SET.has(obstacle));
-type CarPose = TownPosition & { readonly rotation: number };
+export type CarPose = TownPosition & { readonly rotation: number };
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
@@ -154,11 +154,14 @@ export function migrateTownWorldState(value: unknown): TownWorldState | null {
   return { interiorId: null, position, outdoorReturn: position };
 }
 
+export function townNavigationObstacles(cars: readonly CarPose[]): TownObstacle[] {
+  return [...STATIC_TOWN_COLLIDERS, ...cars.map(carFootprint)];
+}
+
 /** Shared collision query for movement and map guidance; never mutates the world. */
-export function isWalkableTownPosition(position: TownPosition, interior: TownBuilding | null = null): boolean {
-  if(!validPosition(position,interior)) return false;
-  const obstacles=interior?getInteriorLayout(interior).obstacles:TOWN_COLLIDERS;
-  return !obstacles.some(item=>Math.abs(position.x-item.x)<item.width/2+PLAYER_RADIUS && Math.abs(position.z-item.z)<item.depth/2+PLAYER_RADIUS);
+export function isWalkableTownPosition(position: TownPosition, interior: TownBuilding | null = null, outdoorObstacles: readonly TownObstacle[] = TOWN_COLLIDERS): boolean {
+  if(!validPosition(position,interior,TOWN_COLLIDERS,outdoorObstacles)) return false;
+  return !interior || !getInteriorLayout(interior).obstacles.some(item=>Math.abs(position.x-item.x)<item.width/2+PLAYER_RADIUS && Math.abs(position.z-item.z)<item.depth/2+PLAYER_RADIUS);
 }
 
 /** Pure movement and doorway transitions, independent of the renderer. */
@@ -172,7 +175,7 @@ export class TownWorld {
   private car: number | null = null;
   private readonly litHomes = new Set<string>();
   private readonly cars: CarPose[] = TOWN_CARS.map(car => ({ ...car }));
-  private readonly liveObstacles = [...STATIC_TOWN_COLLIDERS, ...this.cars.map(carFootprint)];
+  private readonly liveObstacles = townNavigationObstacles(this.cars);
   private readonly listeners = new Set<(world: TownWorld) => void>();
 
   constructor(spawn: TownPosition = TOWN_SPAWN) {
@@ -191,6 +194,10 @@ export class TownWorld {
     if (!isTownWorldState(state)) return false;
     this.boat = null;
     this.car = null;
+    TOWN_CARS.forEach((car, index) => {
+      this.cars[index] = { ...car };
+      this.liveObstacles[STATIC_TOWN_COLLIDERS.length + index] = carFootprint(car);
+    });
     this.currentInterior = ENTERABLE_BUILDINGS.find(building => building.id === state.interiorId) ?? null;
     this.floor = state.interiorFloor ?? 0;
     this.currentPosition = { ...state.position };
