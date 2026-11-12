@@ -69,7 +69,10 @@ Teardown disposes the ocean, cached rooms, scene geometry/materials and listener
 ## Persistence and evidence
 
 The existing schemaVersion 1 storage namespace is retained. Newly written saves
-include `layout: coastal-island-v1` and must pass current island validation.
+include `layout: coastal-island-v5` and pass island validation when loaded.
+Ground-floor positions in home-3 and home-7 that were valid before the furniture
+moved are relocated to a walkable point in the same home. Mission and campaign
+progress are restored from the same save.
 Unmarked saves are checked against current geometry, then the frozen former globe
 validator, then the original dense town layout. Valid off-island positions relocate
 to safe ground; quest stage and kit state remain intact. Invalid old saves cannot

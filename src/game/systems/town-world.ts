@@ -50,7 +50,7 @@ function distance(first: TownPosition, second: TownPosition): number {
 function record(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
-function validPosition(value: unknown, interior: TownBuilding | null, outdoor: readonly TownObstacle[] = TOWN_COLLIDERS, liveObstacles = outdoor, floor = 0): value is TownPosition {
+function validPosition(value: unknown, interior: TownBuilding | null, outdoor: readonly TownObstacle[] = TOWN_COLLIDERS, liveObstacles = outdoor, floor = 0, oldFurniture?: readonly TownObstacle[]): value is TownPosition {
   if (!record(value) || typeof value.x !== 'number' || typeof value.z !== 'number'
     || !Number.isFinite(value.x) || !Number.isFinite(value.z)) return false;
   if (interior) {
@@ -67,11 +67,23 @@ function validPosition(value: unknown, interior: TownBuilding | null, outdoor: r
     } else if (inPond(point.x, point.z, ISLAND_PONDS[1]) ||
       (!(previousGarden && onGardenBridge(point)) && inPond(point.x, point.z, ISLAND_PONDS[0]))) return false;
   } else if(value.x<.5 || value.x>63.5 || value.z<.5 || value.z>63.5) return false;
-  const obstacles = interior ? getInteriorLayout(interior, floor).obstacles : liveObstacles;
+  const obstacles = interior ? oldFurniture ?? getInteriorLayout(interior, floor).obstacles : liveObstacles;
   const x = value.x;
   const z = value.z;
   return !obstacles.some(item => Math.abs(x - item.x) < item.width / 2 + PLAYER_RADIUS - 1e-7
     && Math.abs(z - item.z) < item.depth / 2 + PLAYER_RADIUS - 1e-7);
+}
+
+// The two ground-floor plans changed without a new coastal save layout tag.
+function previousHomeObstacles(room: TownBuilding): readonly TownObstacle[] | undefined {
+  if (room.id !== 'home-3' && room.id !== 'home-7') return undefined;
+  const { furniture, partitions, actors } = getInteriorLayout(room);
+  const variant = [...room.id].reduce((sum, character) => sum + character.charCodeAt(0), 0) % 3;
+  const replaced = room.id === 'home-3' ? ['workbench'] : ['sofa', 'piano'];
+  const oldPieces = room.id === 'home-3'
+    ? [{ x: -4, z: 2.7, width: 1.4, depth: .75 }]
+    : [{ x: 3.8, z: 1.7, width: 1.1, depth: 2.3 }, { x: 2.7 + variant * .15, z: -1.45, width: 1.2, depth: 1 }];
+  return [...partitions, ...actors, ...furniture.filter(item => !replaced.includes(item.kind)), ...oldPieces];
 }
 
 function inPond(x: number, z: number, p: (typeof ISLAND_PONDS)[number]): boolean {
@@ -87,11 +99,11 @@ export function isTownWorldState(value: unknown): value is TownWorldState {
   return !interior || distance(value.outdoorReturn, buildingEntrance(interior)) <= INTERACTION_DISTANCE + 1e-7;
 }
 
-function safeNear(point: TownPosition, maxDistance = 4): TownPosition | null {
-    if (isWalkableTownPosition(point)) return point;
+function safeNear(point: TownPosition, maxDistance = 4, room: TownBuilding | null = null): TownPosition | null {
+    if (isWalkableTownPosition(point, room)) return point;
     for (let radius = .5; radius <= maxDistance; radius += .5) for (let i=0; i<16; i++) {
       const candidate = {x: point.x+Math.sin(i*Math.PI/8)*radius, z: point.z+Math.cos(i*Math.PI/8)*radius};
-      if (isWalkableTownPosition(candidate)) return candidate;
+      if (isWalkableTownPosition(candidate, room)) return candidate;
     }
     return null;
   }
@@ -101,13 +113,20 @@ export function migrateCoastalWorldState(value: unknown, layout='coastal-island-
   const oldColliders=layout==='coastal-island-v5'?PRE_CREEK_COLLIDERS:layout==='coastal-island-v4'?LANDSCAPE_V4_COLLIDERS:layout==='coastal-island-v3'?HARBOR_V3_COLLIDERS:layout==='coastal-island-v2'?EVENING_COLLIDERS:PRE_EVENING_COLLIDERS;
   if (!record(value)) return null;
   const room=value.interiorId===null?null:TOWN_BUILDINGS.find(b=>b.id===value.interiorId);
-  if(room===undefined || !validPosition(value.position,room,oldColliders)
-    || !validPosition(value.outdoorReturn,null,oldColliders))return null;
+  const floor = value.interiorFloor === undefined ? 0 : value.interiorFloor;
+  if (room === undefined || typeof floor !== 'number' || !Number.isInteger(floor) || floor < 0 || floor >= (room?.floors ?? 1)) return null;
+  const oldFurniture = room && floor === 0 ? previousHomeObstacles(room) : undefined;
+  if (!validPosition(value.position, room, oldColliders, oldColliders, floor) &&
+      (!oldFurniture || !validPosition(value.position, room, oldColliders, oldColliders, floor, oldFurniture))) return null;
+  if (!validPosition(value.outdoorReturn, null, oldColliders) &&
+      !(oldFurniture && validPosition(value.outdoorReturn, null))) return null;
   if(room && distance(value.outdoorReturn,buildingEntrance(room))>INTERACTION_DISTANCE+1e-7)return null;
-  if(isTownWorldState(value))return value;
-  const position=room?value.position:safeNear(value.position)??{...TOWN_SPAWN};
+  if (isTownWorldState(value)) return value;
+  const position = room
+    ? (floor === 0 ? safeNear(value.position, 4, room) ?? { x: 0, z: 2 } : value.position)
+    : safeNear(value.position) ?? TOWN_SPAWN;
   const outdoorReturn=safeNear(value.outdoorReturn,room?1:4)??(room?buildingEntrance(room):position);
-  const state={interiorId:room?.id??null,position,outdoorReturn};
+  const state={interiorId:room?.id??null,...(floor ? { interiorFloor: floor } : {}),position,outdoorReturn};
   return isTownWorldState(state)?state:null;
 }
 

@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { FirstAidMission } from '@game/systems/first-aid-mission';
-import { TownWorld } from '@game/systems/town-world';
+import { isTownWorldState, isWalkableTownPosition, TownWorld } from '@game/systems/town-world';
+import { buildingEntrance, TOWN_BUILDINGS } from '@content/town';
 import { TownSession } from '@game/systems/town-session';
 import { TownSaveStore, TOWN_SAVE_KEY, TOWN_BACKUP_KEY, parseTownSave, type SaveStorage } from '@game/systems/town-save';
 import { approachMaster, leaveWorkshop, walkTo } from '../fixtures/first-aid-route';
@@ -27,6 +28,30 @@ function reachMedic(mission: FirstAidMission): void {
 afterEach(() => vi.useRealTimers());
 
 describe('Delivery and persistent town progress', () => {
+  it.each([
+    ['home-3', { x: -2.7, z: 2.65 }],
+    ['home-7', { x: 4.25, z: -1.25 }],
+  ] as const)('restores a previous save inside %s after furniture moved', (id, position) => {
+    const home = TOWN_BUILDINGS.find(building => building.id === id)!;
+    const storage = new MemoryStorage();
+    const world = { interiorId: id, position, outdoorReturn: buildingEntrance(home) };
+    expect(isTownWorldState(world)).toBe(false);
+    storage.setItem(TOWN_SAVE_KEY, JSON.stringify({
+      schemaVersion: 1, layout: 'coastal-island-v5', buildId: 'cybershield-first-aid',
+      savedAt: 1, world, stage: 'deliver-aid',
+    }));
+
+    const game = setup(storage);
+    expect(game.session.message).toBe('Прогресс восстановлен');
+    expect(game.world.interior).toBe(home);
+    expect(game.world.position).not.toEqual(position);
+    expect(isWalkableTownPosition(game.world.position, home)).toBe(true);
+    expect(game.world.snapshot.outdoorReturn).toEqual(world.outdoorReturn);
+    expect(game.mission.snapshot.stage).toBe('deliver-aid');
+    expect(game.mission.snapshot.inventory).toHaveLength(1);
+    game.close();
+  });
+
   it('delivers once, removes the kit, restores the clinic and persists completion immediately', () => {
     const storage = new MemoryStorage();
     const game = setup(storage);
