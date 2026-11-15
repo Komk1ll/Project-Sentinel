@@ -1,0 +1,145 @@
+.player-hud {
+  position: fixed;
+  z-index: 20;
+  top: 12px;
+  left: 12px;
+  width: 400px;
+  max-width: calc(100vw - 24px);
+  color: #dce5ed;
+  font-family: 'Arial Narrow', 'Roboto Condensed', 'Segoe UI', sans-serif;
+  pointer-events: none !important;
+  transform-origin: top left;
+}
+
+.character-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  min-height: 108px;
+  padding: 10px 12px;
+  border: 1px solid #294d61;
+  border-radius: 8px;
+  background: linear-gradient(105deg, rgba(3, 16, 24, .97), rgba(1, 10, 15, .92));
+  box-shadow: 0 3px 14px #0008, inset 0 0 18px #0e26352e;
+  pointer-events: none;
+}
+
+.character-details {
+  flex: 0 0 112px;
+  min-width: 0;
+  padding-top: 3px;
+}
+
+.character-name {
+  margin: 0 0 8px;
+  color: #66d8e7;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.character-role {
+  margin-bottom: 6px;
+  color: #78a7bc;
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.character-level {
+  margin-bottom: 5px;
+  color: #d5dfe9;
+  font-size: 13px;
+}
+
+.experience-track {
+  width: 104px;
+  height: 7px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: #3b586d;
+}
+
+.experience-fill {
+  display: block;
+  width: var(--experience-value, 0%);
+  height: 100%;
+  border-radius: inherit;
+  background: #04adf0;
+  box-shadow: 0 0 6px #00baff33;
+}
+
+.character-stats {
+  display: grid;
+  flex: 1;
+  gap: 5px;
+  min-width: 0;
+  padding-top: 1px;
+}
+
+.stat-row {
+  display: grid;
+  grid-template-columns: 16px 88px minmax(24px, 1fr) 36px;
+  align-items: center;
+  gap: 4px;
+  min-height: 18px;
+  font-size: 12px;
+}
+
+.stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--stat-color);
+}
+
+.stat-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.stat-label {
+  white-space: nowrap;
+}
+
+.stat-track {
+  width: 100%;
+  height: 7px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #1c2a34;
+  box-shadow: inset 0 1px 2px #0005;
+}
+
+.stat-fill {
+  display: block;
+  width: var(--stat-value);
+  height: 100%;
+  border-radius: inherit;
+  background: var(--stat-color);
+}
+
+.stat-value {
+  color: #b7cfde;
+  font-size: 12px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+#hud-quest {
+  top: auto;
+  bottom: 16px;
+}
+
+@media (max-width: 440px) {
+  .player-hud {
+    width: 400px;
+    max-width: none;
+    top: 10px;
+    left: 10px;
+    transform: scale(.72);
+  }
+
+  #hud-quest {
+    display: none;
+  }
+}

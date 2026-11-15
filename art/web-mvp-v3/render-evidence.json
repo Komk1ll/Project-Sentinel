@@ -1,0 +1,14 @@
+{
+  "gpu_log_lines": [
+    "| Path tracing on: NVIDIA GeForce RTX 4070 Ti SUPER (OptiX) [CUDA_NVIDIA GeForce RTX 4070 Ti SUPER_0000:01:00_OptiX]"
+  ],
+  "blender": "5.2.3 LTS",
+  "engine": "Cycles",
+  "backend": "OptiX",
+  "samples": 48,
+  "previews": 29,
+  "model_sources": 9,
+  "comparison_sources": 1,
+  "transfer_verified": true,
+  "generator_sha256": "2f2454bcf7ca34925d7d0a650103fe5cdebbec1cdf5261a2cd8deb6dc9fdf3a3"
+}

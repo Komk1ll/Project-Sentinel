@@ -1,0 +1,35 @@
+{
+  "name": "aid-kit",
+  "bounds": {
+    "min": [
+      -0.15000000596046448,
+      0.0,
+      -0.07999999821186066
+    ],
+    "max": [
+      0.15000000596046448,
+      0.2199999988079071,
+      0.07999999821186066
+    ],
+    "size": [
+      0.30000001192092896,
+      0.2199999988079071,
+      0.1599999964237213
+    ]
+  },
+  "triangles": 188,
+  "materials": [
+    "cream",
+    "teal"
+  ],
+  "bytes": 16608,
+  "sha256": "04a1134fef3b24d549b3e2bb53194870bdffa1b37bd213fb323e8c812c966222",
+  "root": "aid-kit-root",
+  "source_measurements": {},
+  "reimported": true,
+  "rendered_from_reimport": true,
+  "gpu": [
+    "NVIDIA GeForce RTX 4070 Ti SUPER"
+  ],
+  "blender": "5.2.3 LTS"
+}

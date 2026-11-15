@@ -1,0 +1,18 @@
+{
+  "tests": {
+    "passed": 319,
+    "files": 20,
+    "command": "npm test"
+  },
+  "native_shader_variants": 8,
+  "depth_pixel_cases": [
+    "visible",
+    "partial occlusion",
+    "full occlusion"
+  ],
+  "depth_api": "native OpenGL, synthetic depth test",
+  "browser_pixels": false,
+  "browser_fps": false,
+  "asset_job": "4c7c8da023f4456bbfb0cd28c7e9779b",
+  "render_job": "ca1219babaa2401c9307d3296a427156"
+}

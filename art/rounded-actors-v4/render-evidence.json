@@ -1,0 +1,6 @@
+{
+  "backend": "OptiX",
+  "gpu": "RTX 4070 Ti SUPER",
+  "path_tracing_confirmed": true,
+  "log_sha256": "afaef1c7ab0301180a22480b0bd12a7b28ea1723aa0022f65304efeff3aa6417"
+}

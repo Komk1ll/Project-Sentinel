@@ -1,148 +1,482 @@
+import { gardenBridgeHeight } from '@content/coastal-garden';
+import { islandElevation } from '@content/island-elevation';
+import { boatAltitude } from '@content/harbor';
+import { updateHarbor } from '@game/render/harbor-view';
+import { addCharacterDetails } from '@game/render/character-details';
+import { addHeroSilhouette } from '@game/render/hero-silhouette';
+import { EVENING_LIGHT, TOWN_LIGHT, type TownTheme } from '@content/evening-light';
+import { ActorAnimation } from '@game/render/actor-animation';
 import * as THREE from 'three';
+import { ISLAND_CENTER } from '@content/island';
+import { createOcean } from '@game/render/island-terrain';
+import { enhanceSurfaceMaterials } from '@game/render/surface-materials';
+import { placeOnGround } from '@game/render/world-surface';
+import { TownLifeView } from '@game/render/town-life-view';
+import type { TownLife } from '@game/systems/town-life';
+import { disposeObject, loadTownAssets } from '@game/render/town-assets';
+import { createMasterMesh } from '@game/render/master-mesh';
+import { MASTER, MEDIC } from '@content/first-aid';
+import type { FirstAidMission } from '@game/systems/first-aid-mission';
+import { createWebTown } from '@game/render/web-town';
+import { CampaignView } from '@game/render/campaign-view';
+import { createInteriorMeshes, createInteriorStairs } from '@game/render/interior-meshes';
+import type { TownWorld } from '@game/systems/town-world';
+import { buildingEntrance, TOWN_BUILDINGS } from '@content/town';
+import type { CameraZoom } from '@game/systems/camera-zoom';
 
 export interface ThreeRendererOptions {
-  containerId: string;
-  width?: number;
-  height?: number;
+  readonly containerId: string;
+  readonly world: TownWorld;
+  readonly zoom: CameraZoom;
+  readonly firstAid: FirstAidMission;
+  readonly life?: TownLife;
 }
 
-/**
- * Three.js WebGL / OpenGL Renderer Integration
- * Configured for isometric orthographic camera (azimuth 45°, elevation 30°)
- * matching Project Sentinel Blender model render standards.
- */
+/** Presentation of the town simulation; all collision and transitions live in TownWorld. */
 export class ThreeRenderer {
-  public scene: THREE.Scene;
-  public camera: THREE.OrthographicCamera;
-  public renderer: THREE.WebGLRenderer;
-  private container: HTMLElement;
+  public readonly scene = new THREE.Scene();
+  public readonly camera: THREE.OrthographicCamera;
+  public readonly renderer: THREE.WebGLRenderer;
+  private lifeView: TownLifeView;
+  private harbor:THREE.Object3D|null=null;
+  private heroAnimation:ActorAnimation|null=null;
+  private readonly sun = new THREE.DirectionalLight(EVENING_LIGHT.sun,EVENING_LIGHT.sunIntensity);
+  private readonly shaderTime = {value:0};
+  private readonly nightWater = { value: 0 };
+  private readonly ocean = createOcean(this.shaderTime, this.nightWater);
+  private theme: TownTheme = 'morning';
+  private readonly ambient = new THREE.HemisphereLight();
+  private readonly fill = new THREE.DirectionalLight();
+  private readonly surfaceUp = { value: new THREE.Vector3(0,1,0) };
+  private readonly container: HTMLElement;
+  private outdoors: THREE.Group;
+  private readonly assetLibrary = new THREE.Group();
+  private heroKit: THREE.Object3D | null = null;
+  private readonly interiorAssets = new Map<string, THREE.Group>();
+  private readonly resident = new THREE.Group();
+  private readonly limbRest = [0, 0, 0, 0];
+  private readonly master = createMasterMesh();
+  private readonly medic = createMasterMesh(MEDIC);
+  private readonly character = new THREE.Group();
+  private leftLeg: THREE.Object3D = new THREE.Group();
+  private rightLeg: THREE.Object3D = new THREE.Group();
+  private leftArm: THREE.Object3D = new THREE.Group();
+  private readonly campaignView = new CampaignView();
+  private carSilhouettes: THREE.Mesh[][] = [];
+  private carModels: (THREE.Object3D | undefined)[] = [];
+  private oars: THREE.Group[] = [];
+  private rightArm: THREE.Object3D = new THREE.Group();
+  private readonly target = new THREE.Vector3();
+  private readonly cameraOffset = new THREE.Vector3(28, 34, 28);
+  private readonly doorMarker: THREE.Mesh;
+  private room: THREE.Group | null = null;
+  private roomId: string | null = null;
+  private walkTime = 0;
+  private heroMarker: THREE.Mesh | null = null;
+  private lastPosition = new THREE.Vector2();
+  private shadowElapsed = 0;
+  private reducedQuality = false;
+  private slowFrames = 0;
   private isDestroyed = false;
 
-  constructor(options: ThreeRendererOptions) {
+  constructor(private readonly options: ThreeRendererOptions) {
     const container = document.getElementById(options.containerId);
-    if (!container) {
-      throw new Error(`[ThreeRenderer] Container #${options.containerId} not found in DOM`);
-    }
+    if (!container) throw new Error(`Missing render container: ${options.containerId}`);
     this.container = container;
-
-    const width = options.width ?? container.clientWidth ?? window.innerWidth;
-    const height = options.height ?? container.clientHeight ?? window.innerHeight;
-
-    // 1. Scene
-    this.scene = new THREE.Scene();
-
-    // 2. Isometric Orthographic Camera
-    const aspect = width / height;
-    const d = 10;
-    this.camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 0.1, 1000);
-
-    // Setup 45° azimuth, ~35.264° / 30° elevation isometric view
-    const isoAngle = Math.atan(1 / Math.SQRT2); // true isometric elevation (~35.264°)
-    const distance = 50;
-    this.camera.position.set(
-      distance * Math.cos(Math.PI / 4) * Math.cos(isoAngle),
-      distance * Math.sin(isoAngle),
-      distance * Math.sin(Math.PI / 4) * Math.cos(isoAngle)
-    );
-    this.camera.lookAt(0, 0, 0);
-
-    // 3. WebGL Renderer (OpenGL via browser WebGL)
-    this.renderer = new THREE.WebGLRenderer({
-      alpha: true,
-      antialias: true,
-      powerPreference: 'high-performance',
-    });
-    this.renderer.setSize(width, height);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    this.renderer.shadowMap.autoUpdate = false;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = EVENING_LIGHT.exposure;
+    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+    this.renderer.setClearColor(EVENING_LIGHT.sky);
     this.container.appendChild(this.renderer.domElement);
+    this.camera = new THREE.OrthographicCamera(-20, 20, 14, -14, .1, 500);
+    this.scene.fog = new THREE.Fog(EVENING_LIGHT.sky, 180, 380);
+    this.scene.add(this.ambient);
+    const sun = this.sun;
+    sun.position.set(-25, 45, -5);
+    sun.target.position.set(32, 0, 32);
+    sun.castShadow = true;
+    const compact = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+    const shadowSize = compact ? 1024 : 2048;
+    sun.shadow.mapSize.set(shadowSize, shadowSize);
+    Object.assign(sun.shadow.camera, { left: -55, right: 55, top: 55, bottom: -55, near: 1, far: 250 });
+    sun.shadow.bias = -.0005;
+    sun.shadow.normalBias = .025;
+    sun.shadow.radius = 4;
+    this.scene.add(sun, sun.target);
+    const fill = this.fill;
+    fill.position.set(40, 25, 60); this.scene.add(fill);
+    this.outdoors = createWebTown(undefined,this.shaderTime);
+    this.lifeView=new TownLifeView(options.life??options.firstAid.life);
+    this.outdoors.add(this.lifeView.group);
+    this.assetLibrary.visible = false;
+    this.scene.add(this.assetLibrary);
+    enhanceSurfaceMaterials(this.outdoors);
+    this.scene.add(this.outdoors);
+    this.cacheCarModels();
+    this.scene.add(this.ocean);
+    this.setTheme(this.theme);
+    this.scene.add(this.campaignView.group);
+    this.buildCharacter();
+    this.attachOars();
+    this.scene.add(this.character);
+    this.master.group.visible = false;
+    this.scene.add(this.master.group);
+    this.medic.group.visible = false;
+    this.scene.add(this.medic.group);
+    this.resident.name = 'clinic-resident';
+    this.resident.position.set(3.8, .08, 1.8);
+    this.resident.rotation.y = -Math.PI / 2;
+    this.resident.visible = false;
+    this.scene.add(this.resident);
+    this.doorMarker = new THREE.Mesh(
+      new THREE.RingGeometry(.34, .48, 40),
+      new THREE.MeshBasicMaterial({ color: 0xffd08a, transparent: true, opacity: .8, depthWrite: false })
+    );
+    this.doorMarker.rotation.x = -Math.PI / 2;
+    this.scene.add(this.doorMarker);
+    const { x, z } = options.world.position;
+    this.target.set(x, 0, z);
+    this.lastPosition.set(x, z);
 
-    // 4. Default Lighting
-    this.setupLighting();
-
-    // 5. Add Sentinel Robot Demo Model Placeholder (clean 3D mesh)
-    this.setupDemoSentinelMesh();
-
-    // Window resize handler
-    window.addEventListener('resize', this.onResize);
+    this.resize();
+    window.addEventListener('resize', this.resize);
+    this.container.addEventListener('wheel', this.onWheel, { passive: false });
   }
 
-  private setupLighting(): void {
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-    this.scene.add(ambientLight);
-
-    const dirLight = new THREE.DirectionalLight(0xfff0dd, 1.2);
-    dirLight.position.set(20, 40, 20);
-    dirLight.castShadow = true;
-    this.scene.add(dirLight);
+  public async loadVisuals(): Promise<void> {
+    const assets = await loadTownAssets();
+    if (this.isDestroyed) { assets.forEach(disposeObject); return; }
+    const take = (name: string): THREE.Group => {
+      const asset = assets.get(name);
+      if (!asset) throw new Error(`Missing bundled visual asset: ${name}`);
+      return asset;
+    };
+    this.lifeView.dispose();
+    this.scene.remove(this.outdoors);
+    this.disposeGroup(this.outdoors);
+    this.assetLibrary.add(...assets.values());
+    this.outdoors = createWebTown(assets,this.shaderTime);
+    this.cacheCarModels();
+    this.harbor=this.outdoors.getObjectByName('island-harbor')??null;
+    this.setTheme(this.theme);
+    this.lifeView=new TownLifeView(this.options.life??this.options.firstAid.life,take('hero'));
+    this.outdoors.add(this.lifeView.group);
+    enhanceSurfaceMaterials(this.outdoors);
+    this.outdoors.visible = this.options.world.interior === null;
+    this.scene.add(this.outdoors);
+    this.scene.add(this.ocean);
+    this.disposeGroup(this.character);
+    this.character.clear();
+    const hero = take('hero');
+    addCharacterDetails(hero, 'hero');
+    this.heroAnimation?.dispose();
+    this.heroAnimation=new ActorAnimation(hero,hero.animations);
+    this.character.add(hero);
+    const attachKit = (model: THREE.Group): THREE.Group => {
+      const socket = model.getObjectByName('aid-kit-socket');
+      if (!socket) throw new Error('Actor has no aid-kit socket');
+      const kit = take('aid-kit').clone(true); kit.name = 'aid-kit-parcel';
+      socket.add(kit); return kit;
+    };
+    this.heroKit = attachKit(hero);
+    addHeroSilhouette(hero);
+    this.leftLeg = hero.getObjectByName('left-leg') ?? new THREE.Object3D();
+    this.rightLeg = hero.getObjectByName('right-leg') ?? new THREE.Object3D();
+    this.leftArm = hero.getObjectByName('left-arm') ?? new THREE.Object3D();
+    this.rightArm = hero.getObjectByName('right-arm') ?? new THREE.Object3D();
+    this.attachOars();
+    [this.leftLeg, this.rightLeg, this.leftArm, this.rightArm].forEach((limb, index) => { this.limbRest[index] = limb.rotation.x; });
+    const marker = new THREE.Mesh(new THREE.RingGeometry(.33, .4, 32), new THREE.MeshBasicMaterial({ color: 0x2b9493, side: THREE.DoubleSide }));
+    marker.rotation.x = -Math.PI / 2; marker.position.y = .03; this.character.add(marker); this.heroMarker = marker;
+    for (const [name, actor] of [['master', this.master], ['medic', this.medic]] as const) {
+      this.disposeGroup(actor.group); actor.group.clear();
+      const model = take(name);
+      addCharacterDetails(model, name);
+      actor.group.add(model);
+      actor.group.position.y = .08;
+      actor.kit = attachKit(model);
+    }
+    const seatedResident = take('resident');
+    addCharacterDetails(seatedResident, 'seated');
+    seatedResident.scale.setScalar(.70);
+    this.resident.add(seatedResident);
+    for (const [name, model] of assets) if (name.startsWith('interior-')) {
+      enhanceSurfaceMaterials(model);
+      this.interiorAssets.set(name.slice('interior-'.length), model);
+    }
+    if (this.room) { this.scene.remove(this.room); this.disposeGroup(this.room); }
+    this.room = null; this.roomId = null;
   }
 
-  private setupDemoSentinelMesh(): void {
-    // Demo mesh representing a municipal sentinel robot in 3D
-    const group = new THREE.Group();
-    group.name = 'SentinelRobotPlaceholder';
+  private buildCharacter(): void {
+    const coat = new THREE.MeshStandardMaterial({ color: 0x253d49, roughness: .9 });
+    const trousers = new THREE.MeshStandardMaterial({ color: 0x242e34, roughness: 1 });
+    const skin = new THREE.MeshStandardMaterial({ color: 0xc19a79, roughness: 1 });
+    const hair = new THREE.MeshStandardMaterial({ color: 0x302e2a, roughness: 1 });
+    const boots = new THREE.MeshStandardMaterial({ color: 0x282722, roughness: 1 });
+    function mesh(geometry: THREE.BufferGeometry, material: THREE.Material, parent: THREE.Object3D, x: number, y: number, z: number): THREE.Mesh {
+      const item = new THREE.Mesh(geometry, material);
+      item.position.set(x, y, z); item.castShadow = true; parent.add(item); return item;
+    }
+    mesh(new THREE.CapsuleGeometry(.27, .48, 4, 10), coat, this.character, 0, 1.12, 0);
+    mesh(new THREE.SphereGeometry(.205, 12, 10), skin, this.character, 0, 1.74, 0);
+    const hood = mesh(new THREE.TorusGeometry(.2, .085, 8, 12), coat, this.character, 0, 1.48, .06);
+    hood.rotation.x = Math.PI / 2;
+    const headHair = mesh(new THREE.SphereGeometry(.21, 12, 8, 0, Math.PI * 2, 0, Math.PI * .55), hair, this.character, 0, 1.78, 0);
+    headHair.rotation.x = -.1;
+    mesh(new THREE.BoxGeometry(.25, .33, .16), new THREE.MeshStandardMaterial({ color: 0x52605b }), this.character, 0, 1.2, .28);
+    for (const [side, limb] of [[-1, this.leftLeg], [1, this.rightLeg]] as const) {
+      limb.position.set(side * .14, .77, 0);
+      mesh(new THREE.CapsuleGeometry(.105, .48, 3, 8), trousers, limb, 0, -.31, 0);
+      mesh(new THREE.BoxGeometry(.22, .14, .34), boots, limb, 0, -.68, -.06);
+      this.character.add(limb);
+    }
+    for (const [side, limb] of [[-1, this.leftArm], [1, this.rightArm]] as const) {
+      limb.position.set(side * .31, 1.4, 0);
+      mesh(new THREE.CapsuleGeometry(.09, .38, 3, 8), coat, limb, side * .015, -.23, 0);
+      mesh(new THREE.SphereGeometry(.085, 8, 6), skin, limb, side * .02, -.51, 0);
+      this.character.add(limb);
+    }
+    addHeroSilhouette(this.character);
+    const ring = new THREE.Mesh(new THREE.RingGeometry(.3, .35, 40), new THREE.MeshBasicMaterial({ color: 0x7accca, transparent: true, opacity: .6, depthWrite: false }));
+    ring.rotation.x = -Math.PI / 2; ring.position.y = .04; this.character.add(ring); this.heroMarker = ring;
+  }
 
-    // Body
-    const bodyGeometry = new THREE.CylinderGeometry(0.5, 0.6, 0.8, 16);
-    const bodyMaterial = new THREE.MeshStandardMaterial({
-      color: 0x3b82f6,
-      metalness: 0.8,
-      roughness: 0.3,
+  private cacheCarModels(): void {
+    this.carModels = this.options.world.carPoses.map((_, index) => this.outdoors.getObjectByName('parked-car-' + index));
+    this.carSilhouettes = this.carModels.map(model => {
+      const proxies = model ? addHeroSilhouette(model) : [];
+      proxies.forEach(proxy => { proxy.visible = false; });
+      return proxies;
     });
-    const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-    body.position.y = 0.6;
-    body.castShadow = true;
-    group.add(body);
-
-    // Head / Sensor Dome
-    const headGeometry = new THREE.SphereGeometry(0.35, 16, 16);
-    const headMaterial = new THREE.MeshStandardMaterial({
-      color: 0x10b981,
-      emissive: 0x054f32,
-      roughness: 0.2,
-    });
-    const head = new THREE.Mesh(headGeometry, headMaterial);
-    head.position.y = 1.15;
-    group.add(head);
-
-    this.scene.add(group);
   }
 
-  public render(): void {
+  private attachOars(): void {
+    this.oars = [this.leftArm, this.rightArm].map((arm, i) => {
+      const side = i === 0 ? -1 : 1;
+      const oar = new THREE.Group();
+      oar.name = i === 0 ? 'left-oar' : 'right-oar';
+      oar.position.set(side * .015, -.5, 0);
+      oar.visible = false;
+      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(.025, .03, 1.26, 6),
+        new THREE.MeshStandardMaterial({ color: 0xb8996c }));
+      shaft.rotation.z = Math.PI / 2;
+      shaft.position.x = side * .43;
+      const blade = new THREE.Mesh(new THREE.BoxGeometry(.47, .055, .22),
+        new THREE.MeshStandardMaterial({ color: 0x9c663b }));
+      blade.position.x = side * 1.19;
+      oar.add(shaft, blade);
+      arm.add(oar);
+      return oar;
+    });
+  }
+
+  public setTheme(theme: TownTheme): void {
+    this.theme = theme;
+    const light = TOWN_LIGHT[theme];
+    this.nightWater.value = Number(theme === 'night');
+    this.renderer.toneMappingExposure = light.exposure;
+    this.renderer.setClearColor(light.sky);
+    this.scene.fog?.color.setHex(light.sky);
+    this.sun.color.setHex(light.sun);
+    this.ambient.color.setHex(light.ambientSky);
+    this.ambient.groundColor.setHex(light.ambientGround);
+    this.ambient.intensity = light.ambientIntensity;
+    this.fill.color.setHex(light.fill);
+    this.fill.intensity = light.fillIntensity;
+    for (const name of ['illuminated-windows', 'lantern-light-pools', 'lighthouse-beacon']) {
+      const object = this.outdoors.getObjectByName(name);
+      if (object) object.visible = theme === 'night';
+    }
+    this.shadowElapsed = 1;
+
+  }
+
+  public observeFrameTime(milliseconds: number): void {
+    if (this.reducedQuality || !Number.isFinite(milliseconds)) return;
+    this.slowFrames = milliseconds > 29 ? this.slowFrames + 1 : Math.max(0, this.slowFrames - 2);
+    if (this.slowFrames < 14) return;
+    this.reducedQuality = true;
+    this.sun.shadow.mapSize.set(1024, 1024);
+    this.sun.shadow.map?.dispose();
+    this.sun.shadow.map = null;
+    this.resize();
+  }
+
+  public render(deltaSeconds = 1 / 60): void {
     if (this.isDestroyed) return;
-    // Slow idle rotation for demo mesh
-    const demoMesh = this.scene.getObjectByName('SentinelRobotPlaceholder');
-    if (demoMesh) {
-      demoMesh.rotation.y += 0.01;
+    const world = this.options.world;
+    this.shaderTime.value += Number.isFinite(deltaSeconds)?Math.max(0,Math.min(.05,deltaSeconds)):0;
+    this.ocean.visible = !world.interior;
+    const groundRoomId = world.interiorFloor === 0 ? world.interior?.id : undefined;
+    const nextRoomId = world.interior ? groundRoomId ?? world.interior.id + ':' + world.interiorFloor : null;
+    this.master.group.visible = groundRoomId === MASTER.buildingId;
+    this.master.kit.visible = this.options.firstAid.snapshot.stage === 'meet-master';
+    if (this.heroKit) this.heroKit.visible = this.options.firstAid.snapshot.stage === 'deliver-aid';
+    this.medic.group.visible = groundRoomId === MEDIC.buildingId;
+    this.medic.kit.visible = this.options.firstAid.snapshot.clinicSupplied;
+    this.resident.visible = groundRoomId === MEDIC.buildingId && this.options.firstAid.snapshot.clinicSupplied;
+    const roomChanged = nextRoomId !== this.roomId;
+    if (roomChanged) {
+      if (this.room) {
+        this.scene.remove(this.room);
+        if (!this.interiorAssets.has(this.roomId ?? '')) this.disposeGroup(this.room);
+      }
+      const authored = groundRoomId ? this.interiorAssets.get(groundRoomId) : undefined;
+      this.room = world.interior ? authored ?? createInteriorMeshes(world.interior, world.interiorFloor) : null;
+      if (this.room) {
+        if ((world.interior?.floors ?? 0) > 1 && !this.room.getObjectByName('interior-stairs')) this.room.add(createInteriorStairs());
+        enhanceSurfaceMaterials(this.room);
+        this.scene.add(this.room);
+      }
+      this.outdoors.visible = !world.interior;
+      this.roomId = nextRoomId;
+      const groundY = world.interior ? 0 : islandElevation(world.position.x, world.position.z);
+      const bridgeY = world.interior ? 0 : gardenBridgeHeight(world.position);
+      this.target.set(world.position.x, groundY + bridgeY, world.position.z);
+      this.lastPosition.set(world.position.x, world.position.z);
+    }
+    const { x, z } = world.position;
+    this.lifeView.update(deltaSeconds);
+    this.campaignView.update(this.options.firstAid, deltaSeconds, this.shaderTime.value);
+    if (world.interior?.kind === 'home') {
+      const lamp = this.room?.getObjectByName('home-lamp');
+      const shade = this.room?.getObjectByName('home-lamp-shade');
+      if (lamp) lamp.visible = world.homeLampOn;
+      if (shade instanceof THREE.Mesh && shade.material instanceof THREE.MeshStandardMaterial)
+        shade.material.emissiveIntensity = world.homeLampOn ? .55 : 0;
+    }
+    const boat = world.activeBoat;
+    this.character.visible = world.activeCar === null;
+    if (!world.interior) world.carPoses.forEach((car, index) => {
+      const model = this.carModels[index];
+      if (model) placeOnGround(model, car.x, car.z, car.rotation);
+      for (const proxy of this.carSilhouettes[index] ?? []) proxy.visible = world.activeCar === index;
+    });
+    if (!world.interior) updateHarbor(this.harbor, this.shaderTime.value,
+      boat === null ? undefined : { index: boat, x, z, heading: world.heading });
+    const dx = x - this.lastPosition.x;
+    const dz = z - this.lastPosition.y;
+    const moving = Math.hypot(dx, dz) > .0001;
+    const groundY = boat !== null ? boatAltitude(this.shaderTime.value, boat) + .19 : world.interior ? 0 : islandElevation(x, z);
+    const bridgeY = world.interior ? 0 : gardenBridgeHeight(world.position);
+    const heroY = boat === null ? groundY + bridgeY + .065
+      : groundY - this.leftLeg.position.y + .08;
+    placeOnGround(this.character, x, z, world.heading, heroY);
+    if (this.heroMarker) this.heroMarker.visible = boat === null;
+    this.surfaceUp.value.set(0,1,0);
+    this.walkTime += moving ? deltaSeconds * 10 : 0;
+    const stride = moving ? Math.sin(this.walkTime) * .55 : 0;
+    if (boat !== null) {
+      this.leftLeg.rotation.x = this.rightLeg.rotation.x = -1.43;
+      this.leftArm.rotation.x = this.rightArm.rotation.x = -.55;
+    } else if(this.heroAnimation?.available)this.heroAnimation.update(deltaSeconds,moving);
+    else {
+    this.leftLeg.rotation.x = (this.limbRest[0] ?? 0) + stride; this.rightLeg.rotation.x = (this.limbRest[1] ?? 0) - stride;
+    this.leftArm.rotation.x = (this.limbRest[2] ?? 0) - stride * .7; this.rightArm.rotation.x = (this.limbRest[3] ?? 0) + stride * .7;
+    }
+    if (boat === null && this.heroKit?.visible) {
+      this.leftArm.rotation.x = -.75; this.rightArm.rotation.x = -.75;
+      this.leftArm.rotation.z = -.28; this.rightArm.rotation.z = .28;
+    } else { this.leftArm.rotation.z = 0; this.rightArm.rotation.z = 0; }
+    for (const [i, oar] of this.oars.entries()) {
+      oar.visible = boat !== null;
+      if (boat === null) continue;
+      const side = i === 0 ? -1 : 1;
+      const arm = i === 0 ? this.leftArm : this.rightArm;
+      const stroke = moving ? this.walkTime * .65 : 0;
+      arm.rotation.x = -.72 + Math.sin(stroke) * .49;
+      arm.rotation.z = side * .43;
+      oar.rotation.y = side * Math.sin(stroke) * .48;
+      oar.rotation.z = -side * (.82 + Math.cos(stroke) * .27);
+    }
+    const poseKitHolder = (actor: typeof this.master): void => {
+      const left = actor.group.getObjectByName('left-arm');
+      const right = actor.group.getObjectByName('right-arm');
+      if (left && right) {
+        left.rotation.x = right.rotation.x = actor.kit.visible ? -.75 : 0;
+        left.rotation.z = actor.kit.visible ? -.28 : 0;
+        right.rotation.z = actor.kit.visible ? .28 : 0;
+      }
+    };
+    poseKitHolder(this.master); poseKitHolder(this.medic);
+    this.lastPosition.set(x, z);
+    let height = this.options.zoom.span;
+    const aspect = (this.container.clientWidth||window.innerWidth) / Math.max(1,this.container.clientHeight||window.innerHeight);
+    if(!world.interior && height>22)height*=1+(1/Math.min(1,aspect)-1)*Math.min(1,(height-22)/34);
+    this.camera.left = -height * aspect; this.camera.right = height * aspect;
+    this.camera.top = height; this.camera.bottom = -height;
+    this.camera.updateProjectionMatrix();
+    if(world.interior){
+      this.camera.up.set(0,1,0);
+      const center=new THREE.Vector3(x,0,z).multiplyScalar(this.options.zoom.followWeight);
+      this.target.lerp(center,1-Math.exp(-deltaSeconds*7));
+      this.camera.position.copy(this.target).add(this.cameraOffset);
+    } else {
+      const overview=Math.max(0,Math.min(1,(this.options.zoom.span-22)/43));
+      const center=new THREE.Vector3(x,groundY+bridgeY,z).lerp(new THREE.Vector3(ISLAND_CENTER.x,0,ISLAND_CENTER.z),overview);
+      this.target.lerp(center,1-Math.exp(-deltaSeconds*7));
+      this.camera.up.set(0,1,0);
+      this.camera.position.copy(this.target).add(this.cameraOffset.clone().multiplyScalar(1+overview));
+    }
+    this.camera.lookAt(this.target);
+    const light = TOWN_LIGHT[this.theme];
+    this.sun.intensity=world.interior?light.interiorIntensity:light.sunIntensity * (this.options.firstAid.campaignProgress.ending === 'network' ? 1.1 : 1);
+    this.shadowElapsed += deltaSeconds;
+    if (roomChanged || !this.sun.shadow.map || this.shadowElapsed >= (this.reducedQuality ? .22 : .083) - .001) {
+      this.shadowElapsed = 0;
+      this.sun.target.position.copy(this.target);
+      this.sun.position.copy(this.target).add(new THREE.Vector3(...light.sunOffset));
+      const shadowSpan=world.interior?15:Math.max(24,Math.min(90,this.options.zoom.span*1.5));
+      Object.assign(this.sun.shadow.camera,{left:-shadowSpan,right:shadowSpan,top:shadowSpan,bottom:-shadowSpan});
+      this.sun.shadow.camera.updateProjectionMatrix();
+      this.renderer.shadowMap.needsUpdate = true;
+    }
+    const nearby = TOWN_BUILDINGS.find(building => building.id === this.options.firstAid.snapshot.targetBuildingId) ?? world.nearbyBuilding;
+    this.doorMarker.visible = Boolean(nearby) && !world.interior;
+    if (nearby) {
+      const entry = buildingEntrance(nearby);
+      placeOnGround(this.doorMarker,entry.x,entry.z,0,islandElevation(entry.x,entry.z)+.09);
+      this.doorMarker.rotateX(-Math.PI/2);
     }
     this.renderer.render(this.scene, this.camera);
   }
 
-  public resize(width: number, height: number): void {
-    const aspect = width / height;
-    const d = 10;
-    this.camera.left = -d * aspect;
-    this.camera.right = d * aspect;
-    this.camera.top = d;
-    this.camera.bottom = -d;
-    this.camera.updateProjectionMatrix();
-
-    this.renderer.setSize(width, height);
-  }
-
-  private onResize = (): void => {
-    if (!this.container) return;
-    this.resize(this.container.clientWidth || window.innerWidth, this.container.clientHeight || window.innerHeight);
+  private readonly onWheel = (event: WheelEvent): void => {
+    event.preventDefault();
+    const multiplier = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? 200 : 1;
+    const delta = THREE.MathUtils.clamp(event.deltaY * multiplier, -200, 200);
+    this.options.zoom.adjust(delta * .0018);
   };
 
+  private readonly resize = (): void => {
+    const width = Math.max(1, this.container.clientWidth || window.innerWidth);
+    const height = Math.max(1, this.container.clientHeight || window.innerHeight);
+    const compact = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+    const pixelBudget = this.reducedQuality ? 520_000 : compact ? 950_000 : 1_650_000;
+    const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5, Math.sqrt(pixelBudget / (width * height)));
+    this.renderer.setPixelRatio(pixelRatio);
+    this.renderer.setSize(width, height);
+  };
+
+  private disposeGroup(group: THREE.Object3D): void {
+    disposeObject(group);
+  }
+
   public destroy(): void {
+    if (this.isDestroyed) return;
     this.isDestroyed = true;
-    window.removeEventListener('resize', this.onResize);
+    this.heroAnimation?.dispose();this.lifeView.dispose();
+    window.removeEventListener('resize', this.resize);
+    this.container.removeEventListener('wheel', this.onWheel);
+    for (const room of this.interiorAssets.values()) if (room !== this.room) this.scene.add(room);
+    this.disposeGroup(this.scene);
+    this.interiorAssets.clear();
     this.renderer.dispose();
-    if (this.renderer.domElement.parentElement) {
-      this.renderer.domElement.parentElement.removeChild(this.renderer.domElement);
-    }
+    this.renderer.domElement.remove();
   }
 }

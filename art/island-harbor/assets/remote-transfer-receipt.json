@@ -1,0 +1,17 @@
+{
+  "job_id": "4c7c8da023f4456bbfb0cd28c7e9779b",
+  "archive_sha256": "ecaadee556ea1b11fe0ffb87fb9625bacce271f8d804b43b1fb6395fab4a0a5d",
+  "transfer_verified": true,
+  "driver_sha256": "49512ae018d020718629d56d1de8c2fac76252303dbf506a1aa1718efda02d04",
+  "inputs": {
+    "build_harbor_assets.py": "113b0dd474129083a14df957b28aacff2b96a53c3aaab114f400c52a457e2530",
+    "build_web_asset_pack.py": "1d10f4de6683a3bbf70df965d560f1731dc6f2ad149d876841a95d880a48224a"
+  },
+  "outputs": {
+    "manifest.json": "20dc031293b666eb4e424c99473235ef961db2f4057864f963c06458a531283c",
+    "blender-run.json": "0457cf08c0d02430f7b0f7b615615ae762c82019dc956471cac31e766b8a756e",
+    "source/harbor-kit.blend": "28da119c226dbafe171aff8e6d5413c24e112d57ba5e90ac174480537fc4accf",
+    "models/harbor-kit.glb": "3bd73f705a31e60133914c07835ac21175af3ccf6139afb3a44f5781bd47f209",
+    "previews/harbor-kit.png": "cd5177056b1b4290c8764452ea7154125753a7d09c14ebbb62cfb2a6d30329b1"
+  }
+}

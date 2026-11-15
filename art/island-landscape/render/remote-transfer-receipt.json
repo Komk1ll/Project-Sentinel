@@ -1,0 +1,27 @@
+{
+  "job_id": "ae634e36d5224ca1b9a46e59b009c500",
+  "archive_sha256": "e68c7d7422e8bfddf18cfb5a2f7ec828e8c2dd7aa48df21d2c64b95d0dab1214",
+  "transfer_verified": true,
+  "driver_sha256": "49512ae018d020718629d56d1de8c2fac76252303dbf506a1aa1718efda02d04",
+  "inputs": {
+    "render_island_review.py": "6c411eaa5ef825923566b80eb5eda72e7b6b3eb7aeca1a02ff025d2fd5a03f42",
+    "build_web_asset_pack.py": "1d10f4de6683a3bbf70df965d560f1731dc6f2ad149d876841a95d880a48224a",
+    "island-review.glb": "2cb34d160f995508dfe332060a5f4bd477163bd71e5a3258e0894e4479587a93",
+    "views.json": "b5cd308fc5100768d6bf14bded014cf04fd879c2965ff397c5275652d958e008",
+    "lighting.json": "a8ecad94065913ec5b359285540515ab2a09ca8156530bf8a7a02d4b08942081",
+    "actor-poses.glb": "53fc6825061966514b94caa44b75c9bea1dddf882896064f1051ef90260366d6"
+  },
+  "outputs": {
+    "facades.png": "0d8b19745b77513760058dff2dccb4b099e077fe8b0b07e46f2bc2bcc28c8433",
+    "street.png": "171859822f4055c46f22b3a6545ae10f94a2784445b716a3fc779136a9647f22",
+    "lighthouse-view.png": "aefaa72849055f05d9230214c50e7f0d638175b10a900079d10454b27ac308d8",
+    "overview.png": "a95291c7b1422c3b18313f8d29abe6e4398a6d66026c828bfa3b8af435345692",
+    "garden.png": "3355ec0a09ebb8b5adb97ea11e7c0c3856993b587533e551a5703a883faa530c",
+    "orchard.png": "dbbde440b0cf3cf07f0feb774d6602f299f2f85fed335a93c40dd010b93cdce1",
+    "actor-poses.png": "73e9afabd312c5f7d2dc9daf53db284684e9c3a28323871056c3e97d53bf7d06",
+    "render-verification.json": "1d01626f6fccc73fd6b8f13867651b77418e6786bfdc12bc7b1089003b278d33",
+    "harbor.png": "7558b5b23543532befe0f7cda4c10a981330d41823ad87213b1ce05d89b988a8",
+    "island-review.blend": "04dd0412935541a36479a5fb1939daea6622f32871d63814db88c5d129968b9f",
+    "blender-run.json": "8016db6255b587b706bb69eef521fbad7b5da29c1ce911922c231d15e67ec400"
+  }
+}

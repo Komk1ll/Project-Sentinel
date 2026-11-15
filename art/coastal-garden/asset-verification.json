@@ -1,0 +1,254 @@
+{
+  "payload": 4901960,
+  "requests": 16,
+  "files": [
+    {
+      "path": "/assets/models/evening/hero.glb",
+      "bytes": 162040,
+      "sha256": "94e3eafe38e5feb0cd41c1e9bb08ff4a69db07c783d0abdd957e5c039dbd8ce8"
+    },
+    {
+      "path": "/assets/models/polish-v4/master.glb",
+      "bytes": 202288,
+      "sha256": "efb8815e3f38a55fe5bc29aaf4cafc5171ddc90fd7b42342677c418547132466"
+    },
+    {
+      "path": "/assets/models/polish-v4/medic.glb",
+      "bytes": 176740,
+      "sha256": "b3812c839479c1c05039dd984ff4c2788f70260accbd99c6023c26c2a52da64f"
+    },
+    {
+      "path": "/assets/models/web-mvp/bench.glb",
+      "bytes": 14184,
+      "sha256": "9cf165f67037e35b67e2630ef20aa9f1d43a18fac00981f34a3cff4db658fbe1"
+    },
+    {
+      "path": "/assets/models/web-mvp/house-base.glb",
+      "bytes": 99860,
+      "sha256": "36bd8918e422bcb7c35a6b5df50547b1ce51849682a4b356597c7144b4a85637"
+    },
+    {
+      "path": "/assets/models/web-mvp/clinic.glb",
+      "bytes": 150156,
+      "sha256": "3d534199613a45ec5856546c3649e02c79ffebf431c9ef3fa11bd266c029e092"
+    },
+    {
+      "path": "/assets/models/web-mvp/aid-kit.glb",
+      "bytes": 16608,
+      "sha256": "04a1134fef3b24d549b3e2bb53194870bdffa1b37bd213fb323e8c812c966222"
+    },
+    {
+      "path": "/assets/models/island-detail/tree.glb",
+      "bytes": 70936,
+      "sha256": "4683ccd4824fad4816da7dff1719da0436e15018536fec5eeb39bce7a36c6d64"
+    },
+    {
+      "path": "/assets/models/polish-v4/workshop.glb",
+      "bytes": 288472,
+      "sha256": "f72b86c86ae01a97e5381aef6babe2babc2ff2f1f41e27f838690315b6f569b5"
+    },
+    {
+      "path": "/assets/models/coastal-garden/coastal-garden-kit.glb",
+      "bytes": 150076,
+      "sha256": "f1e4842decc556c489021926b0895cb8769e15b519200465e5a90d1933cbbdaa"
+    },
+    {
+      "path": "/assets/models/harbor/harbor-kit.glb",
+      "bytes": 232624,
+      "sha256": "3bd73f705a31e60133914c07835ac21175af3ccf6139afb3a44f5781bd47f209"
+    },
+    {
+      "path": "/assets/models/cozy/resident.glb",
+      "bytes": 188676,
+      "sha256": "3ec1da23b6c1a91f473200dd5471de146a06371c1c386a734941250d85fb346f"
+    },
+    {
+      "path": "/assets/models/island-detail/architecture-details.glb",
+      "bytes": 568832,
+      "sha256": "5ac088276dd223649aede29cda5d3485bd36a92eab0150e26603f6dfed660a0a"
+    },
+    {
+      "path": "/assets/models/evening/street-kit.glb",
+      "bytes": 670928,
+      "sha256": "f2bd86cbd8f033195fb2e53c6e5dce0590bf9f47664ff568b58f286262a07ab8"
+    },
+    {
+      "path": "/assets/models/cozy/interior-clinic.glb",
+      "bytes": 719436,
+      "sha256": "9a5d8eda17500769155da8c32fb6cc0195c29f89fd39baa1bf1b6b56b1916abd"
+    },
+    {
+      "path": "/assets/models/cozy/interior-station.glb",
+      "bytes": 1190104,
+      "sha256": "3278290f04878651391125b43e72b21c42afc56a4c0bbac7d8aa578a87fb8a47"
+    }
+  ],
+  "groups": {
+    "boat": {
+      "triangles": 133,
+      "meshes": 4,
+      "materials": 4,
+      "size": [
+        1.7469485402107239,
+        0.6350000202655792,
+        4.317506790161133
+      ]
+    },
+    "coast-rock": {
+      "triangles": 20,
+      "meshes": 1,
+      "materials": 1,
+      "size": [
+        1.5205224752426147,
+        1.100000023841858,
+        1.1058319807052612
+      ]
+    },
+    "dune-grass": {
+      "triangles": 9,
+      "meshes": 1,
+      "materials": 1,
+      "size": [
+        0.6747938692569733,
+        0.5099999904632568,
+        0.6670196056365967
+      ]
+    },
+    "lighthouse": {
+      "triangles": 1552,
+      "meshes": 7,
+      "materials": 7,
+      "size": [
+        4.099999904632568,
+        11.675000429153442,
+        4.099999904632568
+      ]
+    },
+    "pier": {
+      "triangles": 2640,
+      "meshes": 6,
+      "materials": 6,
+      "size": [
+        14,
+        3.9350000005215406,
+        22.79400062561035
+      ]
+    },
+    "apple-tree": {
+      "triangles": 488,
+      "meshes": 4,
+      "materials": 4,
+      "size": [
+        2.909804046154022,
+        4.099999964237213,
+        2.5244151651859283
+      ]
+    },
+    "cliff-module": {
+      "triangles": 60,
+      "meshes": 3,
+      "materials": 3,
+      "size": [
+        4.240000009536743,
+        2.796580672264099,
+        2.9679999351501465
+      ]
+    },
+    "flower-cluster": {
+      "triangles": 77,
+      "meshes": 3,
+      "materials": 3,
+      "size": [
+        0.9446407556533813,
+        0.5149999856948853,
+        0.7885467112064362
+      ]
+    },
+    "garden-bridge": {
+      "triangles": 1436,
+      "meshes": 1,
+      "materials": 1,
+      "size": [
+        16.984999030828476,
+        2.0200001001358032,
+        2.5999999046325684
+      ]
+    },
+    "garden-fence": {
+      "triangles": 176,
+      "meshes": 1,
+      "materials": 1,
+      "size": [
+        2.059999991208315,
+        0.9599999785423279,
+        0.10000000149011612
+      ]
+    },
+    "reed-cluster": {
+      "triangles": 12,
+      "meshes": 1,
+      "materials": 1,
+      "size": [
+        0.9328033030033112,
+        0.8100000023841858,
+        0.8435836136341095
+      ]
+    },
+    "seawall": {
+      "triangles": 128,
+      "meshes": 3,
+      "materials": 3,
+      "size": [
+        2.049999952316284,
+        1.2000000029802322,
+        0.5299999713897705
+      ]
+    }
+  },
+  "clips": [
+    {
+      "name": "Idle",
+      "duration": 2.0416667461395264,
+      "tracks": [
+        "left-arm.quaternion",
+        "right-arm.quaternion"
+      ]
+    },
+    {
+      "name": "Walk",
+      "duration": 1.0416666269302368,
+      "tracks": [
+        "left-arm.quaternion",
+        "left-leg.quaternion",
+        "right-arm.quaternion",
+        "right-leg.quaternion"
+      ]
+    },
+    {
+      "name": "Greet",
+      "duration": 2.0416667461395264,
+      "tracks": [
+        "right-arm.quaternion"
+      ]
+    }
+  ],
+  "scene": {
+    "meshes": 517,
+    "triangles": 211778,
+    "bytes": 3570068,
+    "source": "Actual runtime scene; canvas signs and depth-tested hero proxy omitted; water PBR approximation; custom WebGL shaders not evaluated",
+    "browserVerified": false
+  },
+  "checks": [
+    "real GLTFLoader decode",
+    "verified source hashes",
+    "finite geometry and unit normals",
+    "nondegenerate triangles",
+    "car collision bounds",
+    "hero metre scale",
+    "authored limb-only animation clips",
+    "warm emissive panes",
+    "payload and scene budgets"
+  ],
+  "browserVerified": false
+}

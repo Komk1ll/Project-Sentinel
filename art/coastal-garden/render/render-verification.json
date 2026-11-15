@@ -1,0 +1,21 @@
+{
+  "gpu": [
+    "NVIDIA GeForce RTX 4070 Ti SUPER"
+  ],
+  "source": "Exported runtime Three.js geometry and cameras",
+  "views": [
+    "overview",
+    "street",
+    "garden",
+    "pond-bridge",
+    "facades",
+    "harbor",
+    "lighthouse-view",
+    "orchard"
+  ],
+  "browser_verified": false,
+  "sign_textures": "omitted from offline review",
+  "water": "PBR approximation; custom WebGL shaders not evaluated",
+  "light_pools": "additive vertex colour reconstructed in Blender",
+  "lighting": "offline approximation, not browser pixel proof"
+}

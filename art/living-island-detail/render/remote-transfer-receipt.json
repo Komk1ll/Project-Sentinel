@@ -1,0 +1,21 @@
+{
+  "job_id": "2168f1229970484e86867f0ea54916bb",
+  "archive_sha256": "64ff98aba8b51b6d82fb09e25522fe92081056dc8f769f1fb6f4fcc6da0796f2",
+  "transfer_verified": true,
+  "driver_sha256": "49512ae018d020718629d56d1de8c2fac76252303dbf506a1aa1718efda02d04",
+  "inputs": {
+    "render_island_review.py": "dec3738602bf03267b8bd690280b17dd790d1652e7ea662c736c16a09998a349",
+    "build_web_asset_pack.py": "1d10f4de6683a3bbf70df965d560f1731dc6f2ad149d876841a95d880a48224a",
+    "island-review.glb": "c844cb3b4f499dfa8326f6e45aeca3c19b81abe43cf79a393366a11ddf4a3c28",
+    "views.json": "b4729722730c896712f3761ef6c6eddd2091254f72aef70914b1530859b67277"
+  },
+  "outputs": {
+    "facades.png": "cb476203268869dbfdad27a37605fd5f4d5ce189142df9441866641e04bd9dc0",
+    "street.png": "dca0294684412cab4ef763fc37101fd83ccbf9b7a63bbacae4c065d51f23796e",
+    "overview.png": "09570b8f905631ea8551d195f7eb4a359533e7f398d1a09aea856668a88acd04",
+    "garden.png": "7abc3578f8648c84d3eb14a1e0d1b7c50fbe400c4a6024ee8e7c3ade5183f435",
+    "render-verification.json": "12fd13cf4e961e4d052de0ccda77ea79243b82d6e54f3a8e4a37e4d0bd585af8",
+    "island-review.blend": "6e54c38c7d03fabe2a1a9a18a6fc9813e2bf680c403be5b4280efd169fdbd3b3",
+    "blender-run.json": "6815735f8ab1368a1da3929ec7f4d77c63a370402c07bcf4f0df16170434b80d"
+  }
+}

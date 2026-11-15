@@ -1,0 +1,27 @@
+[
+  {
+    "id": "cee8236b02904b7196e50785fc3e3305",
+    "status": "completed",
+    "script": "build_island_details.py",
+    "inputs": {
+      "build_island_details.py": "7b0d28c78e3fbf24d57d2c70940ceb7c84b67b950c572f5b5f0ced4b12abd2bd",
+      "build_web_asset_pack.py": "1d10f4de6683a3bbf70df965d560f1731dc6f2ad149d876841a95d880a48224a",
+      "lots.json": "110552711fbe1a5942f84577b46762d491d70838cbe5ce63a234be8966a949c9"
+    },
+    "created_at": "2026-10-23T19:37:55.880875+00:00",
+    "completed_at": "2026-10-23T19:38:19.608285+00:00"
+  },
+  {
+    "id": "2168f1229970484e86867f0ea54916bb",
+    "status": "completed",
+    "script": "render_island_review.py",
+    "inputs": {
+      "render_island_review.py": "dec3738602bf03267b8bd690280b17dd790d1652e7ea662c736c16a09998a349",
+      "build_web_asset_pack.py": "1d10f4de6683a3bbf70df965d560f1731dc6f2ad149d876841a95d880a48224a",
+      "island-review.glb": "c844cb3b4f499dfa8326f6e45aeca3c19b81abe43cf79a393366a11ddf4a3c28",
+      "views.json": "b4729722730c896712f3761ef6c6eddd2091254f72aef70914b1530859b67277"
+    },
+    "created_at": "2026-10-23T19:38:48.929828+00:00",
+    "completed_at": "2026-10-23T19:39:05.868253+00:00"
+  }
+]

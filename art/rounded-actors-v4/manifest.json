@@ -1,0 +1,122 @@
+{
+  "assets": [
+    {
+      "name": "hero",
+      "bounds": {
+        "min": [
+          -0.3479999899864197,
+          2.9802322387695312e-08,
+          -0.29249998927116394
+        ],
+        "max": [
+          0.3479999899864197,
+          1.7000000476837158,
+          0.18799999356269836
+        ],
+        "size": [
+          0.6959999799728394,
+          1.7000000178813934,
+          0.4804999828338623
+        ]
+      },
+      "triangles": 4562,
+      "materials": [
+        "cream",
+        "dark",
+        "hair",
+        "ochre",
+        "skin",
+        "teal"
+      ],
+      "bytes": 190140,
+      "sha256": "dadb62df8088627b56402ddc0b5b13ee45e2b7014c351fa52830313c71713462",
+      "root": "hero-root",
+      "source_measurements": {},
+      "reimported": true,
+      "rendered_from_reimport": true,
+      "gpu": [
+        "NVIDIA GeForce RTX 4070 Ti SUPER"
+      ],
+      "blender": "5.2.3 LTS"
+    },
+    {
+      "name": "master",
+      "bounds": {
+        "min": [
+          -0.3479999899864197,
+          2.9802322387695312e-08,
+          -0.13699999451637268
+        ],
+        "max": [
+          0.3479999899864197,
+          1.7000000476837158,
+          0.18799999356269836
+        ],
+        "size": [
+          0.6959999799728394,
+          1.7000000178813934,
+          0.32499998807907104
+        ]
+      },
+      "triangles": 4630,
+      "materials": [
+        "cream",
+        "dark",
+        "green",
+        "hair",
+        "ochre",
+        "skin"
+      ],
+      "bytes": 202288,
+      "sha256": "efb8815e3f38a55fe5bc29aaf4cafc5171ddc90fd7b42342677c418547132466",
+      "root": "master-root",
+      "source_measurements": {},
+      "reimported": true,
+      "rendered_from_reimport": true,
+      "gpu": [
+        "NVIDIA GeForce RTX 4070 Ti SUPER"
+      ],
+      "blender": "5.2.3 LTS"
+    },
+    {
+      "name": "medic",
+      "bounds": {
+        "min": [
+          -0.3479999899864197,
+          2.9802322387695312e-08,
+          -0.19999998807907104
+        ],
+        "max": [
+          0.3479999899864197,
+          1.7000000476837158,
+          0.18799999356269836
+        ],
+        "size": [
+          0.6959999799728394,
+          1.7000000178813934,
+          0.3879999816417694
+        ]
+      },
+      "triangles": 4322,
+      "materials": [
+        "cream",
+        "dark",
+        "hair",
+        "skin",
+        "teal"
+      ],
+      "bytes": 176740,
+      "sha256": "b3812c839479c1c05039dd984ff4c2788f70260accbd99c6023c26c2a52da64f",
+      "root": "medic-root",
+      "source_measurements": {},
+      "reimported": true,
+      "rendered_from_reimport": true,
+      "gpu": [
+        "NVIDIA GeForce RTX 4070 Ti SUPER"
+      ],
+      "blender": "5.2.3 LTS"
+    }
+  ],
+  "total_glb_bytes": 569168,
+  "total_triangles": 13514
+}

@@ -1,0 +1,7 @@
+{
+  "backend": "OptiX",
+  "device": "NVIDIA GeForce RTX 4070 Ti SUPER",
+  "path_tracing_confirmed": true,
+  "log_sha256": "6933b90ff1a94c12f282531ba126889993c079d165a56b24887a25ac87acd6e9",
+  "offline_render_only": true
+}

@@ -1,0 +1,126 @@
+{
+  "generator": "Blender 5.2.1; tools/build_cozy_assets.py",
+  "style": "Original stylized cozy town; solid PBR materials",
+  "assets": [
+    {
+      "file": "town.glb",
+      "bytes": 17278120,
+      "meshes": 56
+    },
+    {
+      "file": "hero.glb",
+      "bytes": 196612,
+      "meshes": 28
+    },
+    {
+      "file": "master.glb",
+      "bytes": 212432,
+      "meshes": 30
+    },
+    {
+      "file": "medic.glb",
+      "bytes": 222772,
+      "meshes": 33
+    },
+    {
+      "file": "resident.glb",
+      "bytes": 188676,
+      "meshes": 27
+    },
+    {
+      "file": "interior-station.glb",
+      "bytes": 1190104,
+      "meshes": 14
+    },
+    {
+      "file": "interior-cafe.glb",
+      "bytes": 561024,
+      "meshes": 11
+    },
+    {
+      "file": "interior-clinic.glb",
+      "bytes": 719436,
+      "meshes": 17
+    },
+    {
+      "file": "interior-library.glb",
+      "bytes": 1403436,
+      "meshes": 14
+    },
+    {
+      "file": "interior-townhall.glb",
+      "bytes": 1337288,
+      "meshes": 13
+    },
+    {
+      "file": "interior-grocery.glb",
+      "bytes": 881780,
+      "meshes": 14
+    },
+    {
+      "file": "interior-home-1.glb",
+      "bytes": 702012,
+      "meshes": 14
+    },
+    {
+      "file": "interior-home-2.glb",
+      "bytes": 702012,
+      "meshes": 14
+    },
+    {
+      "file": "interior-home-3.glb",
+      "bytes": 702012,
+      "meshes": 14
+    },
+    {
+      "file": "interior-home-4.glb",
+      "bytes": 702012,
+      "meshes": 14
+    },
+    {
+      "file": "interior-home-5.glb",
+      "bytes": 702012,
+      "meshes": 14
+    },
+    {
+      "file": "interior-home-6.glb",
+      "bytes": 702012,
+      "meshes": 14
+    },
+    {
+      "file": "interior-home-7.glb",
+      "bytes": 702012,
+      "meshes": 14
+    },
+    {
+      "file": "interior-home-8.glb",
+      "bytes": 702012,
+      "meshes": 14
+    },
+    {
+      "file": "interior-home-9.glb",
+      "bytes": 702012,
+      "meshes": 14
+    },
+    {
+      "file": "interior-bakery.glb",
+      "bytes": 881780,
+      "meshes": 14
+    },
+    {
+      "file": "interior-home-10.glb",
+      "bytes": 702012,
+      "meshes": 14
+    },
+    {
+      "file": "interior-home-11.glb",
+      "bytes": 702012,
+      "meshes": 14
+    },
+    {
+      "file": "interior-post.glb",
+      "bytes": 881780,
+      "meshes": 14
+    }
+  ]
+}

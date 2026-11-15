@@ -1,0 +1,15 @@
+{
+  "street-kit": {
+    "bytes": 670928,
+    "sha256": "f2bd86cbd8f033195fb2e53c6e5dce0590bf9f47664ff568b58f286262a07ab8"
+  },
+  "hero": {
+    "bytes": 162040,
+    "sha256": "94e3eafe38e5feb0cd41c1e9bb08ff4a69db07c783d0abdd957e5c039dbd8ce8",
+    "actions": [
+      "Greet",
+      "Idle",
+      "Walk"
+    ]
+  }
+}

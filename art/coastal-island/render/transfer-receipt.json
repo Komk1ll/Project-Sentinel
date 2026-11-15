@@ -1,0 +1,12 @@
+{
+  "remote_run": "web-assets-58dd7c838f91",
+  "archive_sha256": "8617bd08154210c5d7122d85c259a3d3c5a77b8adb662432b11239630564451c",
+  "transfer_verified": true,
+  "generator": "render_island_review.py",
+  "generator_sha256": "dec3738602bf03267b8bd690280b17dd790d1652e7ea662c736c16a09998a349",
+  "helper_sha256": "1d10f4de6683a3bbf70df965d560f1731dc6f2ad149d876841a95d880a48224a",
+  "inputs": {
+    "island-review.glb": "439207eba9d17958d6240275941e313e599641f93fa960c24af176e9ff7e2176",
+    "views.json": "3bd261c0c9834c246617ff513302166e48ef16436c45157903a4a571003bc884"
+  }
+}

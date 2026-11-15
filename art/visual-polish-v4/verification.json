@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "sha256": "f72b86c86ae01a97e5381aef6babe2babc2ff2f1f41e27f838690315b6f569b5",
+  "bytes": 288472,
+  "triangles": 3749,
+  "primitives": 11,
+  "materials": 8,
+  "root": "workshop-root",
+  "wallMetres": [
+    9,
+    3.2,
+    8
+  ],
+  "doorHeightMetres": 2.2,
+  "browserVerified": false,
+  "runtimeIntegrated": false
+}

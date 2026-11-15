@@ -1,0 +1,5 @@
+PASS: water compiled and linked (native OpenGL, not WebGL)
+PASS: terrain compiled and linked (native OpenGL, not WebGL)
+PASS: instanced-props compiled and linked (native OpenGL, not WebGL)
+PASS: buildings compiled and linked (native OpenGL, not WebGL)
+GLSL #version adapted from 300 es to 410 core. Native compilation/linking only; no WebGL draw or browser FPS test.

@@ -1,0 +1,13 @@
+{
+  "blender": "5.2.3 LTS",
+  "render_events": [
+    {
+      "engine": "CYCLES",
+      "cycles_device": "GPU",
+      "optix_devices": [
+        "NVIDIA GeForce RTX 4070 Ti SUPER"
+      ],
+      "filepath": "C:\\Users\\danii\\Documents\\CyberShieldRemote\\plugin-jobs\\4c7c8da023f4456bbfb0cd28c7e9779b\\output\\previews\\harbor-kit.png"
+    }
+  ]
+}

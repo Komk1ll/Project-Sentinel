@@ -1,0 +1,12 @@
+{
+  "remote_run": "web-assets-c104a617402c",
+  "archive_sha256": "1cac57a42d437f9b1392a4510b6c977e88f2c71b05383982ed669ad65b3e89c4",
+  "transfer_verified": true,
+  "generator": "render_planet_review.py",
+  "generator_sha256": "988d47ca91eb21bebdab521eb5422974393636947c9f784f5dc9f6502bac17b5",
+  "helper_sha256": "1d10f4de6683a3bbf70df965d560f1731dc6f2ad149d876841a95d880a48224a",
+  "inputs": {
+    "planet-review.glb": "7f23ef6c089e9f7eb7e80e27de093e73ad830ad4b9944059090c15897bea0a37",
+    "views.json": "6413edf4d0577e2fe67e8c873b67dd1e27331cbd12536dfd4c9eafbc6e7e6979"
+  }
+}

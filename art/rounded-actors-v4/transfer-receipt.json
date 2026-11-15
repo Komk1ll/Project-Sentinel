@@ -1,0 +1,8 @@
+{
+  "remote_run": "web-assets-9febfd41629d",
+  "archive_sha256": "471d3dcb18a8385939f61bdb5a603b6bcb4ac658156b53ef834ad5f596cb4bd5",
+  "transfer_verified": true,
+  "generator": "build_rounded_characters.py",
+  "generator_sha256": "1065377ca293e2f272fb3e2e3816f42473d7c6c3a2aa88dac864c1fdd3d8ec8d",
+  "helper_sha256": "1d10f4de6683a3bbf70df965d560f1731dc6f2ad149d876841a95d880a48224a"
+}

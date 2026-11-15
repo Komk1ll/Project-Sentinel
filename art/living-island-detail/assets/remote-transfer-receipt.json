@@ -1,0 +1,20 @@
+{
+  "job_id": "cee8236b02904b7196e50785fc3e3305",
+  "archive_sha256": "f25c34ded034759c3514d89072f286c80b7cb25b553ae1ffeb75bfbed6855336",
+  "transfer_verified": true,
+  "driver_sha256": "49512ae018d020718629d56d1de8c2fac76252303dbf506a1aa1718efda02d04",
+  "inputs": {
+    "build_island_details.py": "7b0d28c78e3fbf24d57d2c70940ceb7c84b67b950c572f5b5f0ced4b12abd2bd",
+    "build_web_asset_pack.py": "1d10f4de6683a3bbf70df965d560f1731dc6f2ad149d876841a95d880a48224a",
+    "lots.json": "110552711fbe1a5942f84577b46762d491d70838cbe5ce63a234be8966a949c9"
+  },
+  "outputs": {
+    "manifest.json": "cd0526fafe6e2e5d19734c665955889594921de141b90c9bc0160705faa498e5",
+    "blender-run.json": "b4417335c1a61a4d6d5451239a7f5b9ba851243fa58532ed86aa5cf1a6bf309d",
+    "source/tree.blend": "033ad5797a2d46514a6986da2854c4aea2c00675fc2b86e834f9a13014da9a30",
+    "source/architecture-details.blend": "1c6a264f59c1b5340c2d87b2a296e242083ae5af8ede1bca82c4a6243e14d933",
+    "models/architecture-details.glb": "5ac088276dd223649aede29cda5d3485bd36a92eab0150e26603f6dfed660a0a",
+    "models/tree.glb": "4683ccd4824fad4816da7dff1719da0436e15018536fec5eeb39bce7a36c6d64",
+    "previews/trees.png": "6586c26f1aa5dd23d17dd8273a9bb0d0b04ba22e13bb9fa686ae260e5f913041"
+  }
+}

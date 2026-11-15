@@ -1,0 +1,7 @@
+PASS: water compiled and linked (native OpenGL, not WebGL)
+PASS: terrain compiled and linked (native OpenGL, not WebGL)
+PASS: instanced-props compiled and linked (native OpenGL, not WebGL)
+PASS: birch-bark compiled and linked (native OpenGL, not WebGL)
+PASS: buildings compiled and linked (native OpenGL, not WebGL)
+PASS: foliage compiled and linked (native OpenGL, not WebGL)
+PASS: foliage-shadow compiled and linked (native OpenGL, not WebGL)

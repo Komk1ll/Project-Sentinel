@@ -1,167 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-    <title>Project Sentinel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#e5e9d8" />
+    <title>Киберщит · Зареченск</title>
     <style>
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-        user-select: none;
-        -webkit-user-select: none;
-      }
-
-      html,
-      body {
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        background-color: #0d1117;
-        color: #e6edf3;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      }
-
-      #game-wrapper {
-        position: relative;
-        width: 100vw;
-        height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: radial-gradient(circle at center, #161b22 0%, #090d13 100%);
-      }
-
-      #game-container {
-        position: relative;
-        width: 100%;
-        height: 100%;
-      }
-
-      #game-container canvas {
-        display: block;
-        width: 100%;
-        height: 100%;
-      }
-
-      /* Three.js overlay canvas or layer if rendered separately */
-      #three-container {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-      }
-
-      /* HTML5 UI overlay layer */
-      #ui-container {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-      }
-
-      #ui-container > * {
-        pointer-events: auto;
-      }
-
-      .hud-panel {
-        position: absolute;
-        padding: 12px 18px;
-        background: rgba(13, 17, 23, 0.85);
-        border: 1px solid rgba(88, 166, 255, 0.3);
-        border-radius: 8px;
-        backdrop-filter: blur(8px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-      }
-
-      #hud-status {
-        top: 16px;
-        left: 16px;
-      }
-
-      #hud-status h1 {
-        font-size: 16px;
-        font-weight: 600;
-        color: #58a6ff;
-        margin-bottom: 4px;
-        letter-spacing: 0.5px;
-      }
-
-      #hud-status p {
-        font-size: 12px;
-        color: #8b949e;
-      }
-
-      #hud-quest {
-        top: 16px;
-        right: 16px;
-        max-width: 320px;
-      }
-
-      #hud-quest h2 {
-        font-size: 14px;
-        color: #3fb950;
-        margin-bottom: 6px;
-      }
-
-      #hud-quest ul {
-        list-style: none;
-        font-size: 12px;
-        color: #c9d1d9;
-      }
-
-      #hud-quest li {
-        margin-bottom: 4px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-
-      .badge {
-        display: inline-block;
-        padding: 2px 6px;
-        border-radius: 4px;
-        font-size: 10px;
-        font-weight: bold;
-        text-transform: uppercase;
-      }
-
-      .badge-p0 {
-        background: rgba(248, 81, 73, 0.2);
-        color: #ff7b72;
-        border: 1px solid rgba(248, 81, 73, 0.4);
-      }
-
-      .badge-ok {
-        background: rgba(63, 185, 80, 0.2);
-        color: #3fb950;
-        border: 1px solid rgba(63, 185, 80, 0.4);
-      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body { width: 100%; height: 100%; overflow: hidden; background: #e5e9d8; color: #e6edf3; font-family: 'Segoe UI', Arial, sans-serif; }
+      #game-wrapper { position: relative; width: 100vw; height: 100vh; }
+      #game-container, #three-container, #ui-container { position: absolute; inset: 0; }
+      #three-container canvas { display: block; width: 100%; height: 100%; }
+      #ui-container { pointer-events: none; z-index: 5; }
+      #game-wrapper::after { content: ''; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 100px 10px #56726720; z-index: 2; }
+      body { user-select: none; -webkit-user-select: none; }
     </style>
   </head>
   <body>
-    <div id="game-wrapper">
+    <main id="game-wrapper" aria-label="Зареченск, Садовый квартал">
       <div id="game-container"></div>
       <div id="three-container"></div>
-      <div id="ui-container">
-        <header id="hud-status" class="hud-panel">
-          <h1>PROJECT SENTINEL</h1>
-          <p>Phaser 3 &bull; Three.js &bull; WebGL &bull; HTML5</p>
-        </header>
-        <section id="hud-quest" class="hud-panel">
-          <h2>Active Mission</h2>
-          <ul>
-            <li><span class="badge badge-p0">P0</span> Restore Municipal Sentinel Robot</li>
-            <li><span class="badge badge-ok">SYS</span> Navigation &amp; Engine Online</li>
-          </ul>
-        </section>
-      </div>
-    </div>
+      <div id="ui-container"></div>
+      <div id="asset-status" class="asset-load-status" role="status">Зареченск просыпается…</div>
+    </main>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

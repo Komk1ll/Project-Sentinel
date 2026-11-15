@@ -1,0 +1,17 @@
+{
+  "sky": 7837868,
+  "sun": 16761738,
+  "sunIntensity": 2.1,
+  "interiorIntensity": 2.3,
+  "ambientSky": 11258339,
+  "ambientGround": 7172182,
+  "ambientIntensity": 1,
+  "fill": 10995164,
+  "fillIntensity": 0.35,
+  "exposure": 1.1,
+  "sunOffset": [
+    -45,
+    38,
+    -28
+  ]
+}

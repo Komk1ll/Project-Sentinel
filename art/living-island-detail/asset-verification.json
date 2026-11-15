@@ -1,0 +1,160 @@
+{
+  "payload": 3876432,
+  "requests": 13,
+  "files": [
+    {
+      "path": "/assets/models/polish-v4/master.glb",
+      "bytes": 202288,
+      "sha256": "efb8815e3f38a55fe5bc29aaf4cafc5171ddc90fd7b42342677c418547132466"
+    },
+    {
+      "path": "/assets/models/polish-v4/hero.glb",
+      "bytes": 190140,
+      "sha256": "dadb62df8088627b56402ddc0b5b13ee45e2b7014c351fa52830313c71713462"
+    },
+    {
+      "path": "/assets/models/web-mvp/house-base.glb",
+      "bytes": 99860,
+      "sha256": "36bd8918e422bcb7c35a6b5df50547b1ce51849682a4b356597c7144b4a85637"
+    },
+    {
+      "path": "/assets/models/web-mvp/clinic.glb",
+      "bytes": 150156,
+      "sha256": "3d534199613a45ec5856546c3649e02c79ffebf431c9ef3fa11bd266c029e092"
+    },
+    {
+      "path": "/assets/models/polish-v4/medic.glb",
+      "bytes": 176740,
+      "sha256": "b3812c839479c1c05039dd984ff4c2788f70260accbd99c6023c26c2a52da64f"
+    },
+    {
+      "path": "/assets/models/web-mvp/bench.glb",
+      "bytes": 14184,
+      "sha256": "9cf165f67037e35b67e2630ef20aa9f1d43a18fac00981f34a3cff4db658fbe1"
+    },
+    {
+      "path": "/assets/models/island-detail/tree.glb",
+      "bytes": 70936,
+      "sha256": "4683ccd4824fad4816da7dff1719da0436e15018536fec5eeb39bce7a36c6d64"
+    },
+    {
+      "path": "/assets/models/web-mvp/aid-kit.glb",
+      "bytes": 16608,
+      "sha256": "04a1134fef3b24d549b3e2bb53194870bdffa1b37bd213fb323e8c812c966222"
+    },
+    {
+      "path": "/assets/models/cozy/resident.glb",
+      "bytes": 188676,
+      "sha256": "3ec1da23b6c1a91f473200dd5471de146a06371c1c386a734941250d85fb346f"
+    },
+    {
+      "path": "/assets/models/polish-v4/workshop.glb",
+      "bytes": 288472,
+      "sha256": "f72b86c86ae01a97e5381aef6babe2babc2ff2f1f41e27f838690315b6f569b5"
+    },
+    {
+      "path": "/assets/models/island-detail/architecture-details.glb",
+      "bytes": 568832,
+      "sha256": "5ac088276dd223649aede29cda5d3485bd36a92eab0150e26603f6dfed660a0a"
+    },
+    {
+      "path": "/assets/models/cozy/interior-clinic.glb",
+      "bytes": 719436,
+      "sha256": "9a5d8eda17500769155da8c32fb6cc0195c29f89fd39baa1bf1b6b56b1916abd"
+    },
+    {
+      "path": "/assets/models/cozy/interior-station.glb",
+      "bytes": 1190104,
+      "sha256": "3278290f04878651391125b43e72b21c42afc56a4c0bbac7d8aa578a87fb8a47"
+    }
+  ],
+  "groups": {
+    "detail-bakery": {
+      "triangles": 892,
+      "meshes": 4,
+      "materials": 4
+    },
+    "detail-cafe": {
+      "triangles": 1036,
+      "meshes": 4,
+      "materials": 4
+    },
+    "detail-clinic": {
+      "triangles": 1264,
+      "meshes": 3,
+      "materials": 3
+    },
+    "detail-grocery": {
+      "triangles": 520,
+      "meshes": 4,
+      "materials": 4
+    },
+    "detail-home-1": {
+      "triangles": 844,
+      "meshes": 4,
+      "materials": 4
+    },
+    "detail-home-3": {
+      "triangles": 1036,
+      "meshes": 4,
+      "materials": 4
+    },
+    "detail-home-7": {
+      "triangles": 1036,
+      "meshes": 4,
+      "materials": 4
+    },
+    "detail-library": {
+      "triangles": 1036,
+      "meshes": 4,
+      "materials": 4
+    },
+    "detail-post": {
+      "triangles": 892,
+      "meshes": 4,
+      "materials": 4
+    },
+    "detail-station": {
+      "triangles": 184,
+      "meshes": 3,
+      "materials": 3
+    },
+    "detail-townhall": {
+      "triangles": 1456,
+      "meshes": 4,
+      "materials": 4
+    },
+    "tree-birch": {
+      "triangles": 732,
+      "meshes": 2,
+      "materials": 2
+    },
+    "tree-oak": {
+      "triangles": 648,
+      "meshes": 2,
+      "materials": 2
+    },
+    "tree-pine": {
+      "triangles": 416,
+      "meshes": 2,
+      "materials": 2
+    }
+  },
+  "scene": {
+    "meshes": 446,
+    "triangles": 158001,
+    "bytes": 3202280,
+    "source": "Actual runtime scene; canvas signs omitted; water PBR approximation; custom WebGL shaders not evaluated",
+    "browserVerified": false
+  },
+  "checks": [
+    "actual GLTFLoader decode",
+    "source hashes",
+    "finite vertices and unit normals",
+    "nondegenerate triangles",
+    "entry clearance",
+    "hero and tree metre scale",
+    "payload and scene budgets"
+  ],
+  "browserVerified": false
+}

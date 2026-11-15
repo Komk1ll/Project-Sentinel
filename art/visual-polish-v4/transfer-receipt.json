@@ -1,0 +1,8 @@
+{
+  "remote_run": "web-assets-a843ca74d703",
+  "archive_sha256": "17ef30e9b99ca3d4bcfd0f6915f2bb70c907394021036a8014ee38c856436300",
+  "transfer_verified": true,
+  "generator": "build_visual_polish_study.py",
+  "generator_sha256": "fc81c354dd7f2ad183f4be6d6e87e05a286393439e84f15c683f2ac5f97f353d",
+  "helper_sha256": "1d10f4de6683a3bbf70df965d560f1731dc6f2ad149d876841a95d880a48224a"
+}
